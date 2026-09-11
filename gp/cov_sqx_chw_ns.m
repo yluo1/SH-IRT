@@ -1,12 +1,13 @@
 function [K, dK_dsigma, dK_dell, dK_dgamma] = cov_sqx_chw_ns(X, Y, sigma, ell, gamma)
-%Compute chordal distance squared-exponential with non-stationary wavelength covariance matrix
+%Compute chordal distance squared exponential with non-stationary wavelength covariance matrix
 
 %K =  sigma^2  * lambda_x^(1/2) * lambda_y^(1/2) * ((lambda_x^2 + lambda_y^2 ) / 2)^(-1/2) 
 %  *  exp(-d(theta_x, phi_x, theta_y, phi_y)^2 / ( (lambda_x^2 + lambda_y^2) / 2) )
 
 %theta:      Co-latitude [0, pi]
 %phi:        Azimuth [0, 2 * pi)
-%lambda:     Scaled wavelength (ell * unscaled_lambda^gamma) (0, inf)
+%sigma:      Standard deviation for covariance scaling
+%lambda:     Scaled wavelength (lambda = ell * unscaled_lambda^gamma) (0, inf)
 
 %Author: Yuancheng Luo, 2026
 
@@ -16,8 +17,8 @@ function [K, dK_dsigma, dK_dell, dK_dgamma] = cov_sqx_chw_ns(X, Y, sigma, ell, g
 %Y:        [NY x 3]  Row-matrix of [unscaled_lambda_y, theta_y, phi_y]
 
 %sigma:    Scalar, covariance scaling hyperparameter
-%ell:      Scalar, wavelength scale hyperparameter
-%gamma:    Scalar, wavelength power hyperparameter
+%ell:      Scalar, velocity hyperparameter
+%gamma:    Scalar, frequency power hyperparameter
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output

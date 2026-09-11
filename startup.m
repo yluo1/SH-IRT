@@ -1,3 +1,5 @@
+%Add sub-folder paths
+
 addpath('sh');
 addpath('ft');
 addpath('tst');

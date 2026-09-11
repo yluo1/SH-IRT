@@ -32,7 +32,7 @@ function [C, t] = sh_ism(max_src_odr, max_rec_odr, is_real, T, s, r, l, gamma_po
 %options.mode_enc:              String, encoding mode {'proj', 'proj_msq'}
 %                                   'proj':         kernel projection onto SH
 %                                   'proj_msq':     magnitude squared kernel projection onto SH
-%                                   'proj_msq_mex': magnitude squared kernel projection onto SH, mex version
+%                                   'proj_msq_mex': magnitude squared kernel projection onto SH, mex version sh_enc_proj_msq_mex
  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
