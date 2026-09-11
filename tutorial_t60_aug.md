@@ -1,13 +1,15 @@
 # Tutorial: Spatial Room Impulse Response T60 Augmentation
 
-
-
 ## Sampling T60 Functions from Gaussian Processes
 We can sample smooth T60 functions $T_{60}(\omega, \theta, \phi)$ of frequency and spherical coordinates from Gaussian processes distributions.
 
+### Mean Function Prior Specifications
+
+### Covariance Function Prior Specifications
+
 We can construct positive semi-definite covariance functions from chordal distances of spherical coordinates $(\theta, \phi)$, $(\theta’, \phi’)$ and there corresponding unit-directions  $\bf{v}$, $\bf{v}'$  on the unit sphere given by 
 
-$$d(\theta, \phi, \theta', \phi') = 2 \sin \left ( \frac{ \left | \cos^{-1} (\bf{v}^T \bf{v}') \right |   }{2} \right ).$$
+$$d(\theta, \phi, \theta', \phi') = 2 \sin \left ( \frac{ \left | \, \cos^{-1} (\bf{v}^T \bf{v}') \right |   }{2} \right ).$$
 
 The squared exponential of chordal distance and non-stationary frequency is positive semi-definite and given by
 
@@ -20,4 +22,25 @@ gp_plt('cov_sqx_chw_ns');
 ```
 <img src="./figs/figs_t60/cov_sqx_chw_ns_1.png" alt="Squared Exponential Chordal Distance with Non-stationary Frequency" width="1200"/>
 
-where the maximum covariances occur at $\lambda = \ell / f_0^{\gamma}$ for varying $\lambda' = \ell / f_1^{\gamma}$.
+where the maximum covariances occur at $\lambda = \ell / f_0^{\gamma}$ for varying $\lambda' = \ell / f_1^{\gamma}$. The covariance function’s shape follows
+
+* T60 at frequency $f_0$ covaries more with lower frequencies than with higher frequencies given the same angular separation.
+* T60s at lower frequencies are smoother than at higher frequencies.
+
+
+We can compare with the product of squared exponential of chordal distance and squared exponential of log-frequency distances given by
+
+$$k(\bf{x},\bf{x}') = \sigma^2 \exp \left (  - \frac{d^2(\theta, \phi, \theta', \phi') }{2 \ell_c^2}  \right )  \exp \left (  - \frac{(log(f) - log(f'))^2 }{2 \ell_f^2}  \right ) ,$$
+
+where $\ell_c$, $\ell_f$ are length-scale hyper-parameters of the chordal and log-frequency distances respectively. Therefore, the covariance function I stationary w.r.t. the chordal and log-frequency distances as shown in the following figure:
+
+```
+gp_plt('cov_sqx_chw_sqx');
+```
+<img src="./figs/figs_t60/cov_sqx_chw_sqx_1.png" alt="Squared Exponential Chordal Distance x  Squared Exponential of Log-Frequency" width="1200"/>
+
+where frequency $f = f_0$ for varying $f' = f_1$. Unlike the non-stationary covariance, the low and high frequencies covary only by their octave separation, and are independent of the absolute frequency.
+
+## Realizing Time-varying Exponentiating Filters
+
+## Room Impulse Response Generation and Augmentation

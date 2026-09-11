@@ -6,7 +6,7 @@ function [pass, pass_list] = tst_gp_check_grads(cov_name, options)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
-%cov_name:          String, covariance function name {'cov_sqx_chw_ns', 'cov_sqx_chw'}
+%cov_name:          String, covariance function name {'cov_sqx_chw_ns', 'cov_sqx_chw_sqx', 'cov_sqx_chw'}
 
 %options:           Struct
 %options.rseed:     Random seed
@@ -19,11 +19,12 @@ function [pass, pass_list] = tst_gp_check_grads(cov_name, options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: Test gradients for various covariance functions
 
-%tst_gp_check_grads('cov_sqx_chw_ns')
-%tst_gp_check_grads('cov_sqx_chw')
+%pass = tst_gp_check_grads('cov_sqx_chw_ns')
+%pass = tst_gp_check_grads('cov_sqx_chw_sqx')
+%pass = tst_gp_check_grads('cov_sqx_chw')
 
 arguments
-    cov_name (1,:) char {mustBeMember(cov_name, {'cov_sqx_chw_ns', 'cov_sqx_chw'})} = 'cov_sqx_chw_ns';
+    cov_name (1,:) char {mustBeMember(cov_name, {'cov_sqx_chw_ns', 'cov_sqx_chw_sqx', 'cov_sqx_chw'})} = 'cov_sqx_chw_ns';
 
     options.rseed (1,1) double {mustBePositive, mustBeInteger} = 213;
 end
@@ -38,11 +39,25 @@ if strcmp(cov_name, 'cov_sqx_chw_ns')
     ell = 5.3;
     gamma = 1.2;
 
-    [grad_check_sigma, err_sigma] = checkGradients(@(x) func_grad_test_cov_sqx_chw_ns_sigma(x, X, ell, gamma), sigma, 'Display', 'on')
-    [grad_check_ell, err_sigma] = checkGradients(@(x) func_grad_test_cov_sqx_chw_ns_ell(x, X, sigma, gamma), ell , 'Display', 'on')
-    [grad_check_gamma, err_gamma] = checkGradients(@(x) func_grad_test_cov_sqx_chw_ns_gamma(x, X, ell, sigma), gamma , 'Display', 'on')
+    [grad_check_sigma] = checkGradients(@(x) func_grad_test_cov_sqx_chw_ns_sigma(x, X, ell, gamma), sigma, 'Display', 'on')
+    [grad_check_ell] = checkGradients(@(x) func_grad_test_cov_sqx_chw_ns_ell(x, X, sigma, gamma), ell , 'Display', 'on')
+    [grad_check_gamma] = checkGradients(@(x) func_grad_test_cov_sqx_chw_ns_gamma(x, X, ell, sigma), gamma , 'Display', 'on')
     
     pass_list = [grad_check_sigma, grad_check_ell, grad_check_gamma];
+
+elseif strcmp(cov_name, 'cov_sqx_chw_sqx')
+
+    N = 10;
+    X = [logspace(log10(50), log10(24000), N)', rand(N, 1) * pi, rand(N, 1) * 2 * pi];
+    sigma = 0.4;
+    ell_c = 5.3;
+    ell_f = 2.3;
+
+    [grad_check_sigma] = checkGradients(@(x) func_grad_test_cov_sqx_chw_sqx_sigma(x, X, ell_c, ell_f), sigma, 'Display', 'on')
+    [grad_check_ell_c] = checkGradients(@(x) func_grad_test_cov_sqx_chw_sqx_ell_c(x, X, sigma, ell_f), ell_c , 'Display', 'on')
+    [grad_check_ell_f] = checkGradients(@(x) func_grad_test_cov_sqx_chw_sqx_ell_f(x, X, sigma, ell_c), ell_f , 'Display', 'on')
+    
+    pass_list = [grad_check_sigma, grad_check_ell_c, grad_check_ell_f];
 
 elseif strcmp(cov_name, 'cov_sqx_chw')
 
@@ -51,8 +66,8 @@ elseif strcmp(cov_name, 'cov_sqx_chw')
     sigma = 0.4;
     ell = 5.3;
 
-    [grad_check_sigma, err_sigma] = checkGradients(@(x) func_grad_test_cov_sqx_chw_sigma(x, X, ell), sigma, 'Display', 'on')
-    [grad_check_ell, err_sigma] = checkGradients(@(x) func_grad_test_cov_sqx_chw_ell(x, X, sigma), ell , 'Display', 'on')
+    [grad_check_sigma] = checkGradients(@(x) func_grad_test_cov_sqx_chw_sigma(x, X, ell), sigma, 'Display', 'on')
+    [grad_check_ell] = checkGradients(@(x) func_grad_test_cov_sqx_chw_ell(x, X, sigma), ell , 'Display', 'on')
     
     pass_list = [grad_check_sigma, grad_check_ell];
 
@@ -90,6 +105,36 @@ function [fval, grad] = func_grad_test_cov_sqx_chw_ns_gamma(gamma, X, ell, sigma
 K_regu = K + eye(size(K, 1));
 fval = log(det(K_regu));
 grad = trace(K_regu \ dK_dgamma);
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Covariance function: cov_sqx_chw_sqx.m
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [fval, grad] = func_grad_test_cov_sqx_chw_sqx_sigma(sigma, X, ell_c, ell_f)
+%fval = log(deg(K + eye(size(K, 1)))
+
+[K, dK_dsigma] = cov_sqx_chw_sqx(X, X, sigma, ell_c, ell_f);
+K_regu = K + eye(size(K, 1));
+fval = log(det(K_regu));
+grad = trace(K_regu \ dK_dsigma);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [fval, grad] = func_grad_test_cov_sqx_chw_sqx_ell_c(ell_c, X, sigma, ell_f)
+%fval = log(deg(K + eye(size(K, 1)))
+
+[K, ~, dK_dell_c] = cov_sqx_chw_sqx(X, X, sigma, ell_c, ell_f);
+K_regu = K + eye(size(K, 1));
+fval = log(det(K_regu));
+grad = trace(K_regu \ dK_dell_c);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [fval, grad] = func_grad_test_cov_sqx_chw_sqx_ell_f(ell_f, X, sigma, ell_c)
+%fval = log(deg(K + eye(size(K, 1)))
+
+[K, ~, ~, dK_dell_f] = cov_sqx_chw_sqx(X, X, sigma, ell_c, ell_f);
+K_regu = K + eye(size(K, 1));
+fval = log(det(K_regu));
+grad = trace(K_regu \ dK_dell_f);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

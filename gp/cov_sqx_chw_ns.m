@@ -1,5 +1,5 @@
 function [K, dK_dsigma, dK_dell, dK_dgamma] = cov_sqx_chw_ns(X, Y, sigma, ell, gamma)
-%Compute chordal distance squared exponential with non-stationary wavelength covariance matrix
+%Compute squared exponential of chordal distance with non-stationary wavelength covariance matrix
 
 %K =  sigma^2  * lambda_x^(1/2) * lambda_y^(1/2) * ((lambda_x^2 + lambda_y^2 ) / 2)^(-1/2) 
 %  *  exp(-d(theta_x, phi_x, theta_y, phi_y)^2 / ( (lambda_x^2 + lambda_y^2) / 2) )

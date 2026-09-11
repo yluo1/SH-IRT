@@ -1,7 +1,7 @@
 function [K, dK_dsigma, dK_dell] = cov_sqx_chw(X, Y, sigma, ell)
-%Compute chordal distance square exponential
+%Compute square exponential of chordal distance
 
-%K =  sigma^2  *  exp(-d(theta_x, phi_x, theta_y, phi_y)^2 / ( 2 * ell^2 )
+%K =  sigma^2  *  exp(-d(theta_x, phi_x, theta_y, phi_y)^2 / ( 2 * ell^2 ))
 
 %theta:      Co-latitude [0, pi]
 %phi:        Azimuth [0, 2 * pi)
