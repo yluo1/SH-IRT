@@ -8,4 +8,4 @@ startup
 ```
 ## Tutorials
 
-<a href=“./tutorial_t60_aug.md”>Spatial room impulse response T60 augmentation</a>
+[Spatial room impulse response T60 augmentation](tutorial_t60_aug.md)
