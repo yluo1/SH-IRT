@@ -6,10 +6,6 @@ Add sub-folders to search path in Matlab command line:
 ```
 startup
 ```
+## Tutorials
 
-## Spherical Harmonic Functions
-
-## Filter Functions
-
-## Gaussian Process T60 Sampling
-We can sample smooth T60 functions $T_{60}(\omega, \theta, \phi)$ of frequency and spherical coordinates from Gaussian processes distributions.
+<a href=“./tutorial_t60_aug.md”>Spatial room impulse response T60 augmentation</a>

@@ -1,4 +1,4 @@
-# Tutorial: T60 Reverberation Augmentation
+# Tutorial: Spatial Room Impulse Response T60 Augmentation
 
 
 
@@ -10,7 +10,8 @@ We can construct positive semi-definite covariance functions from chordal distan
 $$d(\theta, \phi, \theta', \phi') = 2 \sin \left ( \frac{ \left | \cos^{-1} (\bf{v}^T \bf{v}') \right |   }{2} \right ).$$
 
 The squared exponential of chordal distance and non-stationary frequency is positive semi-definite and given by
-$$k(\bf{x},\bf{x}') = \sigma^2 \sqrt{\frac{2 \lambda \lambda'}{\lambda + (\lambda')^2}} \exp \left (  - \frac{d^2(\theta, \phi, \theta', \phi') }{(\lambda^2 + (\lambda')^2) / 2}  \right ), $$
+
+$$k(\bf{x},\bf{x}') = \sigma^2 \sqrt{\frac{2 \lambda \lambda'}{\lambda + (\lambda')^2}} \exp \left (  - \frac{d^2(\theta, \phi, \theta', \phi') }{(\lambda^2 + (\lambda')^2) / 2}  \right ),$$
 
 where $\lambda = \ell / f^{\gamma}$ is the scaled wavelength for velocity $\ell$ (m/s), ordinary frequency $f = \angle \omega / (2 \pi)$ (Hz), and power $\gamma$. Increasing the hyper-parameter $\gamma$ decreases the covariance between low and high frequencies of the T60 functions. Therefore, larger $\gamma$ decreases smoothness in high frequency as shown in the following figure:
 
