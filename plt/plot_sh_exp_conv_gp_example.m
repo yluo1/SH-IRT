@@ -24,7 +24,7 @@ C = sh_rand(max_odr, M, is_real, is_real_dec);
 %Specify GP mean and coariance priors
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 options_mu  = gp_mu_opts('mu_func', 'power', 'mu_alpha', 0.5, 'mu_beta', 0); %Constant T60 = 0.5
-options_cov = gp_cov_opts('cov_sigma', 0.25, 'cov_gamma', 0.53, 'cov_ell', 343 * 1);
+options_cov = gp_cov_opts('cov_sigma', 0.25, 'cov_gamma', 0.6, 'cov_ell', 343 * 1);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %Sample from prior mean multivariate distribution
@@ -135,7 +135,7 @@ if ~isfolder(out_dir)
     mkdir(out_dir);
 end
 
-exportgraphics(h_fig_gp, fullfile(out_dir, 'sample_sh_exp_conv_gp_T60.png'));
-for n = 1:N_cust
-    exportgraphics(h_f_cust_dec{n} , fullfile(out_dir, ['sample_sh_exp_conv_spec_', num2str(n), '.png']));
-end
+% exportgraphics(h_fig_gp, fullfile(out_dir, 'sample_sh_exp_conv_gp_T60.png'));
+% for n = 1:N_cust
+%     exportgraphics(h_f_cust_dec{n} , fullfile(out_dir, ['sample_sh_exp_conv_spec_', num2str(n), '.png']));
+% end

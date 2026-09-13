@@ -20,15 +20,18 @@ function [options_cov, lmh] = gp_t60_optimize(obs, options)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage:
+
 % rng(1278);
-% N_S = 200;
+% N_S = 20;
 % [theta, phi] = sh_fib(N_S);
-% omega = 1000 * 2 * pi * ones(N_S, 1);
+% omega = 2 * pi * (1000 * rand(N_S, 1) + 50);
 % T60 = rand(N_S, 1) * 0.1 + 0.5;
 % log_noise_std = ones(N_S ,1) * 0.01; %1 percent
-% obs = gp_obs_opts('omega', omega, 'theta', theta, 'phi', phi, 'T60', T60, 'log_noise_std', log_noise_std);
 
-%gp_t60_optimize(obs);
+% obs = gp_obs_opts('omega', omega, 'theta', theta, 'phi', phi, 'T60', T60, 'log_noise_std', log_noise_std);
+% gp_t60_optimize(obs);
+
+% gp_t60_optimize(obs, 'options_cov', gp_cov_opts('cov_func', 'cov_sqx_chw_sqx'));
 
 arguments
 
@@ -40,7 +43,7 @@ arguments
     options.options_cov = gp_cov_opts;
 
     options.options_fmincon = optimoptions("fmincon", SpecifyObjectiveGradient=true, Display="iter", checkGradients=false, ...
-        MaxIterations=1000);
+        MaxIterations=100);
 
     %Display
     options.enable_disp (1,1) logical = false;
@@ -52,9 +55,8 @@ options_cov = options.options_cov;
 
 %Setup input set {X, y}
 freq_obs = max(1, obs.omega / (2 * pi) ); %[N_S x 1]
-lambda_obs = 1 ./ freq_obs;
-X = [lambda_obs(:), obs.theta(:), obs.phi(:)];
-y = log(obs.T60) - log(gp_mu(lambda_obs(:), options.options_mu));
+X = [2 * pi * freq_obs(:), obs.theta(:), obs.phi(:)];
+y = log(obs.T60) - log(gp_mu(2 * pi * freq_obs(:), options.options_mu));
 
 %Get number of parameters
 [~, ~, dK_name_list] = gp_cov(X, X, options_cov);
@@ -99,7 +101,9 @@ K = K + diag(log_noise_std.^2);
 
 %Compute negative log-marginal likelihood
 a = K \ y;
-fval = 1/2 * (y'*a + log(det(K)) + numel(y) * log(2*pi) );
+
+%fval = 1/2 * (y'*a + log(det(K)) + numel(y) * log(2*pi) );
+fval = 1/2 * (y'*a + sum(log(eig(K))) + numel(y) * log(2*pi) );
 
 %Compute partial derivative w.r.t. each variable
 grad = zeros(N_params, 1);

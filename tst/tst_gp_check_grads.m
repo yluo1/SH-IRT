@@ -34,7 +34,7 @@ rng(options.rseed);
 if strcmp(cov_name, 'cov_sqx_chw_ns')
 
     N = 10;
-    X = [1 ./ (1:N)', rand(N, 1) * pi, rand(N, 1) * 2 * pi];
+    X = [2 * pi * (1:N)', rand(N, 1) * pi, rand(N, 1) * 2 * pi];
     sigma = 0.4;
     ell = 5.3;
     gamma = 1.2;
@@ -48,7 +48,7 @@ if strcmp(cov_name, 'cov_sqx_chw_ns')
 elseif strcmp(cov_name, 'cov_sqx_chw_sqx')
 
     N = 10;
-    X = [logspace(log10(50), log10(24000), N)', rand(N, 1) * pi, rand(N, 1) * 2 * pi];
+    X = [2 * pi * logspace(log10(50), log10(24000), N)', rand(N, 1) * pi, rand(N, 1) * 2 * pi];
     sigma = 0.4;
     ell_c = 5.3;
     ell_f = 2.3;

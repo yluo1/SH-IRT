@@ -70,8 +70,10 @@ VY = zeros([NY, 3]);
 [VY(:,1), VY(:,2), VY(:,3)] = sph2cart( Y(:,2), pi/2 - Y(:,1), ones(NY, 1) );
 
 %Compute distance
-D = 2 * sin(abs( acos(max(min(VX * VY', 1), -1) )  ) / 2);
-D_sq = D.^2;
+%D = 2 * sin(abs( acos(max(min(VX * VY', 1), -1) )  ) / 2);
+%D = pdist2(VX, VY);
+%D_sq = D.^2;
+D_sq = pdist2(VX, VY, 'squaredeuclidean');
 
 %Squared exponential term
 xterm = exp( - D_sq ./ (2 * ell^2) );

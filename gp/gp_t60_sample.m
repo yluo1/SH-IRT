@@ -76,11 +76,10 @@ assert(numel(theta) == numel(phi), 'theta, phi size mismatch');
 
 %Compute evaluation grid
 freq = max(1, omega / (2 * pi)); %[N_B x 1]
-lambda = 1 ./ freq; %Unscaled wavelength
-lambda_grid = repmat(lambda, [1, N_E]);
+freq_grid = repmat(freq, [1, N_E]);
 theta_grid  = repmat(theta', [N_B, 1]);
 phi_grid    = repmat(phi', [N_B, 1]);
-X = [lambda_grid(:), theta_grid(:), phi_grid(:)]; %[N_B * N_E x 1]
+X = [2 * pi * freq_grid(:), theta_grid(:), phi_grid(:)]; %[N_B * N_E x 1]
 
 %Check observations
 has_obs = ~isempty(obs);
@@ -104,8 +103,7 @@ if strcmp(options.sample_method, 'mvnrnd') %Sample from multivariate gaussian
         assert(all([numel(obs.omega), numel(obs.theta), numel(obs.phi), numel(obs.T60), numel(obs.log_noise_std)] == N_S), 'obs fields mismatch');
     
         freq_obs = max(1, obs.omega / (2 * pi) ); %[N_S x 1]
-        lambda_obs = 1 ./ freq_obs;
-        X_obs = [lambda_obs(:), obs.theta(:), obs.phi(:)];
+        X_obs = [2 * pi * freq_obs(:), obs.theta(:), obs.phi(:)];
         
         Sigma_obs = gp_cov(X_obs, X_obs, options.options_cov); %[N_S x N_S]
         KXobs     = gp_cov(X, X_obs, options.options_cov);  %[N_B * N_E x N_S]
@@ -165,8 +163,7 @@ elseif strcmp(options.sample_method, 'mean')   %Sample from mean
         assert(all([numel(obs.omega), numel(obs.theta), numel(obs.phi), numel(obs.T60), numel(obs.log_noise_std)] == N_S), 'obs fields mismatch');
     
         freq_obs = max(1, obs.omega / (2 * pi) ); %[N_S x 1]
-        lambda_obs = 1 ./ freq_obs;
-        X_obs = [lambda_obs(:), obs.theta(:), obs.phi(:)];
+        X_obs = [2 * pi * freq_obs(:), obs.theta(:), obs.phi(:)];
         
         Sigma_obs = gp_cov(X_obs, X_obs, options.options_cov); %[N_S x N_S]
         KXobs     = gp_cov(X, X_obs, options.options_cov);  %[N_B * N_E x N_S]

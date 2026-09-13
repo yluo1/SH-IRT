@@ -56,21 +56,19 @@ end
 
 if strcmp(cov_name, 'cov_sqx_chw_ns')
 
-    N_lambda = 600;
+    N_freq = 600;
     N_theta_phi = 400; 
 
     f_0_list = options.cov_sqx_chw_ns_f_0_list;
     f_lo = options.cov_sqx_chw_ns_f_lo;
     f_hi = options.cov_sqx_chw_ns_f_hi;
 
-    freq_list = logspace(log10(f_lo), log10(f_hi), N_lambda);
-
-    lambda_list = 1 ./ freq_list;
+    freq_list = logspace(log10(f_lo), log10(f_hi), N_freq);
     phi_list = linspace(0, pi, N_theta_phi);
     theta = pi / 2;
 
-    [lambda_mat, phi_mat] = meshgrid(lambda_list, phi_list);
-    X = [lambda_mat(:), theta * ones(N_lambda * N_theta_phi, 1), phi_mat(:)];
+    [freq_mat, phi_mat] = meshgrid(freq_list, phi_list);
+    X = [2 * pi * freq_mat(:), theta * ones(N_freq * N_theta_phi, 1), phi_mat(:)];
 
 
     %Hyperparameters
@@ -101,7 +99,7 @@ if strcmp(cov_name, 'cov_sqx_chw_ns')
     %Iterate over f0 
     for m = 1:N_f_0 
 
-        X0 = [1 ./ f_0_list(m), theta,  phi_list(1)];
+        X0 = [2 * pi * f_0_list(m), theta,  phi_list(1)];
 
         for i = 1:N_ell %Iterate over wavelength scale
             ell = ell_list(i);
@@ -113,10 +111,10 @@ if strcmp(cov_name, 'cov_sqx_chw_ns')
                 
                 %Compute covariance
                 K = cov_sqx_chw_ns(X, X0, sigma, ell, gamma);    
-                K_phi_lambda = reshape(K, [N_theta_phi, N_lambda]);
+                K_phi_freq = reshape(K, [N_theta_phi, N_freq]);
     
                 
-                h_pc = pcolor(freq_list, rad2deg(phi_list), mag2db(K_phi_lambda));
+                h_pc = pcolor(freq_list, rad2deg(phi_list), mag2db(K_phi_freq));
                 set(h_pc, 'EdgeColor', 'none');
                 set(h_pc, 'FaceColor', options.FaceColor);
                 set(gca, 'XScale', 'log');
@@ -156,7 +154,7 @@ elseif strcmp(cov_name, 'cov_sqx_chw_sqx')
     theta = pi / 2;
 
     [freq_mat, phi_mat] = meshgrid(freq_list, phi_list);
-    X = [freq_mat(:), theta * ones(N_freq * N_theta_phi, 1), phi_mat(:)];
+    X = [2 * pi * freq_mat(:), theta * ones(N_freq * N_theta_phi, 1), phi_mat(:)];
 
 
     %Hyperparameters
@@ -183,7 +181,7 @@ elseif strcmp(cov_name, 'cov_sqx_chw_sqx')
     %Iterate over f0 
     for m = 1:N_f_0 
 
-        X0 = [f_0_list(m), theta,  phi_list(1)];
+        X0 = [2 * pi * f_0_list(m), theta,  phi_list(1)];
 
         for i = 1:N_ell_c %Iterate over chordal distance scale
             ell_c = ell_c_list(i);

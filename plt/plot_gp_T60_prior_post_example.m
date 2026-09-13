@@ -20,15 +20,23 @@ options_cov = gp_cov_opts('cov_sigma', sqrt(2)/2, 'cov_gamma', 2/3, 'cov_ell', 3
 %Setup evaluation grid
 N_B = 128;
 N_E = 1;
-omega = logspace(log10(20), log10(Fs/2), N_B)' * 2 *pi;
+omega = 2 * pi * logspace(log10(20), log10(Fs/2), N_B)';
 [theta, phi] = sh_fib(N_E);
 num_evals = 4; %Sample 4 functions
 
 %Sample function
-rng(21136 + 8);
+rng(21136 + 12);
 [log_T60, h_fig_prior] = gp_t60_sample(omega, theta, phi, num_evals, [], ...
         'options_mu', options_mu, 'options_cov', options_cov, ...
         'enable_disp', true, 'options_disp', gp_disp_opts('disp_ylim', [0, 1.75], 'disp_legend_num_cols', 1));
+
+% for n = 1:20
+%     rng(21136 + n);
+%     n
+%     [log_T60, h_fig_prior] = gp_t60_sample(omega, theta, phi, num_evals, [], ...
+%         'options_mu', options_mu, 'options_cov', options_cov, ...
+%         'enable_disp', true, 'options_disp', gp_disp_opts('disp_ylim', [0, 1.75], 'disp_legend_num_cols', 1));
+% end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Azimuth plane spherical coordinate evaluation grid, sampled once, GP prior
@@ -36,16 +44,23 @@ rng(21136 + 8);
 
 %Setup evaluation grid
 N_B = 64;
-omega = logspace(log10(20), log10(Fs/2), N_B)' * 2 * pi;
+omega = 2 * pi * logspace(log10(20), log10(Fs/2), N_B)';
 phi = deg2rad([0:30:150])';
 theta = pi/2 * ones(numel(phi), 1);
 num_evals = 1; %Sample 1 function
 
 %Sample function
-rng(21136 + 2); 
+rng(11136 + 13); 
 [log_T60, h_fig_prior_grid] = gp_t60_sample(omega, theta, phi, num_evals, [], ...
         'options_mu', options_mu, 'options_cov', options_cov, ...
         'enable_disp', true, 'options_disp', gp_disp_opts('disp_ylim', [0, 0.75], 'disp_legend_loc', 'northeast', 'disp_legend_num_cols',  2));
+
+% for n = 1:20
+%     rng(11136 + n); 
+%     [log_T60, h_fig_prior_grid] = gp_t60_sample(omega, theta, phi, num_evals, [], ...
+%             'options_mu', options_mu, 'options_cov', options_cov, ...
+%             'enable_disp', true, 'options_disp', gp_disp_opts('disp_ylim', [0, 0.75], 'disp_legend_loc', 'northeast', 'disp_legend_num_cols',  2));
+% end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -55,7 +70,7 @@ rng(21136 + 2);
 %Setup evaluation grid
 N_B = 128;
 N_E = 1;
-omega = logspace(log10(20), log10(Fs/2), N_B)' * 2 *pi;
+omega =  2 * pi * logspace(log10(20), log10(Fs/2), N_B)';
 [theta, phi] = sh_fib(N_E);
 
 num_evals = 4; %Sample 4 functions
@@ -72,10 +87,18 @@ obs = gp_obs_opts(  'omega', omega_obs, ...
                     );
 
 %Sample function
-rng(21136 + 9);
+rng(21136 + 18);
 [log_T60, h_fig_post] = gp_t60_sample(omega, theta, phi, num_evals, obs, ...
             'options_mu', options_mu, 'options_cov', options_cov, ...
             'enable_disp', true, 'options_disp', gp_disp_opts('disp_ylim', [0, 1], 'disp_legend_loc', 'northeast', 'disp_legend_num_cols', 1));
+
+% for n = 1:20
+%     rng(21136 + n);
+%     [log_T60, h_fig_post] = gp_t60_sample(omega, theta, phi, num_evals, obs, ...
+%             'options_mu', options_mu, 'options_cov', options_cov, ...
+%             'enable_disp', true, 'options_disp', gp_disp_opts('disp_ylim', [0, 1], 'disp_legend_loc', 'northeast', 'disp_legend_num_cols', 1));
+% 
+% end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Multi-point (2) spherical coordinate evaluation grid, sampled 4 times, GP posterior
@@ -84,7 +107,7 @@ rng(21136 + 9);
 %Setup evaluation grid
 N_B = 128;
 N_E = 2;
-omega = logspace(log10(20), log10(Fs/2), N_B)' * 2 * pi;
+omega = 2 * pi * logspace(log10(20), log10(Fs/2), N_B)';
 [theta, phi] = sh_fib(N_E);
 
 num_evals = 4; %Sample 4 functions
