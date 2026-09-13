@@ -10,7 +10,7 @@ function C = sh_enc_rbf(mode, max_odr, theta, phi, ell, is_real, enable_disp)
 %Unnormalized sinc:                 sin(ell * d) / (ell * d) 
 
 %d is chordal distance between two vectors u, v on unit sphere:
-%d = 2 * sin(|x(u, v)| / 2)     
+%d = 2 * sin(|x(u, v)| / 2)  = norm(u - v)
 
 %For unit sphere, x is a angle between u, v:
 %x(u, v) = acos(u'v), where v = sph2cart(phi, pi/2 - theta) is fixed, u is free

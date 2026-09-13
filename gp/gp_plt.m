@@ -1,35 +1,69 @@
-function h_fig_list = gp_plt(cov_name, options)
-%Plot Gaussian process covariance functions
+function h_fig_list = gp_plt(func_name, options)
+%Plot Gaussian process prior functions
 
 %Author: Yuancheng Luo, 2026
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
-%cov_name:          String, covariance function name {'cov_sqx_chw_ns', 'cov_sqx_chw_sqx'}
+%func_name:         String, prior mean or covariance function name
+%                   {'mu_pow', 'mu_lpf', 'cov_sqx_chw_ns', 'cov_sqx_chw_sqx'}
 
 %options:           Struct
 
-%options.cov_sqx_chw_ns_f_lo:       Scalar, frequency start  (Hz)
-%options.cov_sqx_chw_ns_f_hi:       Scalar, Frequency end (Hz)
-%options.cov_sqx_chw_ns_f_0:        [1 x N_f_0] Frequency f_0 (Hz)
-%optons.cov_sqx_chw_ns_sigma:       Scalar, covariance scaling parameter
-%optons.cov_sqx_chw_ns_ell_list:    [1 x N_ell], list of wavelength scaling
-%optons.cov_sqx_chw_ns_gamma_list:  [1 x N_gamma], list of wavelength exponent
+% options.mu_pow_f_lo:                  Scalar, frequency start (Hz)
+% options.mu_pow_f_hi:                  Scalar, Frequency end (Hz)
+% options.mu_pow_alpha_list:            [1 x N_alpha], list of T60 at 0 Hz
+% options.mu_pow_beta_list:             [1 x N_beta], list of decay exponents
 
-%options.enable_export:             Logical, if true, export figures to files
+% options.mu_lpf_f_lo:                  Scalar, frequency start (Hz)
+% options.mu_lpf_f_hi:                  Scalar, Frequency end (Hz)
+% options.mu_lpf_alpha_list:            [1 x N_alpha], list of T60 at 0 Hz
+% options.mu_lpf_beta_list:             [1 x N_beta], list of decay exponents
+% options.mu_lpf_omega_fc_list:         [1 x N_fc], list of cross-over frequencies
+
+% options.cov_sqx_chw_ns_f_0_list:       [1 x N_f_0] Frequency f_0 (Hz)
+% options.cov_sqx_chw_ns_f_lo:           Scalar, frequency start (Hz)
+% options.cov_sqx_chw_ns_f_hi:           Scalar, Frequency end (Hz)
+% options.cov_sqx_chw_ns_sigma:          Scalar, covariance scaling parameter
+% options.cov_sqx_chw_ns_ell_list:       [1 x N_ell], list of wavelength scaling
+% options.cov_sqx_chw_ns_gamma_list:     [1 x N_gamma], list of wavelength exponents
+% 
+% options.cov_sqx_chw_sqx_f_0_list:      [1 x N_f_0] Frequency f_0 (Hz)
+% options.cov_sqx_chw_sqx_f_lo:          Scalar, frequency start (Hz)
+% options.cov_sqx_chw_sqx_f_hi:          Scalar, Frequency end (Hz)
+% options.cov_sqx_chw_sqx_sigma:         Scalar, covariance scaling parameter
+% options.cov_sqx_chw_sqx_ell_c_list:    [1 x N_ell], list of wavelength scaling
+% options.cov_sqx_chw_sqx_ell_f_list:    [1 x N_gamma], list of wavelength exponents
+% 
+% options.enable_export:                 Logical, if true, export figures to files
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
 %h_fig_list:        [1 x *] cell of figure handles
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Sample usage: Plot covariance function w.r.t. varying hyperparameters
+%Sample usage: Plot function w.r.t. varying hyperparameters
+
+%gp_plt('mu_pow', 'enable_export', true);
+%gp_plt('mu_lpf', 'enable_export', true);
 
 %gp_plt('cov_sqx_chw_ns', 'enable_export', true);
 %gp_plt('cov_sqx_chw_sqx', 'enable_export', true);
 
 arguments
-    cov_name (1,:) char {mustBeMember(cov_name, {'cov_sqx_chw_ns', 'cov_sqx_chw_sqx'})} = 'cov_sqx_chw_ns';
+    func_name (1,:) char {mustBeMember(func_name, {'mu_pow', 'mu_lpf', 'cov_sqx_chw_ns', 'cov_sqx_chw_sqx'})} = 'cov_sqx_chw_ns';
+
+    options.mu_pow_f_lo (1,1) double {mustBePositive} = 50;
+    options.mu_pow_f_hi (1,1) double {mustBePositive}  = 24000;
+    options.mu_pow_alpha_list (1,:) double {mustBeNonnegative} = [0.25, 1, 1.5];
+    options.mu_pow_beta_list (1,:) double = [0, 0.125, 0.25];
+
+    options.mu_lpf_f_lo (1,1) double {mustBePositive} = 50;
+    options.mu_lpf_f_hi (1,1) double {mustBePositive}  = 24000;
+    options.mu_lpf_alpha_list (1,:) double {mustBeNonnegative} = [0.25, 1, 1.5];
+    options.mu_lpf_beta_list (1,:) double  {mustBeNonnegative} = [0, 0.25, 0.5];
+    options.mu_lpf_omega_fc_list (1,:) double = 2 * pi * [50, 500, 5000];
+
 
     options.cov_sqx_chw_ns_f_0_list  (1,:) double {mustBePositive} = [50, 500, 5000];
     options.cov_sqx_chw_ns_f_lo (1,1) double {mustBePositive} = 50;
@@ -38,14 +72,12 @@ arguments
     options.cov_sqx_chw_ns_ell_list (1,:) double {mustBePositive} = 343;
     options.cov_sqx_chw_ns_gamma_list (1,:) double {mustBePositive} =  [0.5, 1, 1.5];
 
-
     options.cov_sqx_chw_sqx_f_0_list  (1,:) double {mustBePositive} = [50, 500, 5000];
     options.cov_sqx_chw_sqx_f_lo (1,1) double {mustBePositive} = 50;
     options.cov_sqx_chw_sqx_f_hi (1,1) double {mustBePositive}  = 24000;
     options.cov_sqx_chw_sqx_sigma (1,1) double {mustBeNonnegative} = 1;
     options.cov_sqx_chw_sqx_ell_c_list (1,:) double {mustBePositive} = [1 2]/2;
     options.cov_sqx_chw_sqx_ell_f_list (1,:) double {mustBePositive} = [2 4]/2;
-
 
     options.fontsize (1,1) double {mustBePositive, mustBeInteger} = 20;
     options.FaceColor (1,:) char {mustBeMember(options.FaceColor, {'flat', 'interp'}) } = 'flat';
@@ -54,7 +86,127 @@ arguments
     options.enable_export (1,1) logical = false;
 end
 
-if strcmp(cov_name, 'cov_sqx_chw_ns')
+if strcmp(func_name, 'mu_pow')
+
+    N_freq = 32;
+    f_lo = options.mu_pow_f_lo;
+    f_hi = options.mu_pow_f_hi;
+    freq_list = logspace(log10(f_lo), log10(f_hi), N_freq);
+    omega = 2 * pi * freq_list;
+       
+    fontsize = options.fontsize - 2;
+
+    alpha_list = options.mu_pow_alpha_list;
+    beta_list = options.mu_pow_beta_list;
+
+    N_alpha = numel(alpha_list);
+    N_beta = numel(beta_list);
+
+    mu_list = zeros([N_freq, N_alpha, N_beta]);
+    for i = 1:N_alpha
+        for j = 1:N_beta
+            mu_list(:, i, j) = mu_pow(omega, alpha_list(i), beta_list(j));
+        end
+    end
+    
+    %Plot
+    h_fig = figure;
+    h_fig.Position = [100, 100, 900, 450];
+    h_fig_list{1} = h_fig;
+
+    line_style_list = {'-', '--', '-.', ':'};
+    marker_style_list = {'*', 'o', 's', 'd'};
+    color_list = orderedcolors("gem");
+    legend_str = {};
+
+    for i = 1:N_alpha
+        for j = 1:N_beta
+            semilogx(freq_list, mu_list(:, i, j), ...
+                'Color', color_list(mod(i-1, size(color_list, 1)) + 1, :), ...
+                'LineStyle', line_style_list{mod(j-1, numel(line_style_list) ) + 1 }, ...
+                'Marker', marker_style_list{mod(j-1, numel(marker_style_list) ) + 1 }, 'MarkerSize', 8, ...
+                'linewidth', 1.5);
+            hold on;
+            legend_str{end+1} = ['$\alpha = $ ', num2str(alpha_list(i)), ', $\beta = $ ', num2str(beta_list(j))];
+        end
+    end
+    ylim([0, max(mu_list(:))]);
+    grid on;
+    axis tight;
+    xlabel('Frequency (Hz)', 'fontsize', fontsize);
+    ylabel('T60 (Seconds)', 'fontsize', fontsize);
+    title('Prior Mean Power Function', 'fontsize', fontsize + 1);
+    set(gca, 'fontsize', fontsize - 1);
+    h_lg = legend(legend_str, 'location', 'best', 'NumColumns', N_alpha, 'interpreter', 'latex');
+    set(h_lg, 'fontsize', fontsize - 1);
+ 
+elseif strcmp(func_name, 'mu_lpf')
+
+    N_freq = 32;
+    f_lo = options.mu_lpf_f_lo;
+    f_hi = options.mu_lpf_f_hi;
+    freq_list = logspace(log10(f_lo), log10(f_hi), N_freq);
+    omega = 2 * pi * freq_list;
+       
+    fontsize = options.fontsize - 2;
+
+    alpha_list = options.mu_lpf_alpha_list;
+    beta_list = options.mu_lpf_beta_list;
+    omega_fc_list =  options.mu_lpf_omega_fc_list;
+
+    N_alpha = numel(alpha_list);
+    N_beta = numel(beta_list);
+    N_fc = numel(omega_fc_list);
+
+    mu_list = zeros([N_freq, N_alpha, N_beta, N_fc]);
+    for i = 1:N_alpha
+        for j = 1:N_beta
+            for k = 1:N_fc
+                mu_list(:, i, j, k) = mu_lpf(omega, alpha_list(i), beta_list(j), omega_fc_list(k));
+            end
+        end
+    end
+    
+    %Plot
+    h_fig = figure;
+    h_fig.Position = [100, 100, 1600, 900];
+    h_fig_list{1} = h_fig;
+
+    line_style_list = {'-', '--', '-.', ':'};
+    marker_style_list = {'*', 'o', 's', 'd'};
+    color_list = orderedcolors("gem");
+    legend_str = {};
+
+    h_t = tiledlayout(1, N_fc);
+    for k = 1:1:N_fc
+        nexttile;
+        for i = 1:N_alpha
+            for j = 1:N_beta
+                semilogx(freq_list, mu_list(:, i, j, k), ...
+                    'Color', color_list(mod(i-1, size(color_list, 1)) + 1, :), ...
+                    'LineStyle', line_style_list{mod(j-1, numel(line_style_list) ) + 1 }, ...
+                    'Marker', marker_style_list{mod(j-1, numel(marker_style_list) ) + 1 }, 'MarkerSize', 8, ...
+                    'linewidth', 1.5);
+                hold on;
+                legend_str{end+1} = ['$\alpha = $ ', num2str(alpha_list(i)), ', $\beta = $ ', num2str(beta_list(j))];
+            end
+        end
+
+        ylim([0, max(mu_list(:))]);
+        grid on;
+        axis tight;
+        xlabel('Frequency (Hz)', 'fontsize', fontsize);
+        ylabel('T60 (Seconds)', 'fontsize', fontsize);
+        title(['$f_c = $ ', num2str(omega_fc_list(k) / (2 * pi) ), ' Hz'], 'fontsize', fontsize + 1, 'interpreter', 'latex');
+        set(gca, 'fontsize', fontsize - 1);
+        h_lg = legend(legend_str, 'location', 'best', 'NumColumns', 1, 'interpreter', 'latex');
+        set(h_lg, 'fontsize', fontsize - 1);
+     
+    end
+
+    title(h_t, 'Prior Mean Low-Pass Function', 'fontsize', fontsize + 1);
+
+elseif strcmp(func_name, 'cov_sqx_chw_ns')
 
     N_freq = 600;
     N_theta_phi = 400; 
@@ -69,7 +221,6 @@ if strcmp(cov_name, 'cov_sqx_chw_ns')
 
     [freq_mat, phi_mat] = meshgrid(freq_list, phi_list);
     X = [2 * pi * freq_mat(:), theta * ones(N_freq * N_theta_phi, 1), phi_mat(:)];
-
 
     %Hyperparameters
     sigma = options.cov_sqx_chw_ns_sigma;
@@ -136,10 +287,10 @@ if strcmp(cov_name, 'cov_sqx_chw_ns')
         end
     end
 
-    title(h_t, 'Squared Exponential Chordal Distance with Non-stationary Frequency', 'fontsize', options.fontsize + 1);
+    title(h_t, 'Squared Exponential Chordal Distance with Non-stationary Frequency Covariance Function', 'fontsize', options.fontsize + 1);
 
 
-elseif strcmp(cov_name, 'cov_sqx_chw_sqx')
+elseif strcmp(func_name, 'cov_sqx_chw_sqx')
 
     N_freq = 600;
     N_theta_phi = 400; 
@@ -218,11 +369,11 @@ elseif strcmp(cov_name, 'cov_sqx_chw_sqx')
         end
     end
 
-    title(h_t, 'Squared Exponential Chordal Distance x Squared Exponential Log-Frequency Distance', 'fontsize', options.fontsize + 1);
+    title(h_t, 'Squared Exponential Chordal Distance x Squared Exponential Log-Frequency Distance Covariance Function', 'fontsize', options.fontsize + 1);
 
 
 else
-    error('Unsupported cov_name');
+    error('Unsupported func_name');
 end
 
 %Export
@@ -233,6 +384,6 @@ if options.enable_export
         mkdir(out_dir);
     end
     for n = 1:numel(h_fig_list)
-        exportgraphics(h_fig_list{n}, fullfile(out_dir, [cov_name, '_', num2str(n), '.png']));
+        exportgraphics(h_fig_list{n}, fullfile(out_dir, [func_name, '_', num2str(n), '.png']));
     end
 end
