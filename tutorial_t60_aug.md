@@ -57,7 +57,7 @@ mu_lpf   = gp_mu(omega, gp_mu_opts('mu_func', 'LPF',   'mu_alpha', 1, 'mu_beta',
 
 We can construct positive semi-definite covariance functions from chordal distances of spherical coordinates $(\theta, \phi)$, $(\theta’, \phi’)$ and there corresponding unit-directions  $\bf{v}$, $\bf{v}'$  on the unit sphere in $\mathbb{R}^3$ given by 
 
-$$d(\theta, \phi, \theta', \phi') = 2 \sin \left ( \frac{ \left | \, \cos^{-1} (\bf{v}^T \bf{v}') \right |   }{2} \right ) = \left \| \bf{v} - \bf{v}'  \right \|_2 .$$
+$$d(\theta, \phi, \theta', \phi') = 2 \sin \left ( \frac{ \left | \cos^{-1} (\bf{v}^T \bf{v}') \right |   }{2} \right ) = \left \| \bf{v} - \bf{v}'  \right \|_2 .$$
 
 The squared exponential of chordal distance with non-stationary kernel wavelengths is therefore a non-stationary Gaussian kernel[^PACIOREK_NS] in 3-dimensions where $\bf{\Sigma} = \lambda^2 \bf{I} \in \mathbb{R}^{3 \times 3}$, and is positive semi-definite following  
 
@@ -78,7 +78,7 @@ where the maximum covariances occur at $\lambda = \ell / f_0^{\gamma}$ for varyi
 
 We compare our non-stationary covariance with the stationary product of squared exponential of chordal distance and squared exponential of log-frequency distances given by
 
-$$k(\bf{x},\bf{x}') = \sigma^2 \exp \left (  - \frac{d^2(\theta, \phi, \theta', \phi') }{2 \ell_c^2}  \right )  \exp \left (  - \frac{(log(f) - log(f'))^2 }{2 \ell_f^2}  \right ) ,$$
+$$k(\bf{x},\bf{x}') = \sigma^2 \exp \left (  - \frac{d^2(\theta, \phi, \theta', \phi') }{2 \ell_c^2}  \right )  \exp \left (  - \frac{ \left | log(f) - log(f') \right | ^2 }{2 \ell_f^2}  \right ) ,$$
 
 where $\ell_c$, $\ell_f$ are length-scale hyper-parameters of the chordal and log-frequency distances respectively. Therefore, the covariance function is stationary w.r.t. the chordal and log-frequency distances as shown in the following figure:
 
