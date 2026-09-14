@@ -140,7 +140,7 @@ We can sample T60 functions from either a GP prior or posterior distribution via
           'options_mu', options_mu, 'options_cov', options_cov, ...
           'enable_disp', true, 'options_disp', gp_disp_opts('disp_ylim', [0, 1.75], 'disp_legend_num_cols', 1));
   ```
-	<img src="./figs/figs_t60/sample_GP_prior.png" alt="Sample T60s drawn from GP prior" width="600"/>
+	<img src="./figs/figs_t60/sample_GP_prior.png" alt="Sample T60s drawn from GP prior" width="480"/>
 
 	where by virtue of modeling log-T60 functions, the variance hyper parameter  $\sigma^2$ belonging to the covariance function is multiplicative w.r.t. the prior mean $\overline{T}_{60}(\omega)$, and the sampled functions are non-negative.
 
@@ -162,7 +162,7 @@ We can sample T60 functions from either a GP prior or posterior distribution via
             'options_mu', options_mu, 'options_cov', options_cov, ...
             'enable_disp', true, 'options_disp', gp_disp_opts('disp_ylim', [0, 0.75], 'disp_legend_loc', 'northeast', 'disp_legend_num_cols',  2));
   ```
-	<img src="./figs/figs_t60/sample_GP_prior_grid.png" alt="Sample T60s drawn from GP prior grid" width="600"/>
+	<img src="./figs/figs_t60/sample_GP_prior_grid.png" alt="Sample T60s drawn from GP prior grid" width="480"/>
 
 	where the T60s highly covary for lower frequencies by virtue of the non-stationary covariance function. 
 
@@ -196,7 +196,7 @@ We can sample T60 functions from either a GP prior or posterior distribution via
               'enable_disp', true, 'options_disp', gp_disp_opts('disp_ylim', [0, 1], 'disp_legend_loc', 'northeast', 'disp_legend_num_cols', 1));
     ```
 	
-	<img src="./figs/figs_t60/sample_GP_post.png" alt="Sample T60s drawn from GP posterior" width="600"/>
+	<img src="./figs/figs_t60/sample_GP_post.png" alt="Sample T60s drawn from GP posterior" width="480"/>
 
 	where `obs` struct contains the three observed log-T60s specified at $[20, 692, 24000]$ Hz on a single spherical coordinate. The sampled log-T60 functions from the GP posterior distribution highly covary at the observed T60 frequencies due to the small log-noise standard deviation specification (5%).
 
@@ -238,7 +238,7 @@ We can sample T60 functions from either a GP prior or posterior distribution via
           'options_mu', options_mu, 'options_cov', options_cov, ...
           'enable_disp', true, 'options_disp', options_disp_gp);
     ```
-	<img src="./figs/figs_t60/sample_GP_post_grid.png" alt="Sample T60s drawn from GP posterior" width="600"/>
+	<img src="./figs/figs_t60/sample_GP_post_grid.png" alt="Sample T60s drawn from GP posterior" width="480"/>
 
 	where the sampled log-T60s revert back to the prior mean function for spherical coordinates far away from the observed coordinates at $(\theta = 90^{\circ}, \phi = 0^{\circ})$.
 
@@ -277,7 +277,7 @@ num_evals = 1;
         'enable_disp', true, 'options_disp', options_disp); % [N_B x N_E x num_evals]
 ```
 
-<img src="./figs/figs_t60/opt_GP_prior_grid.png" alt="Sample T60s drawn from GP posterior" width="600"/>
+<img src="./figs/figs_t60/opt_GP_prior_grid.png" alt="Sample T60s drawn from GP posterior" width="480"/>
 
 We now specify the drawn samples as the observed log-T60 and maximize the log-marginal likelihood w.r.t. the covariance hyper parameters as follows:
 
@@ -345,7 +345,7 @@ omega_fitted = 2 * pi * logspace(log10(20), log10(Fs/2), 100)';
     'options_mu', options_mu, 'options_cov', options_cov_fit, ...
     'enable_disp', true, 'options_disp', options_disp_fitted);
 ```
-<img src="./figs/figs_t60/opt_GP_post_grid.png" alt="Sample T60s drawn from GP posterior" width="600"/>
+<img src="./figs/figs_t60/opt_GP_post_grid.png" alt="Sample T60s drawn from GP posterior" width="480"/>
 
 
 ## Fitting FIR to T60 Functions
