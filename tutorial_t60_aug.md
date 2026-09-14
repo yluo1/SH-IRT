@@ -16,7 +16,7 @@ The high-level steps are as follows:
 ## Sampling T60 Functions from Gaussian Processes
 We can sample smooth T60 functions $T_{60}(\omega, \theta, \phi)$ of frequency and spherical coordinates from Gaussian processes defined by prior mean function $\overline{T}_{60}(\omega)$, prior covariance function $k(\bf{x},\bf{x}')$, and observed log-T60 times $\bf{y} = [y_1, … , y_S]$ at $\bf{X} = \left \lbrace \bf{x}_1, …, \bf{x}_S \right \rbrace$ given by
 
-$$y_n = \log \left | T_{60}(\underline{\omega_n}, \underline{\theta_n}, \underline{\phi_n} ) \right | - \log \left | \overline{T}_{60}(\underline{\omega_n}) \right |, \quad  \bf{x}_n = (\underline{\omega_n}, \underline{\theta_n}, \underline{\phi_n}).
+$$y_n = \log \left ( T_{60}(\underline{\omega_n}, \underline{\theta_n}, \underline{\phi_n} ) \right ) - \log \left ( \overline{T}_{60}(\underline{\omega_n}) \right ), \quad  \bf{x}_n = (\underline{\omega_n}, \underline{\theta_n}, \underline{\phi_n}).
 $$
 
 The supported mean and covariance functions are specified as follows:
