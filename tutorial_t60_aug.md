@@ -168,7 +168,7 @@ We can sample T60 functions from either a GP prior or posterior distribution via
 
 * Specifying observed log-T60 via options in `gp_obs_opts.m` and drawing IID log-T60 functions from the GP posterior distribution:
 	```
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Single point spherical coordinate evaluation grid, sampled 4 times, GP posterior
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Setup evaluation grid
