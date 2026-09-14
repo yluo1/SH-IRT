@@ -14,7 +14,7 @@ The high-level steps are as follows:
 * [Augmenting RIR:](#applying-time-varying-exponentiated-convolution) Apply time-varying exponentiated convolution $\textbf{f} = f(\bf{g}, \bf{h})$
 
 ## Sampling T60 Functions from Gaussian Processes
-We can sample smooth T60 functions $T_{60}(\omega, \theta, \phi)$ of frequency and spherical coordinates from Gaussian processes defined by prior mean function $\overline{T}_{60}(\omega)$, prior covariance function $k(\bf{x},\bf{x}')$, and observed log-T60 times $\bf{y} = [y_1, … , y_S]$ at $\bf{X} = \left \{ \bf{x}_1, …, \bf{x}_S \right \}$ given by
+We can sample smooth T60 functions $T_{60}(\omega, \theta, \phi)$ of frequency and spherical coordinates from Gaussian processes defined by prior mean function $\overline{T}_{60}(\omega)$, prior covariance function $k(\bf{x},\bf{x}')$, and observed log-T60 times $\bf{y} = [y_1, … , y_S]$ at $\bf{X} = \left \lbrace \bf{x}_1, …, \bf{x}_S \right \rbrace$ given by
 
 $$y_n = \log T_{60}(\underline{\omega_n}, \underline{\theta_n}, \underline{\phi_n} ) - \log \overline{T}_{60}(\underline{\omega_n}), \quad  \bf{x}_n = (\underline{\omega_n}, \underline{\theta_n}, \underline{\phi_n}).
 $$
