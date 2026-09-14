@@ -19,17 +19,18 @@ function [K, dK_mat_list, dK_name_list] = gp_cov(X, Y, options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: Generate and plot prior covariance matrix and partial derivatives
 
-% N_B = 16;     %Number of log-uniform angular frequencies
-% N_E = 20;     %Number of uniform spherical coordinates
+% N_B = 16;     % Number of log-uniform angular frequencies
+% N_E = 20;     % Number of uniform spherical coordinates
 
-% omega = 2 * pi * logspace(log10(20), log10(24000), N_B)';
-% [theta, phi] = sh_fib(N_E);
-% freq = max(1, omega / (2 * pi)); %[N_B x 1]
+% omega         = 2 * pi * logspace(log10(20), log10(24000), N_B)';
+% [theta, phi]  = sh_fib(N_E);
+% freq          = max(1, omega / (2 * pi)); %[N_B x 1]
 
-% freq_grid = repmat(freq, [1, N_E]);
-% theta_grid  = repmat(theta', [N_B, 1]);
-% phi_grid    = repmat(phi', [N_B, 1]);
-% X = [2 * pi * freq_grid(:), theta_grid(:), phi_grid(:)]; %[N_B * N_E x 1]
+% freq_grid     = repmat(freq, [1, N_E]);
+% theta_grid    = repmat(theta', [N_B, 1]);
+% phi_grid      = repmat(phi', [N_B, 1]);
+
+% X = [2 * pi * freq_grid(:), theta_grid(:), phi_grid(:)]; %[N_B * N_E x 1] Input vector
 
 % [K, dK_mat_list, dK_name_list] = gp_cov(X, X, gp_cov_opts('cov_func', 'cov_sqx_chw_ns', 'cov_sigma', 1, 'cov_ell', 343, 'cov_gamma', 1, 'enable_disp', true));
 % [K, dK_mat_list, dK_name_list] = gp_cov(X, X, gp_cov_opts('cov_func', 'cov_sqx_chw_sqx', 'cov_sigma', 1, 'cov_ell_c', 1, 'cov_ell_f', 2, 'enable_disp', true));
