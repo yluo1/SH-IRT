@@ -1,8 +1,7 @@
 function [log_T60, h_fig] = gp_t60_sample(omega, theta, phi, num_evals, obs, options)
-%Sample T60(omega, theta, phi) functions over an evaluation grid
-%from a Gaussian process prior.
+%Sample log T60(omega, theta, phi) functions over an evaluation grid from a Gaussian process
 
-%Evaluation grid is Cartesian product of {omega x {theta, phi}} frequency x spherical coordinates
+%Evaluation grid is Cartesian product of {omega x {theta, phi}} angular frequency x spherical coordinates
 
 %Author: Yuancheng Luo, 2026
 
@@ -34,17 +33,22 @@ function [log_T60, h_fig] = gp_t60_sample(omega, theta, phi, num_evals, obs, opt
 %h_fig:             Handle to figure
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Sample usage:  Sample T60 from prior
+%Sample usage:  Draw IID sample log-T60 functions from GP prior at common spherical coordinate
+    
+% options_mu    = gp_mu_opts('mu_func', 'power', 'mu_alpha', 1, 'mu_beta', 0.25, 'mu_fc', 8000);
+% options_cov   = gp_cov_opts('cov_sigma', sqrt(2)/2, 'cov_gamma', 2/3, 'cov_ell', 343 * 1);
 
 % N_B = 1024;
 % N_E = 1;
-% freq = linspace(0, 24000, N_B)';
-% omega = 2 * pi * freq;
-% [theta, phi] = sh_fib(N_E);
-% num_evals = 4;
-% 
+
+% freq          = logspace(log10(20), log10(24000), N_B)';
+% omega         = 2 * pi * freq;
+% [theta, phi]  = sh_fib(N_E);
+
 % rng(21136);
-% [log_T60] = gp_t60_sample(omega, theta, phi, num_evals, [], 'enable_disp', true);
+% num_evals = 5;
+% [log_T60_prior] = gp_t60_sample(omega, theta, phi, num_evals, [], 'enable_disp', true, ...
+%   'options_mu', options_mu, 'options_cov', options_cov);
 
 arguments
     omega (:,1) double {mustBeNonnegative} = linspace(0, pi, 16)';
@@ -144,6 +148,7 @@ if strcmp(options.sample_method, 'mvnrnd') %Sample from multivariate gaussian
     
     Sigma = real(eig_V * eig_D * eig_V');
     Sigma = Sigma + options.options_cov.cov_jit * eye(size(Sigma));
+    Sigma = (Sigma + Sigma')/2;     %Force symmetric
     
     %Sample GP
     log_T60 = reshape( mvnrnd(mu, Sigma, num_evals)', [N_B, N_E, num_evals]); % [N_B x N_E x num_evals]    
@@ -327,7 +332,7 @@ if options.enable_disp
 
     %Plot observations
     if has_obs
-        semilogx(freq_obs, obs.T60, 'r*', 'MarkerSize', 12, 'linewidth', 2.5); hold on;
+        semilogx(freq_obs, obs.T60, 'r*', 'MarkerSize', options.options_disp.disp_marker_size, 'linewidth', 2.5); hold on;
         legend_str{end+1} = 'Observed T60';
     end
     grid on; axis tight;

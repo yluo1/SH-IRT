@@ -1,4 +1,4 @@
-%function plot_sh_exp_conv_gp_example
+function plot_sh_exp_conv_gp_example
 %Plot samples of  spherical harmonic exponentiating convolution of expansions C with
 %direction-dependent g(theta, phi) sampled from Gaussian process T60(omega, theta, phi)
 
@@ -57,7 +57,7 @@ options_cov = gp_cov_opts('cov_sigma', 0.25, 'cov_gamma', 0.6, 'cov_ell', 343 * 
 %       'max_odr_gp', max_odr_gp, 'sample_method_gp', 'mvnrnd', 'enable_disp', true);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %Sample prior posterior function
+% Sample posterior field
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Observations
 N_S = 3;

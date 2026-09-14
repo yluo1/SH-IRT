@@ -1,4 +1,4 @@
-%function plot_ft_exp_T60_example
+function plot_ft_exp_T60_example
 %Plot example of exp conv fitted to sample T60 target
 
 %Author: Yuancheng Luo, 2026
@@ -29,8 +29,8 @@ beta = 1;
 %beta = 2;
 %beta = 3;
 
-RT60_sec = mu_lpf(hz_uniform * 2 * pi, alpha, beta, hz_fc * 2 * pi);
-RT60_wav_sec = mu_lpf(hz_uniform * 2 * pi, alpha, 1 * beta, 1 * hz_fc * 2 * pi);
+RT60_sec        = mu_lpf(hz_uniform * 2 * pi, alpha, beta, hz_fc * 2 * pi);
+RT60_wav_sec    = mu_lpf(hz_uniform * 2 * pi, alpha, 1 * beta, 1 * hz_fc * 2 * pi);
 %RT60_wav_sec = mu_pow(hz_uniform * 2 * pi, 0.5 * alpha, -0.1 * beta);
 
 %Plot T60 target
@@ -74,10 +74,10 @@ xlim(f_wav_fig_exp.Children.Children(2), [-inf, numel(h) / Fs]);
 
 
 %Export figures
-out_dir = 'figs';
+out_dir = 'figs/figs_t60';
 if ~isfolder(out_dir)
     mkdir(out_dir);
 end
 
-exportgraphics(f_fig_exp, fullfile(out_dir, 'sample_exp_IR.png'));
-exportgraphics(f_wav_fig_exp, fullfile(out_dir, 'sample_wav_exp_IR.png'));
+% exportgraphics(f_fig_exp, fullfile(out_dir, 'sample_exp_IR.png'));
+% exportgraphics(f_wav_fig_exp, fullfile(out_dir, 'sample_wav_exp_IR.png'));

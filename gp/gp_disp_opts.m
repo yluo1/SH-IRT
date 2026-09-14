@@ -24,4 +24,5 @@ arguments
     options.disp_var_transparency (1,1) double {mustBeNonnegative} = 0.25; %variance fill transparency
     options.disp_colororder (1,:) char = 'gem'; %colororder palette
     options.disp_sample_stride (1,1) double {mustBePositive, mustBeInteger} = 1; %Subsample data when > 1
+    options.disp_marker_size (1,1) double {mustBePositive} = 12; %Marker size
 end
