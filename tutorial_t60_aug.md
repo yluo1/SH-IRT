@@ -4,10 +4,10 @@ In this tutorial, we cover sound decay time augmentation of room impulse respons
 >Yuancheng Luo, "Fast Time-Varying Exponentiated Convolution Methods for Generative Direction Dependent Reverberation", Proceedings of the 160th Audio Engineering Society Convention.
 
 The high-level steps are as follows:
-* Sample or design a sound decay time function $T_{60}(\omega, \theta, \phi)$ of angular frequency $\omega$, and spherical coordinates $(\theta, \phi)$ co-latitude and azimuth respectively
-* Fit a short finite impulse response (FIR) exponentiating filter $\bf{g}$ to sampled $T_{60}(\omega, \theta, \phi)$ functions
-* Specify an input RIR or generate a colorless (constant T60) RIR $\bf{h}$
-* Apply time-varying exponentiated convolution $\textbf{f} = f(\bf{g}, \bf{h})$
+* [Sampling T60 from Gaussian Processes (GPs):](#sampling-t60-functions-from-gaussian-processes) Sample or design a sound decay time function $T_{60}(\omega, \theta, \phi)$ of angular frequency $\omega$, and spherical coordinates $(\theta, \phi)$ co-latitude and azimuth respectively
+* [Exponentiating FIR Optimization:](#fitting-fir-to-t60-functions) Fit a short finite impulse response (FIR) exponentiating filter $\bf{g}$ to sampled $T_{60}(\omega, \theta, \phi)$ functions
+* [Specifying or generating colorless RIR:](#generating-colorless-room-impulse-responses) Specify an input RIR or generate a colorless (constant T60) RIR $\bf{h}$
+* [Augmenting RIR:](#applying-time-varying-exponentiated-convolution) Apply time-varying exponentiated convolution $\textbf{f} = f(\bf{g}, \bf{h})$
 
 ## Sampling T60 Functions from Gaussian Processes
 We can sample smooth T60 functions $T_{60}(\omega, \theta, \phi)$ of frequency and spherical coordinates from Gaussian processes distributions defined by prior mean and covariance functions.
@@ -36,10 +36,12 @@ gp_plt('mu_lpf');
 ```
 <img src="./figs/figs_t60/mu_lpf_1.png" alt="Power Function" width="900"/>
 
-
-We can evaluate prior mean functions via `gp_mu.m` and its options block `gp_mu_opts.m`:
+The GP prior mean function can be evaluated via `gp_mu.m` by specifying its options struct `gp_mu_opts.m` and plotted:
 ```
+omega = 2 * pi * logspace(log10(20), log10(24000), 256)'; % Angular frequencies
 
+mu_power = gp_mu(omega, gp_mu_opts('mu_func', 'power', 'mu_alpha', 1, 'mu_beta', 0.5, 'enable_disp', true));
+mu_lpf   = gp_mu(omega, gp_mu_opts('mu_func', 'LPF',   'mu_alpha', 1, 'mu_beta', 0.5, 'mu_fc', 500, 'enable_disp', true));
 ```
 
 ### Covariance Function Prior Specifications
@@ -77,6 +79,27 @@ gp_plt('cov_sqx_chw_sqx');
 <img src="./figs/figs_t60/cov_sqx_chw_sqx_1.png" alt="Squared Exponential Chordal Distance x  Squared Exponential of Log-Frequency" width="1200"/>
 
 where frequency $f = f_0$ for varying $f' = f_1$. Unlike the non-stationary covariance, the low and high frequencies covary only by their octave separation, and are independent of the absolute frequency.
+
+The GP prior covariance function can be evaluated via `gp_cov.m` by specifying its options struct `gp_cov_opts.m` and plotted:
+
+```
+N_B = 16;     %Number of log-uniform angular frequencies
+N_E = 20;     %Number of uniform spherical coordinates
+
+omega = 2 * pi * logspace(log10(20), log10(24000), N_B)';
+[theta, phi] = sh_fib(N_E);
+freq = max(1, omega / (2 * pi)); %[N_B x 1]
+
+freq_grid = repmat(freq, [1, N_E]);
+theta_grid  = repmat(theta', [N_B, 1]);
+phi_grid    = repmat(phi', [N_B, 1]);
+X = [2 * pi * freq_grid(:), theta_grid(:), phi_grid(:)]; %[N_B * N_E x 1]
+
+[K, dK_mat_list, dK_name_list] = gp_cov(X, X, gp_cov_opts('cov_func', 'cov_sqx_chw_ns', 'cov_sigma', 1, 'cov_ell', 343, 'cov_gamma', 1, 'enable_disp', true));
+[K, dK_mat_list, dK_name_list] = gp_cov(X, X, gp_cov_opts('cov_func', 'cov_sqx_chw_sqx', 'cov_sigma', 1, 'cov_ell_c', 1, 'cov_ell_f', 2, 'enable_disp', true));
+```
+
+### Gaussian Process Specifications
 
 ### Sampling from the Prior and Posterior Distributions
 

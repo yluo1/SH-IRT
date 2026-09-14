@@ -17,22 +17,22 @@ function [K, dK_mat_list, dK_name_list] = gp_cov(X, Y, options)
 %dK_name_list: [1 x P] cell matrix where dK_name_list{1, n} is name of variable in gp_cov_opts.m
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Sample usage: Generate sample covariance matrix and partial derivatives
+%Sample usage: Generate and plot prior covariance matrix and partial derivatives
 
-% rng(234);
-% N_B = 16;
-% N_E = 10;
-% Fs = 48000;
-% omega = logspace(log10(20), log10(Fs/2), N_B)' * 2 *pi;
+% N_B = 16;     %Number of log-uniform angular frequencies
+% N_E = 20;     %Number of uniform spherical coordinates
+
+% omega = 2 * pi * logspace(log10(20), log10(24000), N_B)';
 % [theta, phi] = sh_fib(N_E);
 % freq = max(1, omega / (2 * pi)); %[N_B x 1]
-% theta = rand(N_E, 1) * pi;
-% phi = rand(N_E, 1) * 2 * pi;
+
 % freq_grid = repmat(freq, [1, N_E]);
 % theta_grid  = repmat(theta', [N_B, 1]);
 % phi_grid    = repmat(phi', [N_B, 1]);
 % X = [2 * pi * freq_grid(:), theta_grid(:), phi_grid(:)]; %[N_B * N_E x 1]
-% [K, dK_mat_list, dK_name_list] = gp_cov(X, X);
+
+% [K, dK_mat_list, dK_name_list] = gp_cov(X, X, gp_cov_opts('cov_func', 'cov_sqx_chw_ns', 'cov_sigma', 1, 'cov_ell', 343, 'cov_gamma', 1, 'enable_disp', true));
+% [K, dK_mat_list, dK_name_list] = gp_cov(X, X, gp_cov_opts('cov_func', 'cov_sqx_chw_sqx', 'cov_sigma', 1, 'cov_ell_c', 1, 'cov_ell_f', 2, 'enable_disp', true));
 
 arguments
     X (:,3) double = [1 0 0];
@@ -52,6 +52,10 @@ if strcmp(options.cov_func, 'cov_sqx_chw_ns')
         K = cov_sqx_chw_ns(X, Y, options.cov_sigma, options.cov_ell, options.cov_gamma); %[NX x NY] K
     end
 
+    if options.enable_disp  && coder.target('MATLAB')
+        gp_plt('cov_sqx_chw_ns', 'cov_sqx_chw_ns_sigma', options.cov_sigma, 'cov_sqx_chw_ns_ell_list', options.cov_ell, 'cov_sqx_chw_ns_gamma_list', options.cov_gamma, 'cov_sqx_chw_ns_fig_position', [100, 100, 1200, 900]);
+    end
+
 elseif strcmp(options.cov_func, 'cov_sqx_chw_sqx')
 
     if nargout > 1
@@ -61,9 +65,12 @@ elseif strcmp(options.cov_func, 'cov_sqx_chw_sqx')
         dK_name_list = {'cov_sigma', 'cov_ell_c', 'cov_ell_f'};
 
     else
-        K = cov_sqx_chw_sqx(X, Y, options.cov_sigma, options.options.cov_ell_c, options); %[NX x NY] K
+        K = cov_sqx_chw_sqx(X, Y, options.cov_sigma, options.cov_ell_c, options.cov_ell_f); %[NX x NY] K
     end
 
+    if options.enable_disp  && coder.target('MATLAB')
+        gp_plt('cov_sqx_chw_sqx', 'cov_sqx_chw_sqx_sigma', options.cov_sigma, 'cov_sqx_chw_sqx_ell_c_list', options.cov_ell_c, 'cov_sqx_chw_sqx_ell_f_list', options.cov_ell_f, 'cov_sqx_chw_sqx_fig_position', [100, 100, 1200, 900]);
+    end
 
 else
     error('Unsupported options.cov_func');

@@ -33,6 +33,7 @@ arguments
     options.cov_ell_c_lim  (1,2) double {mustBePositive} = [eps, inf];
     options.cov_ell_f_lim  (1,2) double {mustBePositive} = [eps, inf];
 
+    options.enable_disp (1,1) logical = false;
 end
 
 if strcmp(options.cov_func, 'cov_sqx_chw_ns')

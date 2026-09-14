@@ -12,28 +12,32 @@ function h_fig_list = gp_plt(func_name, options)
 
 % options.mu_pow_f_lo:                  Scalar, frequency start (Hz)
 % options.mu_pow_f_hi:                  Scalar, Frequency end (Hz)
-% options.mu_pow_alpha_list:            [1 x N_alpha], list of T60 at 0 Hz
-% options.mu_pow_beta_list:             [1 x N_beta], list of decay exponents
+% options.mu_pow_alpha_list:            [1 x N_alpha] list of T60 at 0 Hz
+% options.mu_pow_beta_list:             [1 x N_beta] list of decay exponents
+% options.mu_pow_fig_position:          [1 x 4] figure position [x, y, width, height]
 
 % options.mu_lpf_f_lo:                  Scalar, frequency start (Hz)
 % options.mu_lpf_f_hi:                  Scalar, Frequency end (Hz)
 % options.mu_lpf_alpha_list:            [1 x N_alpha], list of T60 at 0 Hz
 % options.mu_lpf_beta_list:             [1 x N_beta], list of decay exponents
 % options.mu_lpf_omega_fc_list:         [1 x N_fc], list of cross-over frequencies
+% options.mu_lpf_fig_position:          [1 x 4] figure position [x, y, width, height]
 
 % options.cov_sqx_chw_ns_f_0_list:       [1 x N_f_0] Frequency f_0 (Hz)
 % options.cov_sqx_chw_ns_f_lo:           Scalar, frequency start (Hz)
 % options.cov_sqx_chw_ns_f_hi:           Scalar, Frequency end (Hz)
 % options.cov_sqx_chw_ns_sigma:          Scalar, covariance scaling parameter
-% options.cov_sqx_chw_ns_ell_list:       [1 x N_ell], list of wavelength scaling
-% options.cov_sqx_chw_ns_gamma_list:     [1 x N_gamma], list of wavelength exponents
+% options.cov_sqx_chw_ns_ell_list:       [1 x N_ell] list of wavelength scaling
+% options.cov_sqx_chw_ns_gamma_list:     [1 x N_gamma] list of wavelength exponents
+% options.cov_sqx_chw_nsfig_position:    [1 x 4] figure position [x, y, width, height]
 % 
 % options.cov_sqx_chw_sqx_f_0_list:      [1 x N_f_0] Frequency f_0 (Hz)
 % options.cov_sqx_chw_sqx_f_lo:          Scalar, frequency start (Hz)
 % options.cov_sqx_chw_sqx_f_hi:          Scalar, Frequency end (Hz)
 % options.cov_sqx_chw_sqx_sigma:         Scalar, covariance scaling parameter
-% options.cov_sqx_chw_sqx_ell_c_list:    [1 x N_ell], list of wavelength scaling
-% options.cov_sqx_chw_sqx_ell_f_list:    [1 x N_gamma], list of wavelength exponents
+% options.cov_sqx_chw_sqx_ell_c_list:    [1 x N_ell] list of wavelength scaling
+% options.cov_sqx_chw_sqx_ell_f_list:    [1 x N_gamma] list of wavelength exponents
+% options.cov_sqx_chw_sqx_fig_position:  [1 x 4] figure position [x, y, width, height]
 % 
 % options.enable_export:                 Logical, if true, export figures to files
 
@@ -53,31 +57,34 @@ function h_fig_list = gp_plt(func_name, options)
 arguments
     func_name (1,:) char {mustBeMember(func_name, {'mu_pow', 'mu_lpf', 'cov_sqx_chw_ns', 'cov_sqx_chw_sqx'})} = 'cov_sqx_chw_ns';
 
-    options.mu_pow_f_lo (1,1) double {mustBePositive} = 50;
+    options.mu_pow_f_lo (1,1) double {mustBePositive} = 20;
     options.mu_pow_f_hi (1,1) double {mustBePositive}  = 24000;
     options.mu_pow_alpha_list (1,:) double {mustBeNonnegative} = [0.25, 1, 1.5];
     options.mu_pow_beta_list (1,:) double = [0, 0.125, 0.25];
+    options.mu_pow_fig_position (1,4) double {mustBeNonnegative} = [100, 100, 900, 450];
 
-    options.mu_lpf_f_lo (1,1) double {mustBePositive} = 50;
+    options.mu_lpf_f_lo (1,1) double {mustBePositive} = 20;
     options.mu_lpf_f_hi (1,1) double {mustBePositive}  = 24000;
     options.mu_lpf_alpha_list (1,:) double {mustBeNonnegative} = [0.25, 1, 1.5];
     options.mu_lpf_beta_list (1,:) double  {mustBeNonnegative} = [0, 0.25, 0.5];
-    options.mu_lpf_omega_fc_list (1,:) double = 2 * pi * [50, 500, 5000];
-
+    options.mu_lpf_omega_fc_list (1,:) double {mustBeNonnegative} = 2 * pi * [50, 500, 5000];
+    options.mu_lpf_fig_position (1,4) double {mustBeNonnegative} = [100, 100, 1600, 900];
 
     options.cov_sqx_chw_ns_f_0_list  (1,:) double {mustBePositive} = [50, 500, 5000];
-    options.cov_sqx_chw_ns_f_lo (1,1) double {mustBePositive} = 50;
+    options.cov_sqx_chw_ns_f_lo (1,1) double {mustBePositive} = 20;
     options.cov_sqx_chw_ns_f_hi (1,1) double {mustBePositive}  = 24000;
     options.cov_sqx_chw_ns_sigma (1,1) double {mustBeNonnegative} = 1;
     options.cov_sqx_chw_ns_ell_list (1,:) double {mustBePositive} = 343;
     options.cov_sqx_chw_ns_gamma_list (1,:) double {mustBePositive} =  [0.5, 1, 1.5];
+    options.cov_sqx_chw_ns_fig_position (1,4) double {mustBeNonnegative} = [100, 100, 1600, 900];
 
     options.cov_sqx_chw_sqx_f_0_list  (1,:) double {mustBePositive} = [50, 500, 5000];
-    options.cov_sqx_chw_sqx_f_lo (1,1) double {mustBePositive} = 50;
+    options.cov_sqx_chw_sqx_f_lo (1,1) double {mustBePositive} = 20;
     options.cov_sqx_chw_sqx_f_hi (1,1) double {mustBePositive}  = 24000;
     options.cov_sqx_chw_sqx_sigma (1,1) double {mustBeNonnegative} = 1;
     options.cov_sqx_chw_sqx_ell_c_list (1,:) double {mustBePositive} = [1 2]/2;
     options.cov_sqx_chw_sqx_ell_f_list (1,:) double {mustBePositive} = [2 4]/2;
+    options.cov_sqx_chw_sqx_fig_position (1,4) double {mustBeNonnegative} = [100, 100, 1600, 900];
 
     options.fontsize (1,1) double {mustBePositive, mustBeInteger} = 20;
     options.FaceColor (1,:) char {mustBeMember(options.FaceColor, {'flat', 'interp'}) } = 'flat';
@@ -106,12 +113,13 @@ if strcmp(func_name, 'mu_pow')
     for i = 1:N_alpha
         for j = 1:N_beta
             mu_list(:, i, j) = mu_pow(omega, alpha_list(i), beta_list(j));
+%            mu_list(:, i, j) = gp_mu(omega, gp_mu_opts('mu_func', 'power', 'mu_alpha', alpha_list(i), 'mu_beta', beta_list(j)));
         end
     end
     
     %Plot
     h_fig = figure;
-    h_fig.Position = [100, 100, 900, 450];
+    h_fig.Position = options.mu_pow_fig_position;
     h_fig_list{1} = h_fig;
 
     line_style_list = {'-', '--', '-.', ':'};
@@ -169,7 +177,7 @@ elseif strcmp(func_name, 'mu_lpf')
     
     %Plot
     h_fig = figure;
-    h_fig.Position = [100, 100, 1600, 900];
+    h_fig.Position = options.mu_lpf_fig_position;
     h_fig_list{1} = h_fig;
 
     line_style_list = {'-', '--', '-.', ':'};
@@ -233,7 +241,7 @@ elseif strcmp(func_name, 'cov_sqx_chw_ns')
 
     %Plotting
     h_fig = figure;
-    h_fig.Position = [100, 100, 1600, 900];
+    h_fig.Position = options.cov_sqx_chw_ns_fig_position;
     h_fig_list{1} = h_fig;
 
     %Setup tiled layouts
@@ -263,7 +271,6 @@ elseif strcmp(func_name, 'cov_sqx_chw_ns')
                 %Compute covariance
                 K = cov_sqx_chw_ns(X, X0, sigma, ell, gamma);    
                 K_phi_freq = reshape(K, [N_theta_phi, N_freq]);
-    
                 
                 h_pc = pcolor(freq_list, rad2deg(phi_list), mag2db(K_phi_freq));
                 set(h_pc, 'EdgeColor', 'none');
@@ -319,7 +326,7 @@ elseif strcmp(func_name, 'cov_sqx_chw_sqx')
 
     %Plotting
     h_fig = figure;
-    h_fig.Position = [100, 100, 1600, 900];
+    h_fig.Position = options.cov_sqx_chw_sqx_fig_position;
     h_fig_list{1} = h_fig;
 
     %Setup tiled layouts
