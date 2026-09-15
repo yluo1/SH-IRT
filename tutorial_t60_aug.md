@@ -442,12 +442,17 @@ Let us now combine the GP T60 sampling method from the previous section with our
   semilogx(omega_uni / (2 * pi), T60_uni_sec, 'linewidth', 1.5); 
   grid on; axis tight; 
   xlabel('Frequency (Hz)', 'fontsize', fontsize); ylabel('T60 (Seconds)', 'fontsize', fontsize); 
-  title('T60 Linear Interpolation', 'fontsize', fontsize + 1);
+  title('T60 Interpolation over Uniform Frequencies', 'fontsize', fontsize + 1);
   set(gca, 'fontsize', fontsize - 1);
+  legend_str = cell(1, N_E);
+  for n = 1:N_E
+      legend_str{n} = num2str(n);
+  end
+  h_lg = legend(legend_str, 'location', 'best'); set(h_lg, 'fontsize', fontsize - 1);
   ```
   <img src="./figs/figs_t60/sample_GP_post_exp_fit_interp.png" alt="Uniform interpolation of T60 over frequency" width="480"/>
 
-  * Filter fit exponentiating filter $\bf{g}$ to one of the sampled T60 functions:
+  * Filter fit exponentiating filter $\bf{g}$ to the last sampled T60 function:
   ```
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Fit exponentiating filter
@@ -465,13 +470,13 @@ Let us now combine the GP T60 sampling method from the previous section with our
   ```
   <img src="./figs/figs_t60/sample_GP_post_exp_fit_filter.png" alt="Exponentiating filter fitted to target" width="480"/>
 
-* Generate random Gaussian noise impulse response $\bf{h}$  and apply exponentiating filtering $f(\bf{h}, \bf{g})$:
+* Generate Gaussian noise impulse response $\bf{h}$ and apply exponentiating filtering $f(\bf{h}, \bf{g})$:
   ```
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Generate noise and filter
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   rng(521345);
-  T = 0.5;
+  T = 1; % Duration seconds
   h = randn(1, ceil(T * Fs));
   [f_1, h_f_exp_fig] = ft_exp_conv_opt(h, g_RT60{N_E}, ...
       'enable_disp', true, 'Fs', Fs, 'N_FFT', 512);

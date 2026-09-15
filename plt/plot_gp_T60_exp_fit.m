@@ -64,6 +64,11 @@ grid on; axis tight;
 xlabel('Frequency (Hz)', 'fontsize', fontsize); ylabel('T60 (Seconds)', 'fontsize', fontsize); 
 title('T60 Interpolation over Uniform Frequencies', 'fontsize', fontsize + 1);
 set(gca, 'fontsize', fontsize - 1);
+legend_str = cell(1, N_E);
+for n = 1:N_E
+    legend_str{n} = num2str(n);
+end
+h_lg = legend(legend_str, 'location', 'best'); set(h_lg, 'fontsize', fontsize - 1);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Fit exponentiating filter
@@ -83,7 +88,7 @@ h_g_fig{idx_fit}.Position = [100, 100, 600, 480];
 % Generate noise and filter
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 rng(521345);
-T = 0.5;
+T = 1; % Duration seconds
 h = randn(1, ceil(T * Fs));
 [f_1, h_f_exp_fig] = ft_exp_conv_opt(h, g_RT60{N_E}, ...
     'enable_disp', true, 'Fs', Fs, 'N_FFT', 512);
@@ -97,7 +102,7 @@ if ~isfolder(out_dir)
     mkdir(out_dir);
 end
 
-exportgraphics(h_fig_posterior_grid, fullfile(out_dir, 'sample_GP_post_exp_fit_field.png'));
-exportgraphics(h_fig_posterior_grid_interp1, fullfile(out_dir, 'sample_GP_post_exp_fit_interp.png'));
-exportgraphics(h_g_fig{idx_fit}, fullfile(out_dir, 'sample_GP_post_exp_fit_filter.png'));
-exportgraphics(h_f_exp_fig, fullfile(out_dir, 'sample_GP_post_exp_fit_exp_conv.png'));
+% exportgraphics(h_fig_posterior_grid, fullfile(out_dir, 'sample_GP_post_exp_fit_field.png'));
+% exportgraphics(h_fig_posterior_grid_interp1, fullfile(out_dir, 'sample_GP_post_exp_fit_interp.png'));
+% exportgraphics(h_g_fig{idx_fit}, fullfile(out_dir, 'sample_GP_post_exp_fit_filter.png'));
+% exportgraphics(h_f_exp_fig, fullfile(out_dir, 'sample_GP_post_exp_fit_exp_conv.png'));
