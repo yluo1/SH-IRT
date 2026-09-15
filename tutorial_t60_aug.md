@@ -10,8 +10,8 @@ The high-level steps are as follows:
     * [Drawing T60 samples from GP prior and posterior distributions](#sampling-from-gp-prior-and-posterior-distributions)
     * [Optimizing GP covariance hyper parameters](#optimizing-gaussian-process-covariance-function-hyper-parameters)
 * [Exponentiating FIR Optimization:](#fitting-exponentiating-fir-to-t60-functions) Fit short finite impulse response (FIR) exponentiating filters $\bf{g}$ to sampled $T_{60}(\omega, \theta, \phi)$ functions
-* [Specifying or generating colorless RIR:](#generating-colorless-room-impulse-responses) Specify an input RIR or generate a colorless (constant T60) RIR $\bf{h}$
-* [Augmenting RIR:](#applying-time-varying-exponentiated-convolution) Apply time-varying exponentiated convolution $\textbf{f} = f(\bf{g}, \bf{h})$
+* [Generating and Augmenting Spatial RIR:](#generating-and-augmenting-colorless-spatial-room-impulse-responses) Generate colorless (constant T60) spatial RIRs $\bf{h}$ and apply time-varying exponentiated convolution $\textbf{f} = f(\bf{g}, \bf{h})$
+
 
 ## Sampling T60 Functions from Gaussian Processes
 We can sample smooth T60 functions $T_{60}(\omega, \theta, \phi)$ of frequency and spherical coordinates from Gaussian processes defined by prior mean function $\overline{T}_{60}(\omega)$, prior covariance function $k(\bf{x},\bf{x}')$, and observed log-T60 times $\bf{y} = [y_1, … , y_S]$ at $\bf{X} = \left \lbrace \bf{x}_1, …, \bf{x}_S \right \rbrace$ given by
@@ -483,9 +483,8 @@ Let us now combine the GP T60 sampling method from the previous section with our
   ```
     <img src="./figs/figs_t60/sample_GP_post_exp_fit_exp_conv.png" alt="Exponentiated filtered white-noise" width="480"/>
   
-## Generating Colorless Room Impulse Responses
+## Generating and Augmenting Colorless Spatial Room Impulse Responses
 
-## Applying Time-Varying Exponentiated Convolution
 
 [^PACIOREK_NS]: Paciorek, C., & Schervish, M. (2003). Nonstationary covariance functions for Gaussian process regression. Advances in neural information processing systems, 16.
 
