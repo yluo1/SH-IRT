@@ -10,7 +10,7 @@ The high-level steps are as follows:
     * [Drawing T60 samples from GP prior and posterior distributions](#sampling-from-gp-prior-and-posterior-distributions)
     * [Optimizing GP covariance hyper parameters](#optimizing-gaussian-process-covariance-function-hyper-parameters)
 * [Exponentiating FIR Optimization:](#fitting-exponentiating-fir-to-t60-functions) Fit short finite impulse response (FIR) exponentiating filters $\bf{g}$ to sampled $T_{60}(\omega, \theta, \phi)$ functions
-* [Generating and Augmenting Spatial RIR:](#generating-and-augmenting-colorless-spatial-room-impulse-responses) Generate colorless (constant T60) spatial RIRs $\bf{h}$ and apply time-varying exponentiated convolution $\textbf{f} = f(\bf{g}, \bf{h})$
+* [Generating and Augmenting Spatial RIR:](#generating-and-augmenting-colorless-spatial-room-impulse-responses) Generate colorless spatial RIRs $\bf{h}$ and apply time-varying exponentiated convolution $\textbf{f} = f(\bf{g}, \bf{h})$
 
 
 ## Sampling T60 Functions from Gaussian Processes
