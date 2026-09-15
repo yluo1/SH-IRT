@@ -352,11 +352,11 @@ omega_fitted = 2 * pi * logspace(log10(20), log10(Fs/2), 100)';
 
 The desired frequency response  $G(\omega)$  of our exponentiating filter $\bf{g}$ has minimum-phase with magnitude that attenuates by 60 dB under exponentiation by $F_s T_{60}(\omega)$ samples for sampling rate $F_s$. Our target frequency response is given by
 
-$$ |G(\omega)|_{dB} = \frac{-60}{F_s  T_{60}(\omega) }, \quad  \quad \arg [G(\omega)] = \mathcal{H} (\log |G(\omega)| ), $$
+$$ |G(\omega)|_{dB} = \frac{-60}{F_s  T_{60}(\omega) }, \quad  \quad \arg [G(\omega)] = \mathcal{H} \lbrace \log |G(\omega)| \rbrace, $$
 
 where $\mathcal{H}$ is the Hilbert transform, and can be found via the real-cepstrum method[^OPPENHEIM_DSP]. In practice, the realized filter’s magnitude frequency response must also be bounded below unity as to remain stable under exponentiation. We therefore minimize the following quadratic objective under quadratic constraints:
 
-$$ \min_{\bf{g}} \int \left \lVert \mathcal{F} \{ g[n] \} (\omega) - G(\omega) \right \rVert_2^2 d \omega,  \quad  \left \lVert \mathcal{F} \{ g[n] \} (\omega)   \right \rVert_2^2 < 0, $$
+$$ \min_{\bf{g}} \int \left \lVert \mathcal{F} \lbrace g[n] \rbrace (\omega) - G(\omega) \right \rVert_2^2 d \omega,  \quad  \left \lVert \mathcal{F} \lbrace g[n] \rbrace (\omega)   \right \rVert_2^2 < 0, $$
 
 which can be expressed as a cone-program after discretizing the Fourier transform $\mathcal{F}$ along uniform spaced angular frequencies between DC and Nyquist. This is implemented in our function `ft_bnd_minphase.m` and `ft_exp_design.m`. As an example, let us specify a simple T60 target over uniform frequencies and fit a 9-tap exponentiating FIR filter with magnitude response bounded below $1-10^{-6}$ as follows:
 
