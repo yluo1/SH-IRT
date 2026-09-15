@@ -159,7 +159,6 @@ num_evals = 1;
         'options_mu', options_mu, 'options_cov', options_cov, ...
         'enable_disp', true, 'options_disp', options_disp_gp);
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Export figures
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

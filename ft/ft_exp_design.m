@@ -3,6 +3,10 @@ function [g, g_minphase, h_f] = ft_exp_design(num_taps, mode, options)
 
 %Author: Yuancheng Luo, 2026
 
+%Paper Reference:
+%Yuancheng Luo, "Fast Time-Varying Exponentiated Convolution Methods for Generative Direction Dependent Reverberation",
+%Proceedings of the 161th Audio Engineering Society Convention.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
 %mode:          String, specify filter design targets {'RT60', 'air_absorption_bass', 'air_absorption_iso'}
@@ -14,7 +18,7 @@ function [g, g_minphase, h_f] = ft_exp_design(num_taps, mode, options)
 
 %options:       struct
 
-%options.fit_method:    String, filter fit method {'constr_min_phase', 'two_tap'}
+%options.fit_method:    String, filter fit method {'constr_min_phase', 'constr_min_phase_minimax', 'two_tap'}
 %                           'constr_min_phase_ls':       Magnitude upper-bound constrained minimum phase least squares
 %                           'constr_min_phase_minimax':  Magnitude upper-bound constrained minimum phase minimax
 %                           'two_tap':                   DC and Nyquist constrained two-tap FIR

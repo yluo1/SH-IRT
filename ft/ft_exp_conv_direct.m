@@ -3,6 +3,10 @@ function f = ft_exp_conv_direct(h, g, mode)
 
 %Author: Yuancheng Luo, 2026
 
+%Paper Reference:
+%Yuancheng Luo, "Fast Time-Varying Exponentiated Convolution Methods for Generative Direction Dependent Reverberation",
+%Proceedings of the 161th Audio Engineering Society Convention.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
 %h:         [1 x M] Fixed IR

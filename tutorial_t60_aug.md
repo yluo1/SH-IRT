@@ -9,7 +9,7 @@ The high-level steps are as follows:
     * [GP prior covariance specifications](#covariance-function-prior-specifications)
     * [Drawing T60 samples from GP prior and posterior distributions](#sampling-from-gp-prior-and-posterior-distributions)
     * [Optimizing GP covariance hyper parameters](#optimizing-gaussian-process-covariance-function-hyper-parameters)
-* [Exponentiating FIR Optimization:](#fitting-fir-to-t60-functions) Fit short finite impulse response (FIR) exponentiating filters $\bf{g}$ to sampled $T_{60}(\omega, \theta, \phi)$ functions
+* [Exponentiating FIR Optimization:](#fitting-exponentiating-fir-to-t60-functions) Fit short finite impulse response (FIR) exponentiating filters $\bf{g}$ to sampled $T_{60}(\omega, \theta, \phi)$ functions
 * [Specifying or generating colorless RIR:](#generating-colorless-room-impulse-responses) Specify an input RIR or generate a colorless (constant T60) RIR $\bf{h}$
 * [Augmenting RIR:](#applying-time-varying-exponentiated-convolution) Apply time-varying exponentiated convolution $\textbf{f} = f(\bf{g}, \bf{h})$
 
@@ -277,7 +277,7 @@ num_evals = 1;
         'enable_disp', true, 'options_disp', options_disp); % [N_B x N_E x num_evals]
 ```
 
-<img src="./figs/figs_t60/opt_GP_prior_grid.png" alt="Sample T60s drawn from GP posterior" width="480"/>
+<img src="./figs/figs_t60/opt_GP_prior_grid.png" alt="Sample T60 grid drawn from GP prior" width="480"/>
 
 We now specify the drawn samples as the observed log-T60 and maximize the log-marginal likelihood w.r.t. the covariance hyper parameters as follows:
 
@@ -345,14 +345,143 @@ omega_fitted = 2 * pi * logspace(log10(20), log10(Fs/2), 100)';
     'options_mu', options_mu, 'options_cov', options_cov_fit, ...
     'enable_disp', true, 'options_disp', options_disp_fitted);
 ```
-<img src="./figs/figs_t60/opt_GP_post_grid.png" alt="Sample T60s drawn from GP posterior" width="480"/>
+<img src="./figs/figs_t60/opt_GP_post_grid.png" alt="Sample T60 grid drawn from GP posterior" width="480"/>
 
 
-## Fitting FIR to T60 Functions
+## Fitting Exponentiating FIR to T60 Functions
 
+The desired frequency response  $G(\omega)$  of our exponentiating filter $\bf{g}$ has minimum-phase with magnitude that attenuates by 60 dB under exponentiation by $F_s T_{60}(\omega)$ samples for sampling rate $F_s$. Our target frequency response is given by
+
+$$ |G(\omega)|_{dB} = \frac{-60}{F_s  T_{60}(\omega) }, \quad  \quad \arg [G(\omega)] = \mathcal{H} (\log |G(\omega)| ), $$
+
+where $\mathcal{H}$ is the Hilbert transform, and can be found via the real-cepstrum method[^OPPENHEIM_DSP]. In practice, the realized filter’s magnitude frequency response must also be bounded below unity as to remain stable under exponentiation. We therefore minimize the following quadratic objective under quadratic constraints:
+
+$$ \min_{\bf{g}} \int \left \| \mathcal{F} \{ g[n] \} (\omega) - G(\omega) \right \|_2^2 d \omega,  \quad  \left \| \mathcal{F} \{ g[n] \} (\omega)   \right \|_2^2 < 0, $$
+
+which can be expressed as a cone-program after discretizing the Fourier transform $\mathcal{F}$ along uniform spaced angular frequencies between DC and Nyquist. This is implemented in our function `ft_bnd_minphase.m` and `ft_exp_design.m`. As an example, let us specify a simple T60 target over uniform frequencies and fit a 9-tap exponentiating FIR filter with magnitude response bounded below $1-10^{-6}$ as follows:
+
+```
+Fs = 48000;
+
+RT60_sec = [4 0.25 4 4 0.5]; % Target RT60 from DC to Nyquist with overshoot 
+
+tol0 = 1e-6;
+
+[g_RT60_9, ~, h_f_9] = ft_exp_design(9, 'RT60',  'enable_disp', true, 'Fs', Fs, 'RT60_sec', RT60_sec, 'tol0', tol0);
+h_f_9.Position = [100, 100, 600, 480];
+```
+<img src="./figs/figs_t60/sample_exp_design.png" alt="Sample exponentiating filter fit" width="480"/>
+
+where the target minimum-phase response overshoots $0$ dB in the high-frequency band (14 - 18 kHz). Our optimized exponentiating filter stays below the unity upper bound and is near-minimum phase given equal number of filter taps to minimum-phase target responses.
+
+Let us now combine the GP T60 sampling method from the previous section with our filter fitting method, and apply exponentiating filter to a Gaussian noise sequence in the `plot_gp_T60_exp_fit.m` function.
+
+* Sample a log-T60 field from the GP posterior:
+
+  ```
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Setup GP prior mean and covariance
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  options_mu  = gp_mu_opts('mu_func', 'power', 'mu_alpha', 1, 'mu_beta', 0.25, 'mu_fc', 8000);
+  options_cov = gp_cov_opts('cov_sigma', sqrt(2)/2, 'cov_gamma', 2/3, 'cov_ell', 343 * 1);
+  
+  Fs = 16000;
+  
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Azimuth plane spherical coordinate evaluation grid, sampled once, GP posterior
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Setup evaluation grid
+  N_B = 64;
+  N_E = 7;
+  f_lo    = 80;
+  omega   = 2 * pi * logspace(log10(f_lo), log10(Fs/2), N_B)';
+  phi     = deg2rad(linspace(0, 180, N_E))';
+  theta   = pi/2 * ones(N_E, 1);
+  
+  %Observations
+  N_S = 3;
+  omega_obs = logspace(log10(f_lo), log10(Fs/2), N_S)' * 2 * pi;
+  
+  obs = gp_obs_opts(  'omega', omega_obs, ...
+                      'theta', deg2rad(90) * ones(N_S, 1), ...
+                      'phi', deg2rad(0) * ones(N_S, 1), ...
+                      'T60', mu_lpf(omega_obs, 1, 1, 4000), ...
+                      'log_noise_std', 0.005 * ones(N_S, 1) ... %0.5 percent
+                      );
+  
+  options_disp_gp = gp_disp_opts('disp_xlim', [f_lo inf], 'disp_legend_samples', false, ...
+      'disp_legend_mean', false, 'disp_legend_var', false, 'disp_legend_loc', 'southwest', ...
+      'disp_legend_num_cols', 1, 'disp_ylim', [0, 1.1], ...
+      'disp_sample_eval', true, 'disp_mean', false, 'disp_var', true, ...
+      'disp_legend_compact', true, 'disp_position', [100, 100, 560 * 0.825, 480 * 0.666], ...
+      'disp_legend_transparency', 0.75, 'disp_colororder', 'gem12', ...
+      'disp_var_transparency', 0.025, ...
+      'disp_sample_stride', 1);
+  
+  % Sample 1 function
+  rng(1215 + 10); 
+  num_evals = 1;
+  
+  [log_T60, h_fig_posterior_grid] = gp_t60_sample(omega, theta, phi, num_evals, obs, ...
+          'options_mu', options_mu, 'options_cov', options_cov, ...
+          'enable_disp', true, 'options_disp', options_disp_gp);
+  ```
+  <img src="./figs/figs_t60/sample_GP_post_exp_fit_field.png" alt="Sample T60 Posterior" width="480"/>
+
+* Interpolate T60 at 32 uniformly spaced frequencies between DC and Nyquist:
+  ```
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Uniform frequency interpolation
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  N_uni = 32;
+  omega_uni   = 2 * pi * linspace(0, Fs/2, N_uni)';
+  T60_uni_sec = exp(interp1(omega, log_T60, omega_uni, 'pchip'));
+  
+  fontsize = 16;
+  h_fig_posterior_grid_interp1 = figure; 
+  semilogx(omega_uni / (2 * pi), T60_uni_sec, 'linewidth', 1.5); 
+  grid on; axis tight; 
+  xlabel('Frequency (Hz)', 'fontsize', fontsize); ylabel('T60 (Seconds)', 'fontsize', fontsize); 
+  title('T60 Linear Interpolation', 'fontsize', fontsize + 1);
+  set(gca, 'fontsize', fontsize - 1);
+  ```
+  <img src="./figs/figs_t60/sample_GP_post_exp_fit_interp.png" alt="Uniform interpolation of T60 over frequency" width="480"/>
+
+  * Filter fit exponentiating filter $\bf{g}$ to one of the sampled T60 functions:
+  ```
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Fit exponentiating filter
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  N_taps = N_uni;
+  tol0 = 1e-6;
+  
+  g_RT60  = cell(1, N_E);
+  g_MP    = cell(1, N_E);
+  h_g_fig = cell(1, N_E);
+  
+  idx_fit = N_E;
+  [g_RT60{idx_fit}, g_MP{idx_fit}, h_g_fig{idx_fit}] = ft_exp_design(N_taps, 'RT60',  'enable_disp', true, 'Fs', Fs, 'RT60_sec', T60_uni_sec(:, idx_fit), 'tol0', tol0);
+  h_g_fig{idx_fit}.Position = [100, 100, 600, 480];
+  ```
+  <img src="./figs/figs_t60/sample_GP_post_exp_fit_filter.png" alt="Exponentiating filter fitted to target" width="480"/>
+
+* Generate random Gaussian noise impulse response $\bf{h}$  and apply exponentiating filtering $f(\bf{h}, \bf{g})$:
+  ```
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Generate noise and filter
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  rng(521345);
+  T = 0.5;
+  h = randn(1, ceil(T * Fs));
+  [f_1, h_f_exp_fig] = ft_exp_conv_opt(h, g_RT60{N_E}, ...
+      'enable_disp', true, 'Fs', Fs, 'N_FFT', 512);
+  ```
+    <img src="./figs/figs_t60/sample_GP_post_exp_fit_exp_conv.png" alt="Exponentiated filtered white-noise" width="480"/>
+  
 ## Generating Colorless Room Impulse Responses
 
 ## Applying Time-Varying Exponentiated Convolution
 
 [^PACIOREK_NS]: Paciorek, C., & Schervish, M. (2003). Nonstationary covariance functions for Gaussian process regression. Advances in neural information processing systems, 16.
 
+[^OPPENHEIM_DSP]: Oppenheim, Alan V., and Ronald W. Schafer. "Discrete-time signal processing.” (1999).

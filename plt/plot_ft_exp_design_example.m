@@ -2,20 +2,26 @@ function plot_ft_exp_design_example
 %Plot exponetiated filter design examples for target RT60 at varying number of filter taps
 
 %Author: Yuancheng Luo, 2026
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Fs = 48000;
 
-RT60_sec = [4 0.25 4 4 0.5]; %Target RT60 from DC to Nyquist with overshoot 
-%RT60_sec = [4 0.5 2 2 0.5] * 2;
-%RT60_sec = [5 1.5 4 4 2.5 1 0.3 0.25 0.24 0.2 0.22];
+RT60_sec = [4 0.25 4 4 0.5]; % Target RT60 from DC to Nyquist with overshoot 
 
 tol0 = 1e-6;
 
-%g_RT60 = ft_exp_design(9, 'RT60',  'enable_disp', true, 'Fs', Fs, 'RT60_sec', RT60_sec, 'tol0', tol0);
-%g_RT60 = ft_exp_design(5, 'RT60',  'enable_disp', true, 'Fs', Fs, 'RT60_sec', RT60_sec, 'tol0', tol0);
+[g_RT60_9, ~, h_f_9] = ft_exp_design(9, 'RT60',  'enable_disp', true, 'Fs', Fs, 'RT60_sec', RT60_sec, 'tol0', tol0);
+h_f_9.Position = [100, 100, 600, 480];
 
-H_tgt_dB_DC_NQ  = -60 ./ (Fs * RT60_sec); %Target magnitude dB
-H_tgt_abs_DC_NQ = db2mag(H_tgt_dB_DC_NQ);                 %Target magnitude modulus  
+% [g_RT60_5, ~, h_f_5] = ft_exp_design(5, 'RT60',  'enable_disp', true, 'Fs', Fs, 'RT60_sec', RT60_sec, 'tol0', tol0);
+% h_f_5.Position = [100, 100, 600, 480];
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Fine-grain fit with different number of taps
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+H_tgt_dB_DC_NQ  = -60 ./ (Fs * RT60_sec);   % Target magnitude dB
+H_tgt_abs_DC_NQ = db2mag(H_tgt_dB_DC_NQ);   % Target magnitude modulus  
 
 X_mag = [H_tgt_abs_DC_NQ, fliplr(H_tgt_abs_DC_NQ(2:end-1))];
 
@@ -70,6 +76,8 @@ grpdel_g_tap_3 = grpdel_g_tap_3 * sample_exp;
 grpdel_g_tap_2 = grpdel_g_tap_2 * sample_exp;
 grpdel_tgt = grpdel_tgt * sample_exp;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Plotting
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fontsize = 16;
 backgroundAlpha = 1;
@@ -135,9 +143,13 @@ h_lg = legend({ 'Target Responses', ...
 set(h_lg, 'fontsize', fontsize - 2);
 set(gca, 'fontsize', fontsize - 1);
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Export figures
-out_dir = 'figs';
-if ~isfolder(out_dir)
-    mkdir(out_dir);
-end
-exportgraphics(h_f, fullfile(out_dir, 'sample_filter_fit.png'));
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% out_dir = 'figs/figs_t60';
+% if ~isfolder(out_dir)
+%     mkdir(out_dir);
+% end
+% exportgraphics(h_f_9, fullfile(out_dir, 'sample_exp_design.png'));
+% exportgraphics(h_f, fullfile(out_dir, 'sample_filter_fit.png'));
