@@ -452,7 +452,7 @@ Let us now combine the GP T60 sampling method from the previous section with our
   ```
   <img src="./figs/figs_t60/sample_GP_post_exp_fit_interp.png" alt="Uniform interpolation of T60 over frequency" width="480"/>
 
-  * Filter fit exponentiating filter $\bf{g}$ to the last sampled T60 function:
+* Filter fit exponentiating filter $\bf{g}$ to the last sampled T60 function:
   ```
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Fit exponentiating filter
