@@ -57,7 +57,7 @@ mu_lpf   = gp_mu(omega, gp_mu_opts('mu_func', 'LPF',   'mu_alpha', 1, 'mu_beta',
 
 We can construct positive semi-definite covariance functions from chordal distances of spherical coordinates $(\theta, \phi)$, $(\theta’, \phi’)$ and there corresponding unit-directions  $\bf{v}$, $\bf{v}'$  on the unit sphere in $\mathbb{R}^3$ given by 
 
-$$d(\theta, \phi, \theta', \phi') = 2 \sin \left ( \frac{ \left | \cos^{-1} (\bf{v}^T \bf{v}') \right |   }{2} \right ) = \left \| \bf{v} - \bf{v}'  \right \|_2 .$$
+$$d(\theta, \phi, \theta', \phi') = 2 \sin \left ( \frac{ \left | \cos^{-1} (\bf{v}^T \bf{v}') \right |   }{2} \right ) = \left \lVert \bf{v} - \bf{v}'  \right \rVert_2 .$$
 
 The squared exponential of chordal distance with non-stationary kernel wavelengths is therefore a non-stationary Gaussian kernel[^PACIOREK_NS] in 3-dimensions where $\bf{\Sigma} = \lambda^2 \bf{I} \in \mathbb{R}^{3 \times 3}$, and is positive semi-definite following  
 
@@ -356,7 +356,7 @@ $$ |G(\omega)|_{dB} = \frac{-60}{F_s  T_{60}(\omega) }, \quad  \quad \arg [G(\om
 
 where $\mathcal{H}$ is the Hilbert transform, and can be found via the real-cepstrum method[^OPPENHEIM_DSP]. In practice, the realized filter’s magnitude frequency response must also be bounded below unity as to remain stable under exponentiation. We therefore minimize the following quadratic objective under quadratic constraints:
 
-$$ \min_{\bf{g}} \int \left \| \mathcal{F} \{ g[n] \} (\omega) - G(\omega) \right \|_2^2 d \omega,  \quad  \left \| \mathcal{F} \{ g[n] \} (\omega)   \right \|_2^2 < 0, $$
+$$ \min_{\bf{g}} \int \left \lVert \mathcal{F} \{ g[n] \} (\omega) - G(\omega) \right \rVert_2^2 d \omega,  \quad  \left \lVert \mathcal{F} \{ g[n] \} (\omega)   \right \rVert_2^2 < 0, $$
 
 which can be expressed as a cone-program after discretizing the Fourier transform $\mathcal{F}$ along uniform spaced angular frequencies between DC and Nyquist. This is implemented in our function `ft_bnd_minphase.m` and `ft_exp_design.m`. As an example, let us specify a simple T60 target over uniform frequencies and fit a 9-tap exponentiating FIR filter with magnitude response bounded below $1-10^{-6}$ as follows:
 
