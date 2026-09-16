@@ -487,7 +487,7 @@ Let us now combine the GP T60 sampling method from the previous section with our
   
 ## Generating and Augmenting Colorless Spatial Room Impulse Responses
 
-We can generate spatial RIRs that distribute acoustic echos or reflections over the spherical coordinates. We model the latter via a mixture of weighted surface-delta functions $\delta(\theta, \phi \, | \, \theta', \phi') $ following the expansion of Dirac functions over the spherical harmonic (SH) domain from the delta function’s expansion in the Legendre polynomials and the Legendre addition theorem:
+We can generate spatial RIRs that distribute acoustic echos or reflections over the spherical coordinates. We model the latter via a mixture of weighted surface-delta functions $\delta(\theta, \phi  | \theta', \phi')$ following the expansion of Dirac functions over the spherical harmonic (SH) domain from the delta function’s expansion in the Legendre polynomials and the Legendre addition theorem:
 
 $$\delta(\theta, \phi  |  \theta', \phi') = \sum_{l=0}^{L} \sum_{m=-l}^l Y_l^m (\theta, \phi)  Y_l^{m*} (\theta', \phi'),$$
 
