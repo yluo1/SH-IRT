@@ -1,5 +1,5 @@
 function C_pdf = sh_pdf_preset(dir_name, func_name, max_odr, is_real, options)
-%Generate PDF presets
+%Generate spherical harmonic probability density function presets
 
 %Author: Yuancheng Luo, 2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -136,30 +136,30 @@ end
 %Function
 ell = options.ell;
 if strcmp(func_name, 'Dirac')
-    C_pdf = sh_msq(sh_enc_proj(max_odr_half, theta, phi, is_real));    
+    C_pdf = sh_msq(sh_enc_proj(max_odr_half, theta, phi, is_real), is_real);    
 
 elseif strcmp(func_name, 'SqExp')
-    C_pdf = sh_msq(sh_enc_rbf('SqExp', max_odr_half, theta, phi, ell, is_real));    
+    C_pdf = sh_msq(sh_enc_rbf('SqExp', max_odr_half, theta, phi, ell, is_real), is_real);    
 
 elseif strcmp(func_name, 'SqExpLeftRight')
-    C_pdf = sh_msq(sh_enc_rbf('SqExp', max_odr_half, pi/2,  pi/2, ell, is_real)) ...
-         +  sh_msq(sh_enc_rbf('SqExp', max_odr_half, pi/2, -pi/2, ell, is_real));
+    C_pdf = sh_msq(sh_enc_rbf('SqExp', max_odr_half, pi/2,  pi/2, ell, is_real), is_real) ...
+         +  sh_msq(sh_enc_rbf('SqExp', max_odr_half, pi/2, -pi/2, ell, is_real), is_real);
 
 elseif strcmp(func_name, 'SqExpTopBot')
-    C_pdf = sh_msq(sh_enc_rbf('SqExp', max_odr_half, pi/2 - pi/3,  0, ell, is_real)) ...
-         +  sh_msq(sh_enc_rbf('SqExp', max_odr_half, pi/2 + pi/3,  0, ell, is_real));
+    C_pdf = sh_msq(sh_enc_rbf('SqExp', max_odr_half, pi/2 - pi/3,  0, ell, is_real), is_real) ...
+         +  sh_msq(sh_enc_rbf('SqExp', max_odr_half, pi/2 + pi/3,  0, ell, is_real), is_real);
 
 elseif strcmp(func_name, 'SqExpNorthSouth')
-    C_pdf = sh_msq(sh_enc_rbf('SqExp', max_odr_half, 0,  0, ell, is_real)) ...
-         +  sh_msq(sh_enc_rbf('SqExp', max_odr_half, pi,  0, ell, is_real));
+    C_pdf = sh_msq(sh_enc_rbf('SqExp', max_odr_half, 0,  0, ell, is_real), is_real) ...
+         +  sh_msq(sh_enc_rbf('SqExp', max_odr_half, pi,  0, ell, is_real), is_real);
 
 elseif strcmp(func_name, 'SqExpDiagLeft')
-    C_pdf = sh_msq(sh_enc_rbf('SqExp', max_odr_half, pi/2 - pi/3,  pi/3, ell, is_real)) ...
-         +  sh_msq(sh_enc_rbf('SqExp', max_odr_half, pi/2 + pi/3,  -pi/3, ell, is_real));
+    C_pdf = sh_msq(sh_enc_rbf('SqExp', max_odr_half, pi/2 - pi/3,  pi/3, ell, is_real), is_real) ...
+         +  sh_msq(sh_enc_rbf('SqExp', max_odr_half, pi/2 + pi/3,  -pi/3, ell, is_real), is_real);
 
 elseif strcmp(func_name, 'SqExpDiagRight')
-    C_pdf = sh_msq(sh_enc_rbf('SqExp', max_odr_half, pi/2 - pi/3,  -pi/3, ell, is_real)) ...
-         +  sh_msq(sh_enc_rbf('SqExp', max_odr_half, pi/2 + pi/3,  pi/3, ell, is_real));
+    C_pdf = sh_msq(sh_enc_rbf('SqExp', max_odr_half, pi/2 - pi/3,  -pi/3, ell, is_real), is_real) ...
+         +  sh_msq(sh_enc_rbf('SqExp', max_odr_half, pi/2 + pi/3,  pi/3, ell, is_real), is_real);
 
 elseif strcmp(func_name, 'DiracRandom')
     num_func = 20;

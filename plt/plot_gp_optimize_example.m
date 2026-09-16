@@ -1,4 +1,4 @@
-function plot_gp_optimize
+function plot_gp_optimize_example
 % Maximize marginal likelihood w.r.t. hyperparameters and log-T60 samples drawn 
 % from another Gaussian process
 
@@ -90,5 +90,5 @@ if ~isfolder(out_dir)
     mkdir(out_dir);
 end
 
-exportgraphics(h_fig_prior_grid, fullfile(out_dir, 'opt_GP_prior_grid.png'));
-exportgraphics(h_fig_post_grid, fullfile(out_dir,  'opt_GP_post_grid.png'));
+% exportgraphics(h_fig_prior_grid, fullfile(out_dir, 'opt_GP_prior_grid.png'));
+% exportgraphics(h_fig_post_grid, fullfile(out_dir,  'opt_GP_post_grid.png'));

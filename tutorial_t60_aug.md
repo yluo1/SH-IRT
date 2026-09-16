@@ -10,7 +10,9 @@ The high-level steps are as follows:
     * [Drawing T60 samples from GP prior and posterior distributions](#sampling-from-gp-prior-and-posterior-distributions)
     * [Optimizing GP covariance hyper parameters](#optimizing-gaussian-process-covariance-function-hyper-parameters)
 * [Exponentiating FIR Optimization:](#fitting-exponentiating-fir-to-t60-functions) Fit short finite impulse response (FIR) exponentiating filters $\bf{g}$ to sampled $T_{60}(\omega, \theta, \phi)$ functions
-* [Generating and Augmenting Spatial RIR:](#generating-and-augmenting-colorless-spatial-room-impulse-responses) Generate colorless spatial RIRs $\bf{h}$ and apply time-varying exponentiated convolution $\textbf{f} = f(\bf{g}, \bf{h})$
+* [Generating and Augmenting Spatial RIRs:](#generating-and-augmenting-colorless-spatial-room-impulse-responses) Generate colorless spatial RIRs $\bf{h}$ and apply time-varying exponentiated convolution $\textbf{f} = f(\bf{g}, \bf{h})$
+  * [Spherical Harmonic Echo Density Model](#spherical-harmonic-echo-density-profile-model)
+  * [Spherical Harmonic Image-source Model](#spherical-harmonic-image-source-model)
 
 
 ## Sampling T60 Functions from Gaussian Processes
@@ -244,7 +246,7 @@ We can sample T60 functions from either a GP prior or posterior distribution via
 
 ### Optimizing Gaussian Process Covariance Function Hyper Parameters
 
-We can optimize the covariance function’s hyper parameters by maximizing the marginal data likelihood following the example in `plot_gp_optimize.m`. Let us draw some sample log-T60 functions from the following GP prior distribution:
+We can optimize the covariance function’s hyper parameters by maximizing the marginal data likelihood following the example in `plot_gp_optimize_example.m`. Let us draw some sample log-T60 functions from the following GP prior distribution:
 
 ```
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -374,7 +376,7 @@ h_f_9.Position = [100, 100, 600, 480];
 
 where the target minimum-phase response overshoots $0$ dB in the high-frequency band (14 - 18 kHz). Our optimized exponentiating filter stays below the unity upper bound and is near-minimum phase given equal number of filter taps to minimum-phase target responses.
 
-Let us now combine the GP T60 sampling method from the previous section with our filter fitting method, and apply exponentiating filter to a Gaussian noise sequence in the `plot_gp_T60_exp_fit.m` function.
+Let us now combine the GP T60 sampling method from the previous section with our filter fitting method, and apply exponentiating filter to a Gaussian noise sequence in the `plot_gp_T60_exp_fit_example.m` function.
 
 * Sample a log-T60 field from the GP posterior:
 
@@ -464,7 +466,7 @@ Let us now combine the GP T60 sampling method from the previous section with our
   g_MP    = cell(1, N_E);
   h_g_fig = cell(1, N_E);
   
-  idx_fit = N_E;
+  idx_fit = 1;
   [g_RT60{idx_fit}, g_MP{idx_fit}, h_g_fig{idx_fit}] = ft_exp_design(N_taps, 'RT60',  'enable_disp', true, 'Fs', Fs, 'RT60_sec', T60_uni_sec(:, idx_fit), 'tol0', tol0);
   h_g_fig{idx_fit}.Position = [100, 100, 600, 480];
   ```
@@ -478,14 +480,78 @@ Let us now combine the GP T60 sampling method from the previous section with our
   rng(521345);
   T = 1; % Duration seconds
   h = randn(1, ceil(T * Fs));
-  [f_1, h_f_exp_fig] = ft_exp_conv_opt(h, g_RT60{N_E}, ...
+  [f_1, h_f_exp_fig] = ft_exp_conv_opt(h, g_RT60{idx_fit}, ...
       'enable_disp', true, 'Fs', Fs, 'N_FFT', 512);
   ```
     <img src="./figs/figs_t60/sample_GP_post_exp_fit_exp_conv.png" alt="Exponentiated filtered white-noise" width="480"/>
   
 ## Generating and Augmenting Colorless Spatial Room Impulse Responses
 
+We can generate spatial RIRs that distribute acoustic echos or reflections over the spherical coordinates. We model the latter via a mixture of weighted surface-delta functions $\delta(\theta, \phi \, | \, \theta', \phi') $ following the expansion of Dirac functions over the spherical harmonic (SH) domain from the delta function’s expansion in the Legendre polynomials and the Legendre addition theorem:
 
-[^PACIOREK_NS]: Paciorek, C., & Schervish, M. (2003). Nonstationary covariance functions for Gaussian process regression. Advances in neural information processing systems, 16.
+$$
+\delta(\theta, \phi \, | \, \theta', \phi') = \sum_{l=0}^{L} \sum_{m=-l}^l Y_l^m (\theta, \phi) \, Y_l^{m*} (\theta', \phi’),
+$$
+where $Y_l^m(\theta, \phi)$ are spherical harmonic basis functions of degree $l$, order $m$, and $Y_l^{m*}(\theta', \phi’)$ is the complex conjugate at the spherical coordinate expansion center $(\theta’,\phi')$. 
 
-[^OPPENHEIM_DSP]: Oppenheim, Alan V., and Ronald W. Schafer. "Discrete-time signal processing.” (1999).
+
+### Spherical Harmonic Echo Density Profile Model
+
+The distribution of a room’s echo arrival times given an echo density profile[^ABEL_EDP] can be modeled by a Poisson process[^HUANG_EDP]. We can augment the echo density profile with a probability distribution function (PDF) of the acoustic reflection’s direction in spherical coordinates over time. Valid density functions over the spherical coordinates can be expressed via sum-of-magnitude square SH expansions[^LUO_MAGSQSH]. The SH-Poisson process RIR is implemented in the function `sh_rand_pp.m`.
+
+Let us generate a sample SH-Poisson RIR in the function `plot_sh_rand_pp_example.m`:
+
+* Specify a square exponential of chordal distance density function with no, linear, and exponential scattering over time:
+  ```
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Generate probability density functions over spherical coordinates
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  max_odr = 12;
+  is_real = true;
+  
+  T	= 0.5;		% Duration
+  Fs	= 16000;	% Sample rate
+  M	= ceil(T * Fs);	% Number of samples
+  
+  % Squared exponential of chordal distance radial basis function
+  C_pdf = sh_nrm(sh_enc_rbf('SqExp', max_odr, pi/2, 0, 0.25, is_real), 'Sum');
+  
+  C_pdf = C_pdf * ones(1, M);
+  D_lin = sh_pdf_scatter(C_pdf, 'lin', 0.999, is_real);
+  D_exp = sh_pdf_scatter(C_pdf, 'exp', 0.999, is_real, 'exp_k', 0.5);
+  
+  dB_lim = [-40, 20];
+  t = (0:(M-1)) / Fs;
+  sh_plt(C_pdf, 'horizontal', is_real, 'disp_phase', false, 'title_name_override', 'Squared Exponential Kernel', 'dB_lim', dB_lim, 't', t);
+  sh_plt(D_lin, 'horizontal', is_real, 'disp_phase', false, 'title_name_override', 'Linear Scattering', 'dB_lim', dB_lim, 't', t);
+  sh_plt(D_exp, 'horizontal', is_real, 'disp_phase', false, 'title_name_override', 'Exponential k = 0.5 Scattering', 'dB_lim', dB_lim, 't', t);
+  ```
+	| No Scattering | Linear Scattering | Exponential Scattering |
+  | --- | --- | --- |
+  |<img src="./figs/figs_t60/rand_pp_pdf.png" alt="GCP-ISM N = 1" width="400"/>|<img src="./figs/figs_t60/rand_pp_pdf_lin.png" alt="GCP-ISM N = 2" width="400"/>|<img src="./figs/figs_t60/rand_pp_pdf_exp.png" alt="GCP-ISM N = 3" width="400"/>|
+  
+	where no scattering holds the density constant over time, linear scattering mixes with uniform density over time, and exponential scattering transports towards uniform density over time.
+
+* Specify an echo density profile:
+* Realize the spatial RIR: 
+    
+### Spherical Harmonic Image-Source Model
+
+We can further generalize specular reflection models, such as the image-method[^ALLEN_ISM], towards separable applications between the acoustic source and receiver’s directivity, and the room reflections in SH-ISM formulations[^LUO_SHISM]. The room’s acoustic reflections are expanded along all pair-wise SH bases of image-source and image-receiver delta functions in a tensor of size `[(L_S+1)^2 x (L_R+1)^2 x T]` for finite max-order `L_S`, `L_R` respectively over time duration `T` samples. The source and receiver’s far-field directivity are independently expanded along SH bases, and can be arbitrarily rotated as represent different combinations of source and receiver orientations in an augmented dataset. The RIR is therefore realized by left and right multiplying the tensor by rotated SH expansion coefficients of the source and receiver directivity respectively.
+
+The SH-ISM model is implemented in the function `sh_ism.m`. 
+
+
+[^PACIOREK_NS]: Paciorek, C., & Schervish, M. (2003). "Nonstationary covariance functions for Gaussian process regression". Advances in neural information processing systems, 16.
+
+[^OPPENHEIM_DSP]: Oppenheim, Alan V., and Ronald W. Schafer. (1999). "Discrete-time signal processing.”.
+
+[^ABEL_EDP]: Abel, J. And Huang, P. (2006). "A simple, robust measure of reverberation echo density". Journal of the Audio Engineering Society.
+
+[^HUANG_EDP]: Huang, P. and Abel, J.S., (2007, October). "Aspects of reverberation echo density". Audio Engineering Society Convention 123. Audio Engineering Society.
+
+[^LUO_MAGSQSH]: Luo, Y. (2021). "Spherical harmonic covariance and magnitude function encodings for beamformer design". EURASIP Journal on Audio, Speech, and Music Processing, 2021(1), 41.
+
+[^ALLEN_ISM]: Allen, J. B., & Berkley, D. A. (1979). "Image method for efficiently simulating small‐room acoustics". The Journal of the Acoustical Society of America, 65(4), 943-950.
+
+[^LUO_SHISM]: Luo, Y., & Kim, W. (2020). "Fast source-room-receiver acoustics modeling". In 2020 28th European Signal Processing Conference (EUSIPCO) (pp. 51-55). IEEE.

@@ -1,4 +1,4 @@
-function plot_gp_T60_exp_fit
+function plot_gp_T60_exp_fit_example
 %Plot examples of exp filter fit to sampling T60 from GP posterior evaluation grid
 
 %Author: Yuancheng Luo, 2026
@@ -80,7 +80,7 @@ g_RT60  = cell(1, N_E);
 g_MP    = cell(1, N_E);
 h_g_fig = cell(1, N_E);
 
-idx_fit = N_E;
+idx_fit = 1;
 [g_RT60{idx_fit}, g_MP{idx_fit}, h_g_fig{idx_fit}] = ft_exp_design(N_taps, 'RT60',  'enable_disp', true, 'Fs', Fs, 'RT60_sec', T60_uni_sec(:, idx_fit), 'tol0', tol0);
 h_g_fig{idx_fit}.Position = [100, 100, 600, 480];
 
@@ -90,7 +90,7 @@ h_g_fig{idx_fit}.Position = [100, 100, 600, 480];
 rng(521345);
 T = 1; % Duration seconds
 h = randn(1, ceil(T * Fs));
-[f_1, h_f_exp_fig] = ft_exp_conv_opt(h, g_RT60{N_E}, ...
+[f_1, h_f_exp_fig] = ft_exp_conv_opt(h, g_RT60{idx_fit}, ...
     'enable_disp', true, 'Fs', Fs, 'N_FFT', 512);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -19,7 +19,7 @@ function [E_pdf] = sh_pdf_transport(C_pdf, D_pdf, t, mode, is_real, options)
 %               'SlicedWass':           Minimize least-squares reconstruction error of SH coefficients under 
 %                                       sliced Wasserstein projections of CDFs onto uniform distributed great circles
 %               'LinearInterp':         Linear interpolation:       (1-t) * (Y(theta, phi) * C_pdf) + t * (Y(theta, phi) * D_pdf)
-%               'GeometricInterp':      Geometric interpolation:    (Y(theta, phi) * C_pdf)^(1-t) + (Y(theta, phi) * D_pdf)^t
+%               'GeometricInterp':      Geometric interpolation:    (Y(theta, phi) * C_pdf)^(1-t) * (Y(theta, phi) * D_pdf)^t
 
 %is_real:   Logical, if true, evaluate real SH
 
