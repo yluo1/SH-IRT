@@ -1,6 +1,7 @@
-function [E, h_fig_gp] = sh_exp_conv_gp(C, obs, options)
+function [E, h_fig_gp] = sh_exp_conv_gp(C, obs, is_real, options)
 %Spherical harmonic exponentiating convolution of expansions C with
-%direction-dependent g(theta, phi) sampled from Gaussian process T60(omega, theta, phi)
+%direction-dependent exponentiating filter g(theta, phi) sampled from
+%Gaussian process T60(omega, theta, phi)
 
 %Author: Yuancheng Luo, 2026
 
@@ -11,10 +12,26 @@ function [E, h_fig_gp] = sh_exp_conv_gp(C, obs, options)
 %obs:                   Struct, observed T60(omega, theta, phi), see gp_obs_opts.m
 %                       [] for none
 
+%is_real:               Logical, if true, evaluate real SH
+
+%options:                  Struct
+
+%options.Fs:               Sampling rate
+
 %options.options_mu_gp:    Struct, prior mean options, see gp_mu_opts.m
 %options.options_cov_gp:   Struct, prior covariance options, see gp_cov_opts.m
 
 %options.max_odr_gp:       Max SH expansion order for functions drawn from GP
+
+%options.sample_method_gp:  String, sampling method {'mvnrnd', 'mean'}
+%options.N_freq_val_gp:     Number of uniform log-frequency points from DC to Nyquist to sample from GP 
+
+%options.N_freq_uni_fit:    Number of uniform frequency points to interpolate sampled T60
+%options.max_taps_g:        Number of filter taps to fit exponentiating filter per T60
+
+%options.SH_fit_svd_trunc_frac:     SH fitting truncates fraction of largest singular values
+
+%options.enable_disp:       Logical, if true, plot GP prior or posterior
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
@@ -36,7 +53,7 @@ function [E, h_fig_gp] = sh_exp_conv_gp(C, obs, options)
 % options_cov = gp_cov_opts('cov_sigma', 0.1, 'cov_gamma', 2/3);
 % %sample_method_gp = 'mvnrnd';
 % sample_method_gp = 'mean';
-% E = sh_exp_conv_gp(C, obs, 'Fs', Fs, 'options_mu', options_mu, 'options_cov', options_cov, ...
+% E = sh_exp_conv_gp(C, obs, is_real, 'Fs', Fs, 'options_mu', options_mu, 'options_cov', options_cov, ...
 %       'max_odr_gp', max_odr_gp, 'sample_method_gp', sample_method_gp, 'enable_disp', true);
 
 % %Decode
@@ -50,8 +67,9 @@ arguments
 
     obs = [];
 
+    is_real (1,1) logical = false;
+
     options.Fs (1,1) double {mustBePositive} = 48000;
-    options.is_real (1,1) logical = false;
 
     options.options_mu_gp  = gp_mu_opts;
     options.options_cov_gp = gp_cov_opts;
@@ -64,6 +82,8 @@ arguments
     options.N_freq_uni_fit  (1,1) double {mustBePositive, mustBeInteger} = 16;
     options.max_taps_g (1,1) double {mustBePositive, mustBeInteger}  = 16;    
     
+    options.SH_fit_svd_trunc_frac (1,1) double {mustBeNonnegative} = 0;
+
     options.enable_disp (1,1) logical = false;
 end
 
@@ -79,7 +99,7 @@ P_E = P_C + P_D;    %Combined max-order
 N_E = (P_E + 1)^2;  %Total number of bases and evaluation points
 
 [theta, phi] = sh_fib(N_E);
-H = sh_dec(C, theta, phi, options.is_real); %[N_E x M]
+H = sh_dec(C, theta, phi, is_real); %[N_E x M]
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample T60(omega, theta, phi) from GP
@@ -136,10 +156,33 @@ F = zeros(N_E, N * M);
 for n = 1:N_E
     F(n, :) = ft_exp_conv_opt(H(n, :), g_mat(:, n).');
     n
+
+    %plot_RIR(F(132, 1:8000)', plot_RIR_opts('Fs', options.Fs, 'clim', [-180, -80], 'win_size', 512, 'N_FFT', 512, 'colormap', 'hot'));
+    %plot_RIR(F(32, 1:8000)', plot_RIR_opts('Fs', options.Fs, 'clim', [-180, -80], 'win_size', 512, 'N_FFT', 512, 'colormap', 'hot'));
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Transform back into SH domain
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Y = sh_val(P_E, theta, phi, options.is_real);
-E = Y \ F;
+% Y = sh_val(P_E, theta, phi, is_real);
+% E = Y \ F;
+E = sh_fit_svd(F, theta, phi, P_E, is_real, options.SH_fit_svd_trunc_frac);
+
+% f_0 = sh_dec(E, pi/2, 0, is_real);
+% plot_RIR(f_0(1:8000), plot_RIR_opts('Fs', options.Fs, 'clim', [-180, -60], 'win_size', 512, 'N_FFT', 512, 'colormap', 'hot'));
+
+% f_180 = sh_dec(E, pi/2, pi, is_real);
+% plot_RIR(f_180(1:8000), plot_RIR_opts('Fs', options.Fs, 'clim', [-180, -60], 'win_size', 512, 'N_FFT', 512, 'colormap', 'hot'));
+
+% f_n_132 = sh_dec(E, theta(132), phi(132), is_real);
+% plot_RIR(f_n_132(1:8000), plot_RIR_opts('Fs', options.Fs, 'clim', [-180, -60], 'win_size', 512, 'N_FFT', 512, 'colormap', 'hot'));
+
+
+% f_n_32 = sh_dec(E, theta(32), phi(32), is_real);
+% plot_RIR(f_n_32(1:8000), plot_RIR_opts('Fs', options.Fs, 'clim', [-180, -60], 'win_size', 512, 'N_FFT', 512, 'colormap', 'hot'));
+
+% f_n_32_perturb = sh_dec(E, theta(32), phi(32) + deg2rad(10), is_real);
+% plot_RIR(f_n_32_perturb(1:8000), plot_RIR_opts('Fs', options.Fs, 'clim', [-180, -60], 'win_size', 512, 'N_FFT', 512, 'colormap', 'hot'));
+
+
+;

@@ -1,6 +1,6 @@
 # Tutorial: Spatial Room Impulse Response T60 Augmentation
 
-In this tutorial, we cover sound decay time augmentation of room impulse responses (RIRs) from our paper 
+In this tutorial, we cover sound decay time augmentation of spatial room impulse responses (SRIRs) from our paper 
 >Yuancheng Luo, "Fast Time-Varying Exponentiated Convolution Methods for Generative Direction Dependent Reverberation", Proceedings of the 161th Audio Engineering Society Convention.
 
 The high-level steps are as follows:
@@ -10,9 +10,9 @@ The high-level steps are as follows:
     * [Drawing T60 samples from GP prior and posterior distributions](#sampling-from-gp-prior-and-posterior-distributions)
     * [Optimizing GP covariance hyper parameters](#optimizing-gaussian-process-covariance-function-hyper-parameters)
 * [Exponentiating FIR Optimization:](#fitting-exponentiating-fir-to-t60-functions) Fit short finite impulse response (FIR) exponentiating filters $\bf{g}$ to sampled $T_{60}(\omega, \theta, \phi)$ functions
-* [Generating and Augmenting Spatial RIRs:](#generating-and-augmenting-colorless-spatial-room-impulse-responses) Generate colorless spatial RIRs $\bf{h}$ and apply time-varying exponentiated convolution $\textbf{f} = f(\bf{g}, \bf{h})$
+* [Generating and Augmenting SRIRs:](#generating-and-augmenting-colorless-spatial-room-impulse-responses) Generate colorless SRIRs $\bf{h}$ and apply time-varying exponentiated convolution $\textbf{f} = f(\bf{g}, \bf{h})$
   * [Spherical Harmonic Echo Density Model](#spherical-harmonic-echo-density-profile-model)
-  * [Spherical Harmonic Image-source Model](#spherical-harmonic-image-source-model)
+  * [Spherical Harmonic Image-Source Model](#spherical-harmonic-image-source-model)
 
 
 ## Sampling T60 Functions from Gaussian Processes
@@ -487,11 +487,11 @@ Let us now combine the GP T60 sampling method from the previous section with our
   
 ## Generating and Augmenting Colorless Spatial Room Impulse Responses
 
-We can generate spatial RIRs that distribute acoustic echos or reflections over the spherical coordinates. We model the latter via a mixture of weighted surface-delta functions $\delta(\theta, \phi  | \theta', \phi')$ following the expansion of Dirac functions over the spherical harmonic (SH) domain from the delta function’s expansion in the Legendre polynomials and the Legendre addition theorem:
+We can generate SRIRs that distribute acoustic echos or reflections over the spherical coordinates. We model the latter via a mixture of weighted surface-delta functions $\delta(\theta, \phi  | \theta', \phi')$ following the expansion of Dirac functions over the spherical harmonic (SH) domain from the delta function’s expansion in the Legendre polynomials and the Legendre addition theorem:
 
 $$\delta(\theta, \phi  |  \theta', \phi') = \sum_{l=0}^{L} \sum_{m=-l}^l Y_l^m (\theta, \phi)  Y_l^{m*} (\theta', \phi'),$$
 
-where $Y_l^m(\theta, \phi)$ are spherical harmonic basis functions of degree $l$, order $m$, and $Y_l^{m*}(\theta', \phi’)$ is the complex conjugate at the spherical coordinate expansion center $(\theta’,\phi')$. 
+where $Y_l^m(\theta, \phi)$ are spherical harmonic basis functions of degree $l$, order $m$, and $Y_l^{m*}(\theta', \phi’)$ is the complex conjugate at the spherical coordinate expansion center $(\theta’,\phi')$. Delta functions are subsequently normalized to have unity intensity at their peaks to model unit pulse-trains. Once a pulse-train of SH-SRIR expansions are generated, they can be augmented with different T60 decays sampled from a GP via the function `sh_exp_conv_gp.m`.
 
 
 ### Spherical Harmonic Echo Density Profile Model
@@ -500,7 +500,7 @@ The distribution of a room’s echo arrival times given an echo density profile[
 
 Let us generate a sample SH-Poisson RIR in the function `plot_sh_rand_pp_example.m`:
 
-* Specify a square exponential of chordal distance density function with no, linear, and exponential scattering over time:
+* Specify a square exponential of chordal distance density function centered on $(\theta = \pi/2, \phi = 0)$ with no, linear, and exponential scattering over time:
   ```
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Generate probability density functions over spherical coordinates
@@ -517,7 +517,7 @@ Let us generate a sample SH-Poisson RIR in the function `plot_sh_rand_pp_example
   
   C_pdf = C_pdf * ones(1, M);
   D_lin = sh_pdf_scatter(C_pdf, 'lin', 0.999, is_real);
-  D_exp = sh_pdf_scatter(C_pdf, 'exp', 0.999, is_real, 'exp_k', 0.5);
+  D_exp = sh_pdf_scatter(C_pdf, 'exp', 0.999, is_real, 'exp_k', 0.1);
   
   dB_lim = [-40, 20];
   t = (0:(M-1)) / Fs;
@@ -527,12 +527,131 @@ Let us generate a sample SH-Poisson RIR in the function `plot_sh_rand_pp_example
   ```
 	| No Scattering | Linear Scattering | Exponential Scattering |
   | --- | --- | --- |
-  |<img src="./figs/figs_t60/rand_pp_pdf.png" alt="GCP-ISM N = 1" width="400"/>|<img src="./figs/figs_t60/rand_pp_pdf_lin.png" alt="GCP-ISM N = 2" width="400"/>|<img src="./figs/figs_t60/rand_pp_pdf_exp.png" alt="GCP-ISM N = 3" width="400"/>|
+  |<img src="./figs/figs_t60/rand_pp_pdf.png" alt="No scattering density" width="400"/>|<img src="./figs/figs_t60/rand_pp_pdf_lin.png" alt="Linear scattering density" width="400"/>|<img src="./figs/figs_t60/rand_pp_pdf_exp.png" alt="Exponential scattering density" width="400"/>|
   
 	where no scattering holds the density constant over time, linear scattering mixes with uniform density over time, and exponential scattering transports towards uniform density over time.
 
-* Specify an echo density profile:
-* Realize the spatial RIR: 
+* Specify an echo density profile and sample SRIRs:
+  ```
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Generate absolute echo density profile and sample spatial RIRs
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  aed = logspace(log10(10/Fs), log10(2), M) * Fs;
+  rseed = 12543 + 7;
+  
+  rng(rseed);
+  [C_pp, t, h_pp] = sh_rand_pp(max_odr, aed, is_real, 'Fs', Fs, ...
+      'direct_unity_first_pulse', true, 'C_pdf', C_pdf, 'enable_disp', true);
+  
+  rng(rseed);
+  [C_pp_lin, t, h_pp_lin] = sh_rand_pp(max_odr, aed, is_real, 'Fs', Fs, ...
+      'direct_unity_first_pulse', true, 'C_pdf', D_lin, 'enable_disp', true);
+  
+  rng(rseed);
+  [C_pp_exp, t, h_pp_exp] = sh_rand_pp(max_odr, aed, is_real, 'Fs', Fs, ...
+      'direct_unity_first_pulse', true, 'C_pdf', D_exp, 'enable_disp', true);
+  ```
+	| Density | SRIRs Decoded On-Axis | Energy / Time on Horizontal Plane |
+  | --- | --- | --- |
+  |No Scattering|<img src="./figs/figs_t60/SRIR_pp_pdf.png" width="800"/>|<img src="./figs/figs_t60/SRIR_hplane_pp_pdf.png"  width="400"/>|
+  |Linear Scattering|<img src="./figs/figs_t60/SRIR_pp_pdf_lin.png" width="800"/>|<img src="./figs/figs_t60/SRIR_hplane_pp_pdf_lin.png"  width="400"/>|
+  |Exponential Scattering|<img src="./figs/figs_t60/SRIR_pp_pdf_exp.png" width="800"/>|<img src="./figs/figs_t60/SRIR_hplane_pp_pdf_exp.png"  width="400"/>| 
+
+    where we expect the majority of the energy in the SRIR to concentrate on-axis in the no scattering case, energy to rapidly disperse in the linear scattering, and slowly disperse in the exponential scattering.
+
+* Specify a T60 GP prior mean and covariance. Set the T60 sampling method to only the GP prior mean function (direction independent, `sample_method_gp = ‘mean’; obs = []`) and apply SH exponentiated convolutions to the exponential scattered SRIR `C_pp_exp` via `sh_exp_conv_gp.m`:
+
+  ```
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Specify GP mean and coariance priors
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  options_mu  = gp_mu_opts('mu_func', 'power', 'mu_alpha', 0.5, 'mu_beta', 0.1);
+  options_cov = gp_cov_opts('cov_sigma', 0.25, 'cov_gamma', 0.75, 'cov_ell', 343);
+  
+  options_disp_gp = gp_disp_opts('disp_legend_samples', false, ...
+      'disp_legend_mean', false, 'disp_legend_var', false, 'disp_legend_loc', 'southwest', ...
+      'disp_legend_num_cols', 1, 'disp_ylim', [0, 0.8], ...
+      'disp_sample_eval', true, 'disp_mean', false, 'disp_var', true, ...
+      'disp_legend_compact', true, 'disp_position', [100, 100, 560 * 0.825, 480 * 0.666], ...
+      'disp_legend_transparency', 0.75, 'disp_colororder', 'gem12', ...
+      'disp_var_transparency', 0.025, ...
+      'disp_sample_stride', 1);
+  
+  sample_method_gp = 'mean';
+  
+  N_freq_uni_fit = 16;
+  max_taps_g = 16;
+  
+  % Sample fromr T60 prior mean
+  obs = [];
+  [C_pp_exp_T60_prior, h_fig_gp_prior] = sh_exp_conv_gp(C_pp_exp, obs, is_real, ...
+      'Fs', Fs, 'options_mu', options_mu, 'options_cov', options_cov, ...
+        'max_odr_gp', 3, 'sample_method_gp', sample_method_gp, ...
+        'N_freq_uni_fit', N_freq_uni_fit, 'max_taps_g', max_taps_g, ...
+        'SH_fit_svd_trunc_frac', 0, ...
+        'enable_disp', true, 'options_disp_gp', options_disp_gp);
+  
+  % Sample from T60 posterior mean
+  N_S = 6;
+  omega_obs = logspace(log10(20), log10(Fs/2), N_S)' * 2 * pi;
+  obs = gp_obs_opts(  'omega', omega_obs, ...
+                      'theta', deg2rad(90) * ones(N_S, 1), ...
+                      'phi', deg2rad(0) * ones(N_S, 1), ...
+                      'T60', mu_pow(omega_obs, 0.5, 0), ...
+                      'log_noise_std', 0.005 * ones(N_S, 1) ... %0.5 percent
+                      );
+  
+  [C_pp_exp_T60_post, h_fig_gp_post] = sh_exp_conv_gp(C_pp_exp, obs, is_real, 'Fs', Fs, 'options_mu', options_mu, 'options_cov', options_cov, ...
+        'max_odr_gp', 6, 'sample_method_gp', sample_method_gp, ...
+        'N_freq_uni_fit', N_freq_uni_fit, 'max_taps_g', max_taps_g, ...
+        'SH_fit_svd_trunc_frac', 0.15, ...
+        'enable_disp', true, 'options_disp_gp', options_disp_gp);
+  ```
+  | T60 GP Prior | T60 GP Posterior|
+  | --- |--- |
+  <img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior.png"  width="400"/> | <img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post.png"  width="400"/>
+
+* Decode and plot SRIRs along spherical coordinates on the horizontal plane:
+  ```
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Decode along grid and plot
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  theta_cust = deg2rad([90 90 90 90])';
+  phi_cust = deg2rad([0 60 120 180])';
+  N_cust = numel(theta_cust);
+  
+  f_cust_orig     = real(sh_dec(C_pp_exp, theta_cust, phi_cust, is_real));
+  f_cust_prior    = real(sh_dec(C_pp_exp_T60_prior, theta_cust, phi_cust, is_real));
+  f_cust_post     = real(sh_dec(C_pp_exp_T60_post, theta_cust, phi_cust, is_real));
+  
+  %sh_plt(C_pp_exp_T60_prior(:, 1:8000), 'horizontal', is_real, 'dB_lim', [-180, -40], 'disp_phase', false, 'disp_xaxis_ker_size', 1024);
+  %sh_plt(C_pp_exp_T60_post(:, 1:8000), 'horizontal', is_real, 'dB_lim', [-180, -40], 'disp_phase', false, 'disp_xaxis_ker_size', 1024);
+  
+  h_f_cust_dec = cell(3, N_cust);
+  
+  for n = 1:N_cust
+      options_plot_RIR = plot_RIR_opts('Fs', Fs, 'colormap', hot, 'disp_RIR', false, ...
+          'win_size', 64, 'N_FFT', 512, ...
+          'spec_disp_colorbar', true, 'spec_title_interp', 'latex', ...
+          'spec_disp_yaxis', true, 'fig_size', [600, 300] * (3/4), ...
+          'spec_ylim', [50, inf], 'font_size', 18, 'clim', [-160, -50], ...
+          'name', ['$(\theta = ',  num2str(rad2deg(theta_cust(n))), '^{\circ}, \phi = ',  num2str(rad2deg(phi_cust(n))), '^{\circ})$'] );
+  
+      h_f_cust_dec{1, n} = plot_RIR(f_cust_orig(n, 1:ceil(0.5 * Fs))', options_plot_RIR);
+      h_f_cust_dec{2, n} = plot_RIR(f_cust_prior(n, 1:ceil(0.5 * Fs))', options_plot_RIR);
+      h_f_cust_dec{3, n} = plot_RIR(f_cust_post(n, 1:ceil(0.5 * Fs))', options_plot_RIR);
+  
+      xticks([100 300 500]);
+      yticks([250, 1000, 4000] / 1000);
+  end
+  ```
+
+| Original | Exponentiated SRIR with T60 GP prior| Exponentiated SRIR with T60 GP Posterior|
+  | --- | --- |--- |
+  |<img src="./figs/figs_t60/SRIR_pp_gp_exp_orig_1.png" width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior_1.png"  width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post_1.png"  width="400"/>|
+  |<img src="./figs/figs_t60/SRIR_pp_gp_exp_orig_2.png" width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior_2.png"  width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post_2.png"  width="400"/>|
+|<img src="./figs/figs_t60/SRIR_pp_gp_exp_orig_3.png" width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior_3.png"  width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post_3.png"  width="400"/>|
+|<img src="./figs/figs_t60/SRIR_pp_gp_exp_orig_4.png" width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior_4.png"  width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post_4.png"  width="400"/>|
     
 ### Spherical Harmonic Image-Source Model
 
