@@ -21,21 +21,25 @@ function [E, h_fig_gp] = sh_exp_conv_gp(C, obs, is_real, options)
 %options.options_mu_gp:    Struct, prior mean options, see gp_mu_opts.m
 %options.options_cov_gp:   Struct, prior covariance options, see gp_cov_opts.m
 
-%options.max_odr_gp:       Max SH expansion order for functions drawn from GP
-
-%options.sample_method_gp:  String, sampling method {'mvnrnd', 'mean'}
-%options.N_freq_val_gp:     Number of uniform log-frequency points from DC to Nyquist to sample from GP 
+%options.max_odr_gp:        Max SH expansion order for functions drawn from GP
+%options.sample_method_gp:  String, GP sampling method {'mvnrnd', 'mean'}
+%options.N_freq_val_gp:     Number of uniform log-frequency points from DC to Nyquist to sample from GP
 
 %options.N_freq_uni_fit:    Number of uniform frequency points to interpolate sampled T60
 %options.max_taps_g:        Number of filter taps to fit exponentiating filter per T60
 
-%options.SH_fit_svd_trunc_frac:     SH fitting truncates fraction of largest singular values
+%options.SH_fit_mode:               String, fitting method {'svd_inv', 'svd_ls'}
+%                                       'svd_inv':      Truncated inverse
+%                                       'svd_ls'        Truncated leasts-squares
+%options.SH_fit_svd_trunc_frac:     SH fit truncates fraction of largest singular values
 
 %options.enable_disp:       Logical, if true, plot GP prior or posterior
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
-%E:  [(P + max_odr_gp + 1)^2 x M * max_taps_g]   SH coefficients
+%E:  [(P + options.max_odr_gp + 1)^2 x (M * max_taps_g)]   SH coefficients for 'svd_inv' options.SH_fit_mode
+%    [(P + 1)^2 x (M * max_taps_g)]                        SH coefficients for 'svd_ls'  options.SH_fit_mode
+
 %h_fig_gp:  Handle to GP figure
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -76,12 +80,13 @@ arguments
 
     options.options_disp_gp = gp_disp_opts('disp_legend_samples', false, 'disp_legend_loc', 'southoutside', 'disp_position', [100, 100, 800, 800], 'disp_legend_num_cols', 2);
     options.max_odr_gp (1,1) double {mustBeNonnegative} = 3;
-    options.sample_method_gp (1,:) char {mustBeMember(options.sample_method_gp, {'mvnrnd', 'mean'})} = 'mvnrnd';
+    options.sample_method_gp (1,:) char {mustBeMember(options.sample_method_gp, {'mvnrnd', 'mean'})} = 'mean';
     options.N_freq_val_gp (1,1) double {mustBePositive, mustBeInteger} = 32;
 
     options.N_freq_uni_fit  (1,1) double {mustBePositive, mustBeInteger} = 16;
     options.max_taps_g (1,1) double {mustBePositive, mustBeInteger}  = 16;    
-    
+
+    options.SH_fit_mode (1,:) char {mustBeMember(options.SH_fit_mode, {'svd_inv', 'svd_ls'} )} = 'svd_inv';
     options.SH_fit_svd_trunc_frac (1,1) double {mustBeNonnegative} = 0;
 
     options.enable_disp (1,1) logical = false;
@@ -114,6 +119,12 @@ num_evals = 1;
     'sample_method', options.sample_method_gp, ...
     'enable_disp', options.enable_disp, 'options_disp', options.options_disp_gp);
 %log_T60 [options.N_freq_val x N_E x num_evals]
+
+% [log_T60, h_fig_gp] = gp_t60_sample(omega, pi/2 * ones(7, 1), deg2rad(linspace(0, 180, 7)'), num_evals, obs, ...
+%     'options_mu', options.options_mu_gp, 'options_cov', options.options_cov_gp, ...
+%     'sample_method', options.sample_method_gp, ...
+%     'enable_disp', options.enable_disp, 'options_disp', options.options_disp_gp);
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Interpolate log_T60 over uniform frequency
@@ -166,23 +177,42 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Y = sh_val(P_E, theta, phi, is_real);
 % E = Y \ F;
-E = sh_fit_svd(F, theta, phi, P_E, is_real, options.SH_fit_svd_trunc_frac);
+if strcmp(options.SH_fit_mode, 'svd_inv')
 
-% f_0 = sh_dec(E, pi/2, 0, is_real);
-% plot_RIR(f_0(1:8000), plot_RIR_opts('Fs', options.Fs, 'clim', [-180, -60], 'win_size', 512, 'N_FFT', 512, 'colormap', 'hot'));
+    E = sh_fit_svd(F, theta, phi, P_E, is_real, options.SH_fit_svd_trunc_frac);
 
-% f_180 = sh_dec(E, pi/2, pi, is_real);
-% plot_RIR(f_180(1:8000), plot_RIR_opts('Fs', options.Fs, 'clim', [-180, -60], 'win_size', 512, 'N_FFT', 512, 'colormap', 'hot'));
+elseif strcmp(options.SH_fit_mode, 'svd_ls')
 
-% f_n_132 = sh_dec(E, theta(132), phi(132), is_real);
-% plot_RIR(f_n_132(1:8000), plot_RIR_opts('Fs', options.Fs, 'clim', [-180, -60], 'win_size', 512, 'N_FFT', 512, 'colormap', 'hot'));
+    E = sh_fit_svd(F, theta, phi, P_C, is_real, options.SH_fit_svd_trunc_frac);
 
+else
+    error('Unknown options.SH_fit_mode');
+end
 
-% f_n_32 = sh_dec(E, theta(32), phi(32), is_real);
-% plot_RIR(f_n_32(1:8000), plot_RIR_opts('Fs', options.Fs, 'clim', [-180, -60], 'win_size', 512, 'N_FFT', 512, 'colormap', 'hot'));
+% dB_lim =  [-160, -80];
+% win_size = 64;
+% N_FFT = 512;
 
-% f_n_32_perturb = sh_dec(E, theta(32), phi(32) + deg2rad(10), is_real);
-% plot_RIR(f_n_32_perturb(1:8000), plot_RIR_opts('Fs', options.Fs, 'clim', [-180, -60], 'win_size', 512, 'N_FFT', 512, 'colormap', 'hot'));
+% for phi_disp = 0:60:180
+%     f_phi = sh_dec(E, pi/2, deg2rad(phi_disp), is_real);
+%     plot_RIR(f_phi(1:8000), plot_RIR_opts('Fs', options.Fs, 'clim', dB_lim, 'win_size', win_size, 'N_FFT', N_FFT, 'colormap', 'hot', 'disp_RIR', false));
+% end
 
+% for phi_disp = 0:60:180
+%     f_phi = sh_dec(C, pi/2, deg2rad(phi_disp), is_real);
+%     plot_RIR(f_phi(1:8000), plot_RIR_opts('Fs', options.Fs, 'clim', dB_lim + 20, 'win_size', win_size, 'N_FFT', N_FFT, 'colormap', 'hot', 'disp_RIR', false));
+% end
+
+% Find closest angle to (pi/2, pi)
+%V = zeros(N_E, 3);
+%[V(:, 1), V(:, 2), V(:,3)] = sph2cart(phi, pi/2 - theta, ones(size(theta)));
+%[u(1), u(2), u(3)] = sph2cart(deg2rad(180), 0, 1);
+%[~, idx] = max(u*V')
+
+%f_u = sh_dec(E, theta(idx), phi(idx), is_real);
+%plot_RIR(f_u(1:8000), plot_RIR_opts('Fs', options.Fs, 'clim', dB_lim, 'win_size', win_size, 'N_FFT', N_FFT, 'colormap', 'hot', 'disp_RIR', false));
+
+%f_u_perturb = sh_dec(E, theta(idx), phi(idx) + deg2rad(1), is_real);
+%plot_RIR(f_u_perturb(1:8000), plot_RIR_opts('Fs', options.Fs, 'clim', dB_lim, 'win_size', win_size, 'N_FFT', N_FFT, 'colormap', 'hot', 'disp_RIR', false));
 
 ;

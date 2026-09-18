@@ -36,7 +36,7 @@ function [C, t] = sh_ism(max_src_odr, max_rec_odr, is_real, T, s, r, l, gamma_po
  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
-%C:     [(max_src_odr + 1)^2 x (max_rec_odr + 1)^2 x M]
+%C:     [(max_src_odr + 1)^2 x (max_rec_odr + 1)^2 x M] SH coefficients
 %t:     [1 x M] time (sec)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -73,11 +73,11 @@ arguments
 
     options.Fs (1,1) double {mustBePositive} = 48000;
     options.kernel_sample_width  (1,1) double {mustBePositive, mustBeInteger}  = 10;
-    options.jitter_coord_bnd  (1,2) double {mustBeNonnegative} = [0, 0];
+    options.jitter_coord_bnd  (1,2) double = [0, 0];
     options.jitter_srand (1,1) double {mustBeInteger} = 6452;
 
     options.mode_enc (1,:) char {mustBeMember(options.mode_enc, {'proj', 'proj_msq', 'proj_msq_mex'} )} = 'proj';
-    options.enable_mex (1,1) logical = true;
+
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

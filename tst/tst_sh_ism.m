@@ -35,7 +35,7 @@ if strcmp(mode, 'direct_only')
     gamma_neg = [0, 0, 0];
     
    
-    [C, t] = sh_ism(max_src_odr, max_rec_odr, is_real, T, s, r, l, gamma_pos, gamma_neg, 'jitter_coord_bnd', [1 1] * 1e-3);
+    [C, t] = sh_ism(max_src_odr, max_rec_odr, is_real, T, s, r, l, gamma_pos, gamma_neg, 'jitter_coord_bnd', [-1 1] * 1e-3);
     
     plot_RIR(squeeze(C(1, 1, :)), plot_RIR_opts('clim', [-120, -60], 'win_size', 512, 'spec_scale', 'linear'));
     
@@ -66,7 +66,7 @@ elseif    strcmp(mode, 'single_tap')
     gamma_neg = [0.9, 0.6, 0.5];
     
    
-    [C, t] = sh_ism(max_src_odr, max_rec_odr, is_real, T, s, r, l, gamma_pos, gamma_neg, 'jitter_coord_bnd', [1 1] * 1e-3);
+    [C, t] = sh_ism(max_src_odr, max_rec_odr, is_real, T, s, r, l, gamma_pos, gamma_neg, 'jitter_coord_bnd', [-1 1] * 1e-3);
     
     plot_RIR(squeeze(C(1, 1, :)), plot_RIR_opts('clim', [-120, -60], 'win_size', 512, 'spec_scale', 'linear'));
     
@@ -98,7 +98,7 @@ elseif strcmp(mode, 'multi_tap')
     gamma_neg = [0.9, 0.6, 0.5; 0.1, 0.1, 0.2];
     
     
-    [C, t] = sh_ism(max_src_odr, max_rec_odr, is_real, T, s, r, l, gamma_pos, gamma_neg, 'jitter_coord_bnd', [1 1] * 1e-3);
+    [C, t] = sh_ism(max_src_odr, max_rec_odr, is_real, T, s, r, l, gamma_pos, gamma_neg, 'jitter_coord_bnd', [-1 1] * 1e-3);
     
     plot_RIR(squeeze(C(1, 1, :)), plot_RIR_opts('clim', [-120, -60], 'win_size', 512, 'spec_scale', 'linear'));
     

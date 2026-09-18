@@ -498,7 +498,7 @@ where $Y_l^m(\theta, \phi)$ are spherical harmonic basis functions of degree $l$
 
 The distribution of a room’s echo arrival times given an echo density profile[^ABEL_EDP] can be modeled by a Poisson process[^HUANG_EDP]. We can augment the echo density profile with a probability distribution function (PDF) of the acoustic reflection’s direction in spherical coordinates over time. Valid density functions over the spherical coordinates can be expressed via sum-of-magnitude square SH expansions[^LUO_MAGSQSH]. The SH-Poisson process RIR is implemented in the function `sh_rand_pp.m`.
 
-Let us generate a sample SH-Poisson RIR in the function `plot_sh_rand_pp_example.m`:
+Let us generate a sample SH-Poisson RIR and augment its T60 in the function `plot_sh_rand_pp_example.m`:
 
 * Specify a square exponential of chordal distance density function centered on $(\theta = \pi/2, \phi = 0)$ with no, linear, and exponential scattering over time:
   ```
@@ -559,8 +559,7 @@ Let us generate a sample SH-Poisson RIR in the function `plot_sh_rand_pp_example
 
     where we expect the majority of the energy in the SRIR to concentrate on-axis in the no scattering case, energy to rapidly disperse in the linear scattering, and slowly disperse in the exponential scattering.
 
-* Specify a T60 GP prior mean and covariance. Set the T60 sampling method to only the GP prior mean function (direction independent, `sample_method_gp = ‘mean’; obs = []`) and apply SH exponentiated convolutions to the exponential scattered SRIR `C_pp_exp` via `sh_exp_conv_gp.m`:
-
+* Specify a T60 GP prior mean and covariance. Set the T60 sampling method to only the GP prior mean function (direction independent, `sample_method_gp = ‘mean’; obs = []`) and apply SH exponentiated convolutions to the exponential scattered SRIR `C_pp_exp_T60_prior` via `sh_exp_conv_gp.m`. Then add a set of observed T60 to `obs` and repeat for the posterior 'C_pp_exp_T60_post':
   ```
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Specify GP mean and coariance priors
@@ -579,8 +578,9 @@ Let us generate a sample SH-Poisson RIR in the function `plot_sh_rand_pp_example
   
   sample_method_gp = 'mean';
   
-  N_freq_uni_fit = 16;
-  max_taps_g = 16;
+  SH_fit_mode = 'svd_ls';
+  N_freq_uni_fit = 24;
+  max_taps_g = 24;
   
   % Sample fromr T60 prior mean
   obs = [];
@@ -588,11 +588,11 @@ Let us generate a sample SH-Poisson RIR in the function `plot_sh_rand_pp_example
       'Fs', Fs, 'options_mu', options_mu, 'options_cov', options_cov, ...
         'max_odr_gp', 3, 'sample_method_gp', sample_method_gp, ...
         'N_freq_uni_fit', N_freq_uni_fit, 'max_taps_g', max_taps_g, ...
-        'SH_fit_svd_trunc_frac', 0, ...
+        'SH_fit_mode', SH_fit_mode, 'SH_fit_svd_trunc_frac', 0, ...
         'enable_disp', true, 'options_disp_gp', options_disp_gp);
   
   % Sample from T60 posterior mean
-  N_S = 6;
+  N_S = 16;
   omega_obs = logspace(log10(20), log10(Fs/2), N_S)' * 2 * pi;
   obs = gp_obs_opts(  'omega', omega_obs, ...
                       'theta', deg2rad(90) * ones(N_S, 1), ...
@@ -602,16 +602,17 @@ Let us generate a sample SH-Poisson RIR in the function `plot_sh_rand_pp_example
                       );
   
   [C_pp_exp_T60_post, h_fig_gp_post] = sh_exp_conv_gp(C_pp_exp, obs, is_real, 'Fs', Fs, 'options_mu', options_mu, 'options_cov', options_cov, ...
-        'max_odr_gp', 6, 'sample_method_gp', sample_method_gp, ...
+        'max_odr_gp', 3, 'sample_method_gp', sample_method_gp, ...
         'N_freq_uni_fit', N_freq_uni_fit, 'max_taps_g', max_taps_g, ...
-        'SH_fit_svd_trunc_frac', 0.15, ...
+        'SH_fit_mode', SH_fit_mode, 'SH_fit_svd_trunc_frac', 0, ...
         'enable_disp', true, 'options_disp_gp', options_disp_gp);
   ```
   | T60 GP Prior | T60 GP Posterior|
   | --- |--- |
   <img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior.png"  width="400"/> | <img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post.png"  width="400"/>
 
-* Decode and plot SRIRs along spherical coordinates on the horizontal plane:
+* Decode and plot SRIRs at spherical coordinates on the horizontal plane:
+
   ```
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Decode along grid and plot
@@ -624,10 +625,9 @@ Let us generate a sample SH-Poisson RIR in the function `plot_sh_rand_pp_example
   f_cust_prior    = real(sh_dec(C_pp_exp_T60_prior, theta_cust, phi_cust, is_real));
   f_cust_post     = real(sh_dec(C_pp_exp_T60_post, theta_cust, phi_cust, is_real));
   
-  %sh_plt(C_pp_exp_T60_prior(:, 1:8000), 'horizontal', is_real, 'dB_lim', [-180, -40], 'disp_phase', false, 'disp_xaxis_ker_size', 1024);
-  %sh_plt(C_pp_exp_T60_post(:, 1:8000), 'horizontal', is_real, 'dB_lim', [-180, -40], 'disp_phase', false, 'disp_xaxis_ker_size', 1024);
-  
   h_f_cust_dec = cell(3, N_cust);
+  
+  yticks_list = [250, 1000, 4000] / 1000;
   
   for n = 1:N_cust
       options_plot_RIR = plot_RIR_opts('Fs', Fs, 'colormap', hot, 'disp_RIR', false, ...
@@ -637,27 +637,114 @@ Let us generate a sample SH-Poisson RIR in the function `plot_sh_rand_pp_example
           'spec_ylim', [50, inf], 'font_size', 18, 'clim', [-160, -50], ...
           'name', ['$(\theta = ',  num2str(rad2deg(theta_cust(n))), '^{\circ}, \phi = ',  num2str(rad2deg(phi_cust(n))), '^{\circ})$'] );
   
-      h_f_cust_dec{1, n} = plot_RIR(f_cust_orig(n, 1:ceil(0.5 * Fs))', options_plot_RIR);
-      h_f_cust_dec{2, n} = plot_RIR(f_cust_prior(n, 1:ceil(0.5 * Fs))', options_plot_RIR);
-      h_f_cust_dec{3, n} = plot_RIR(f_cust_post(n, 1:ceil(0.5 * Fs))', options_plot_RIR);
-  
-      xticks([100 300 500]);
-      yticks([250, 1000, 4000] / 1000);
+      h_f_cust_dec{1, n} = plot_RIR(f_cust_orig(n, 1:ceil(0.5 * Fs))', options_plot_RIR);  yticks(yticks_list);
+      h_f_cust_dec{2, n} = plot_RIR(f_cust_prior(n, 1:ceil(0.5 * Fs))', options_plot_RIR);  yticks(yticks_list);
+      h_f_cust_dec{3, n} = plot_RIR(f_cust_post(n, 1:ceil(0.5 * Fs))', options_plot_RIR);  yticks(yticks_list);
   end
   ```
 
-| Original | Exponentiated SRIR with T60 GP prior| Exponentiated SRIR with T60 GP Posterior|
-  | --- | --- |--- |
-  |<img src="./figs/figs_t60/SRIR_pp_gp_exp_orig_1.png" width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior_1.png"  width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post_1.png"  width="400"/>|
-  |<img src="./figs/figs_t60/SRIR_pp_gp_exp_orig_2.png" width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior_2.png"  width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post_2.png"  width="400"/>|
-|<img src="./figs/figs_t60/SRIR_pp_gp_exp_orig_3.png" width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior_3.png"  width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post_3.png"  width="400"/>|
-|<img src="./figs/figs_t60/SRIR_pp_gp_exp_orig_4.png" width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior_4.png"  width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post_4.png"  width="400"/>|
+  | Original | Exponentiated SRIR with T60 GP prior| Exponentiated SRIR with T60 GP Posterior|
+    | --- | --- |--- |
+    |<img src="./figs/figs_t60/SRIR_pp_gp_exp_orig_1.png" width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior_1.png"  width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post_1.png"  width="400"/>|
+    |<img src="./figs/figs_t60/SRIR_pp_gp_exp_orig_2.png" width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior_2.png"  width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post_2.png"  width="400"/>|
+  |<img src="./figs/figs_t60/SRIR_pp_gp_exp_orig_3.png" width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior_3.png"  width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post_3.png"  width="400"/>|
+  |<img src="./figs/figs_t60/SRIR_pp_gp_exp_orig_4.png" width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior_4.png"  width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post_4.png"  width="400"/>|
     
 ### Spherical Harmonic Image-Source Model
 
-We can further generalize specular reflection models, such as the image-method[^ALLEN_ISM], towards separable applications between the acoustic source and receiver’s directivity, and the room reflections in SH-ISM formulations[^LUO_SHISM]. The room’s acoustic reflections are expanded along all pair-wise SH bases of image-source and image-receiver delta functions in a tensor of size `[(L_S+1)^2 x (L_R+1)^2 x T]` for finite max-order `L_S`, `L_R` respectively over time duration `T` samples. The source and receiver’s far-field directivity are independently expanded along SH bases, and can be arbitrarily rotated as represent different combinations of source and receiver orientations in an augmented dataset. The RIR is therefore realized by left and right multiplying the tensor by rotated SH expansion coefficients of the source and receiver directivity respectively.
+We can further generalize specular reflection models, such as the image-method[^ALLEN_ISM], towards separable applications between the acoustic source and receiver’s directivity, and the room reflections in SH-ISM formulations[^LUO_SHISM]. The room’s acoustic reflections are expanded along all pair-wise SH bases of image-source and image-receiver delta functions in a tensor of size `[(L_S+1)^2 x (L_R+1)^2 x T]` for finite max-order `L_S`, `L_R` respectively over time duration `T` samples. The source and receiver’s far-field directivity are independently expanded along SH bases, and can be arbitrarily rotated as represent different combinations of source and receiver orientations in an augmented dataset. The RIR is therefore realized by left and right multiplying the tensor by rotated SH expansion coefficients of the source and receiver directivity respectively. The SH-ISM model is implemented in the function `sh_ism.m`. 
 
-The SH-ISM model is implemented in the function `sh_ism.m`. 
+Let us generate a sample SH-ISM RIR and augment its T60 in the function `plot_sh_ism_example.m`:
+
+* Configure a SH-ISM model with max `L_S=1`, and `L_R=5` source and receiver expansion orders respectively, colorless room reflection coefficients, source/receiver/room coordinates and dimensions, and image coordinate jitter:
+  ```
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Generate SH-ISM RIR
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  Fs = 48000;      % Sample rate
+  
+  max_src_odr = 1; % Max-order source directivity
+  max_rec_odr = 5; % Max-order receiver directivity
+  
+  is_real = true;
+  
+  T = 0.5; % Duration
+  
+  s = [2 0 1]; % Source coordinates
+  r = [1 0 1]; % Receiver coordinates
+  l = [5 6 3]; % Room dimensions
+  
+  % Room reflection filters with high-frequency dampening
+  % gamma_pos = [0.8, 0.7, 0.5; 0.2, 0.1, 0.3];
+  % gamma_neg = [0.9, 0.6, 0.5; 0.1, 0.1, 0.2];
+  
+  % Room reflection coefficient flat
+  gamma_pos = db2mag(-[0.8, 1.5, 1.0]);
+  gamma_neg = db2mag(-[0.5, 2.0, 1.5]);
+  
+  jitter_coord_bnd = [-1e-1, 1e-1]; % Image coordinate's jitter within +- 10 cm
+  
+  % Generate SH-ISM
+  [C, t] = sh_ism(max_src_odr, max_rec_odr, is_real, T, s, r, l, gamma_pos, gamma_neg, ...
+      'Fs', Fs, 'jitter_coord_bnd', jitter_coord_bnd);
+  
+  % Plotting
+  h_RIR_0 = real(sh_dec(squeeze(C(1, 1, :)).', pi/2, 0, is_real))';
+  h_RIR_onaxis = real(sh_dec(squeeze(C(1, :, :)), pi/2, 0, is_real))';
+  
+  h_SH_ism_RIR_0 = plot_RIR(h_RIR_0, plot_RIR_opts('clim', [-120, -60] - 10, 'win_size', 512, 'spec_scale', 'linear'));
+  h_SH_ism_RIR_onaxis = plot_RIR(h_RIR_onaxis, plot_RIR_opts('clim', [-120, -60], 'win_size', 512, 'spec_scale', 'linear'));
+  h_SH_ism_SH_hplane = sh_plt(squeeze(C(1, :, :)), 'horizontal', is_real, 'disp_phase', false, 'dB_lim', [-120, 0], 't', t, 'disp_xaxis_ker_size', 1024);
+  ```
+
+  | SRIR 0th to 0th Order SH Source to Receiver Expansion | SRIR 0th Order SH Source to On-Axis Receiver Direction| Energy / Time or 0th Order Source on Horizontal Plane |
+  | --- | --- | --- |
+  |<img src="./figs/figs_t60/sh_ism_RIR_0.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_RIR_onaxis.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_RIR_hplane.png"  width="400"/>|
+
+* Specify a T60 GP prior mean and covariance. Set the T60 sampling method to only the GP prior mean function (direction independent, `sample_method_gp = ‘mean’; obs = []`) and apply SH exponentiated convolutions to the exponential scattered SRIR `C_pp_exp_T60_prior` via `sh_exp_conv_gp.m`. Then add a set of observed T60 to `obs` and repeat for the posterior 'C_pp_exp_T60_post':
+
+    | T60 GP Prior | T60 GP Posterior|
+    | --- |--- |
+    <img src="./figs/figs_t60/sh_ism_T60_prior.png"  width="400"/> | <img src="./figs/figs_t60/sh_ism_T60_post.png"  width="400"/>
+
+* Decode and plot SRIRs at spherical coordinates on the horizontal plane:
+
+  ```
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Decode along grid and plot
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  theta_cust = deg2rad([90 90 90 90])';
+  phi_cust = deg2rad([0 60 120 180])';
+  N_cust = numel(theta_cust);
+  
+  f_cust_orig     = real(sh_dec(squeeze(C(1, :, :)), theta_cust, phi_cust, is_real));
+  f_cust_prior    = real(sh_dec(C_sh_ism_T60_prior, theta_cust, phi_cust, is_real));
+  f_cust_post     = real(sh_dec(C_sh_ism_T60_post, theta_cust, phi_cust, is_real));
+  
+  h_f_cust_dec = cell(3, N_cust);
+  
+  yticks_list = [250, 1000, 4000, 8000, 16000] / 1000;
+  
+  for n = 1:N_cust
+      options_plot_RIR = plot_RIR_opts('Fs', Fs, 'colormap', hot, 'disp_RIR', false, ...
+          'win_size', 64, 'N_FFT', 512, ...
+          'spec_disp_colorbar', true, 'spec_title_interp', 'latex', ...
+          'spec_disp_yaxis', true, 'fig_size', [600, 300] * (3/4), ...
+          'spec_ylim', [100, inf], 'font_size', 18, 'clim', [-160, -50], ...
+          'name', ['$(\theta = ',  num2str(rad2deg(theta_cust(n))), '^{\circ}, \phi = ',  num2str(rad2deg(phi_cust(n))), '^{\circ})$'] );
+  
+      h_f_cust_dec{1, n} = plot_RIR(f_cust_orig(n, 1:ceil(0.5 * Fs))', options_plot_RIR); yticks(yticks_list);
+      h_f_cust_dec{2, n} = plot_RIR(f_cust_prior(n, 1:ceil(0.5 * Fs))', options_plot_RIR); yticks(yticks_list);
+      h_f_cust_dec{3, n} = plot_RIR(f_cust_post(n, 1:ceil(0.5 * Fs))', options_plot_RIR); yticks(yticks_list);
+  end
+  ```
+  
+| Original | Exponentiated SRIR with T60 GP prior| Exponentiated SRIR with T60 GP Posterior|
+  | --- | --- |--- |
+  |<img src="./figs/figs_t60/sh_ism_orig_1.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_prior_1.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_post_1.png"  width="400"/>|
+  |<img src="./figs/figs_t60/sh_ism_orig_2.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_prior_2.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_post_2.png"  width="400"/>|
+|<img src="./figs/figs_t60/sh_ism_orig_3.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_prior_3.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_post_3.png"  width="400"/>|
+|<img src="./figs/figs_t60/sh_ism_orig_4.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_prior_4.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_post_4.png"  width="400"/>|
 
 
 [^PACIOREK_NS]: Paciorek, C., & Schervish, M. (2003). "Nonstationary covariance functions for Gaussian process regression". Advances in neural information processing systems, 16.

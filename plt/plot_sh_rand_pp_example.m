@@ -1,4 +1,4 @@
-%function plot_sh_rand_pp_example
+function plot_sh_rand_pp_example
 %Plot examples of spherical harmonic Poisson-process RIR augmentation
 
 %Author: Yuancheng Luo, 2026
@@ -62,8 +62,9 @@ options_disp_gp = gp_disp_opts('disp_legend_samples', false, ...
 
 sample_method_gp = 'mean';
 
-N_freq_uni_fit = 16;
-max_taps_g = 16;
+SH_fit_mode = 'svd_ls';
+N_freq_uni_fit = 24;
+max_taps_g = 24;
 
 % Sample fromr T60 prior mean
 obs = [];
@@ -71,11 +72,11 @@ obs = [];
     'Fs', Fs, 'options_mu', options_mu, 'options_cov', options_cov, ...
       'max_odr_gp', 3, 'sample_method_gp', sample_method_gp, ...
       'N_freq_uni_fit', N_freq_uni_fit, 'max_taps_g', max_taps_g, ...
-      'SH_fit_svd_trunc_frac', 0, ...
+      'SH_fit_mode', SH_fit_mode, 'SH_fit_svd_trunc_frac', 0, ...
       'enable_disp', true, 'options_disp_gp', options_disp_gp);
 
 % Sample from T60 posterior mean
-N_S = 6;
+N_S = 16;
 omega_obs = logspace(log10(20), log10(Fs/2), N_S)' * 2 * pi;
 obs = gp_obs_opts(  'omega', omega_obs, ...
                     'theta', deg2rad(90) * ones(N_S, 1), ...
@@ -85,9 +86,9 @@ obs = gp_obs_opts(  'omega', omega_obs, ...
                     );
 
 [C_pp_exp_T60_post, h_fig_gp_post] = sh_exp_conv_gp(C_pp_exp, obs, is_real, 'Fs', Fs, 'options_mu', options_mu, 'options_cov', options_cov, ...
-      'max_odr_gp', 6, 'sample_method_gp', sample_method_gp, ...
+      'max_odr_gp', 3, 'sample_method_gp', sample_method_gp, ...
       'N_freq_uni_fit', N_freq_uni_fit, 'max_taps_g', max_taps_g, ...
-      'SH_fit_svd_trunc_frac', 0.15, ...
+      'SH_fit_mode', SH_fit_mode, 'SH_fit_svd_trunc_frac', 0, ...
       'enable_disp', true, 'options_disp_gp', options_disp_gp);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -101,10 +102,9 @@ f_cust_orig     = real(sh_dec(C_pp_exp, theta_cust, phi_cust, is_real));
 f_cust_prior    = real(sh_dec(C_pp_exp_T60_prior, theta_cust, phi_cust, is_real));
 f_cust_post     = real(sh_dec(C_pp_exp_T60_post, theta_cust, phi_cust, is_real));
 
-%sh_plt(C_pp_exp_T60_prior(:, 1:8000), 'horizontal', is_real, 'dB_lim', [-180, -40], 'disp_phase', false, 'disp_xaxis_ker_size', 1024);
-%sh_plt(C_pp_exp_T60_post(:, 1:8000), 'horizontal', is_real, 'dB_lim', [-180, -40], 'disp_phase', false, 'disp_xaxis_ker_size', 1024);
-
 h_f_cust_dec = cell(3, N_cust);
+
+yticks_list = [250, 1000, 4000] / 1000;
 
 for n = 1:N_cust
     options_plot_RIR = plot_RIR_opts('Fs', Fs, 'colormap', hot, 'disp_RIR', false, ...
@@ -114,14 +114,10 @@ for n = 1:N_cust
         'spec_ylim', [50, inf], 'font_size', 18, 'clim', [-160, -50], ...
         'name', ['$(\theta = ',  num2str(rad2deg(theta_cust(n))), '^{\circ}, \phi = ',  num2str(rad2deg(phi_cust(n))), '^{\circ})$'] );
 
-    h_f_cust_dec{1, n} = plot_RIR(f_cust_orig(n, 1:ceil(0.5 * Fs))', options_plot_RIR);
-    h_f_cust_dec{2, n} = plot_RIR(f_cust_prior(n, 1:ceil(0.5 * Fs))', options_plot_RIR);
-    h_f_cust_dec{3, n} = plot_RIR(f_cust_post(n, 1:ceil(0.5 * Fs))', options_plot_RIR);
-
-    xticks([100 300 500]);
-    yticks([250, 1000, 4000] / 1000);
+    h_f_cust_dec{1, n} = plot_RIR(f_cust_orig(n, 1:ceil(0.5 * Fs))', options_plot_RIR);  yticks(yticks_list);
+    h_f_cust_dec{2, n} = plot_RIR(f_cust_prior(n, 1:ceil(0.5 * Fs))', options_plot_RIR);  yticks(yticks_list);
+    h_f_cust_dec{3, n} = plot_RIR(f_cust_post(n, 1:ceil(0.5 * Fs))', options_plot_RIR);  yticks(yticks_list);
 end
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Export figure
@@ -145,9 +141,9 @@ end
 % exportgraphics(h_pp_exp{1}, fullfile(out_dir, 'SRIR_pp_pdf_exp.png'));
 % exportgraphics(h_pp_exp{2}, fullfile(out_dir, 'SRIR_hplane_pp_pdf_exp.png'));
 
-exportgraphics(h_fig_gp_prior, fullfile(out_dir, 'SRIR_pp_gp_exp_T60_prior.png'));
-exportgraphics(h_fig_gp_post, fullfile(out_dir, 'SRIR_pp_gp_exp_T60_post.png'));
-
+% exportgraphics(h_fig_gp_prior, fullfile(out_dir, 'SRIR_pp_gp_exp_T60_prior.png'));
+% exportgraphics(h_fig_gp_post, fullfile(out_dir, 'SRIR_pp_gp_exp_T60_post.png'));
+% 
 for n = 1:N_cust
     exportgraphics(h_f_cust_dec{1, n}, fullfile(out_dir, ['SRIR_pp_gp_exp_orig_', num2str(n), '.png']));
     exportgraphics(h_f_cust_dec{2, n}, fullfile(out_dir, ['SRIR_pp_gp_exp_T60_prior_', num2str(n), '.png']));
