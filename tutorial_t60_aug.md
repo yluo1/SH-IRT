@@ -739,12 +739,12 @@ Let us generate a sample SH-ISM RIR and augment its T60 in the function `plot_sh
   end
   ```
   
-| Original | Exponentiated SRIR with T60 GP prior| Exponentiated SRIR with T60 GP Posterior|
-  | --- | --- |--- |
-  |<img src="./figs/figs_t60/sh_ism_orig_1.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_prior_1.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_post_1.png"  width="400"/>|
-  |<img src="./figs/figs_t60/sh_ism_orig_2.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_prior_2.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_post_2.png"  width="400"/>|
-|<img src="./figs/figs_t60/sh_ism_orig_3.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_prior_3.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_post_3.png"  width="400"/>|
-|<img src="./figs/figs_t60/sh_ism_orig_4.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_prior_4.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_post_4.png"  width="400"/>|
+  | Original | Exponentiated SRIR with T60 GP prior| Exponentiated SRIR with T60 GP Posterior|
+    | --- | --- |--- |
+    |<img src="./figs/figs_t60/sh_ism_orig_1.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_prior_1.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_post_1.png"  width="400"/>|
+    |<img src="./figs/figs_t60/sh_ism_orig_2.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_prior_2.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_post_2.png"  width="400"/>|
+  |<img src="./figs/figs_t60/sh_ism_orig_3.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_prior_3.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_post_3.png"  width="400"/>|
+  |<img src="./figs/figs_t60/sh_ism_orig_4.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_prior_4.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_post_4.png"  width="400"/>|
 
 
 [^PACIOREK_NS]: Paciorek, C., & Schervish, M. (2003). "Nonstationary covariance functions for Gaussian process regression". Advances in neural information processing systems, 16.
