@@ -302,9 +302,9 @@ elseif strcmp(mode, 'SlicedWass') %Sliced Wasserstein projections
                         idx = (l + 1)^2 - l;
 
                         if l == 0
-                            A(i, n, idx, idx_t) = sqrt(pi / (2*l + 1) ) * ( 1 - legendreP2(l+1, cos_theta)  );
+                            A(i, n, idx, idx_t) = sqrt(pi / (2*l + 1) ) * ( 1 - legendre_poly(l+1, cos_theta)  );
                         else
-                            A(i, n, idx, idx_t) = sqrt(pi / (2*l + 1) ) * ( (legendreP2(l-1, cos_theta) - legendreP2(l+1, cos_theta) ) );
+                            A(i, n, idx, idx_t) = sqrt(pi / (2*l + 1) ) * ( (legendre_poly(l-1, cos_theta) - legendre_poly(l+1, cos_theta) ) );
                         end
 
                         idx_rot = ((l^2) + 1):((l+1)^2);
@@ -405,12 +405,3 @@ elseif strcmp(mode, 'GeometricInterp')
 else
     error('unknown mode');
 end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function Y = legendreP2(n, x)
-arguments
-    n (1,1) double = 0;
-    x (:,1) double = 0;
-end
-P = asc_legendre(n, x);
-Y = P(1,:).';

@@ -55,6 +55,7 @@ function h = sh_plt(C, mode, is_real, options)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: Display SH radial basis functions
+
 % P = 3;
 % theta = pi/2;
 % phi = 0;
@@ -64,6 +65,7 @@ function h = sh_plt(C, mode, is_real, options)
 
 % sh_plt(C, 'mercator', is_real);
 % sh_plt(C, 'mercator', is_real, 'rot_theta_zyx', deg2rad([90 0 0]));
+
 
 arguments
     C (:,:) double {coder.mustBeComplex} = complex(0);
@@ -292,6 +294,21 @@ elseif strcmp(mode, 'horizontal') %Plot horizontal plane
             if ~isempty(options.hz) %Index in frequency
                 assert(numel(options.hz) == M, 'options.hz size mismatch C');
                 h_pc = pcolor(options.hz, rad2deg(phi), mag2db(abs(f)) );
+                xscale("log");
+
+               % Plot grid
+                freq_lines = [10:10:90, 100:100:900, 1000:1000:9000, 10000:10000:20000];
+                freq_lines(freq_lines < min(options.hz)) = [];
+                freq_lines(freq_lines > max(options.hz)) = [];
+                for i = 1:numel(freq_lines)
+                    xline(freq_lines(i), '--');
+                end
+                yline(0, 'r--'); 
+                yline(90, 'm--');
+                yline(-90, 'm--');
+                yline(45, 'g--');
+                yline(-45, 'g--');
+
             elseif ~isempty(options.t) %Index in time
                 assert(numel(options.t) == M, 'options.t size mismatch C');
                 h_pc = pcolor(options.t, rad2deg(phi), mag2db(abs(f)) );
@@ -349,7 +366,22 @@ elseif strcmp(mode, 'horizontal') %Plot horizontal plane
 
             if ~isempty(options.hz) %Index in frequency
                 assert(numel(options.hz) == M, 'options.hz size mismatch C');
-                h_pc = pcolor(options.hz, rad2deg(phi), rad2deg(angle(f)) );
+                h_pc = pcolor(options.hz, rad2deg(phi), rad2deg(angle(f)) ); hold on;
+                xscale("log");
+
+                % Plot grid
+                freq_lines = [10:10:90, 100:100:900, 1000:1000:9000, 10000:10000:20000];
+                freq_lines(freq_lines < min(options.hz)) = [];
+                freq_lines(freq_lines > max(options.hz)) = [];
+                for i = 1:numel(freq_lines)
+                    xline(freq_lines(i), '--');
+                end
+                yline(0, 'r--'); 
+                yline(90, 'm--');
+                yline(-90, 'm--');
+                yline(45, 'g--');
+                yline(-45, 'g--');
+
             elseif ~isempty(options.t) %Index in time
                 assert(numel(options.t) == M, 'options.t size mismatch C');
                 h_pc = pcolor(options.t, rad2deg(phi), rad2deg(angle(f)) );
@@ -397,7 +429,7 @@ elseif strcmp(mode, 'horizontal') %Plot horizontal plane
                 h_cb = colorbar;
                 ylabel(h_cb, 'Degrees', 'fontsize', options.fontsize);
             end
-            %xscale log;
+            colormap(gca, hsv);
 
         end
 

@@ -759,4 +759,4 @@ Let us generate a sample SH-ISM RIR and augment its T60 in the function `plot_sh
 
 [^ALLEN_ISM]: Allen, J. B., & Berkley, D. A. (1979). "Image method for efficiently simulating small‐room acoustics". The Journal of the Acoustical Society of America, 65(4), 943-950.
 
-[^LUO_SHISM]: Luo, Y., & Kim, W. (2020). "Fast source-room-receiver acoustics modeling". In 2020 28th European Signal Processing Conference (EUSIPCO) (pp. 51-55). IEEE.
+[^LUO_SHISM]: Luo, Y., Kim, W. (2020). "Fast source-room-receiver acoustics modeling". In 2020 28th European Signal Processing Conference (EUSIPCO) (pp. 51-55). IEEE.
