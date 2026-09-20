@@ -3,7 +3,7 @@ function is_valid_pdf = sh_pdf_check(C_pdf, is_real)
 %SH expands into a real field, integrates to unity.
 
 %Note: Omits check on non-negative density, as it requires expensive
-%sum-of-square factorization of the SH expansion
+%sum-of-magnitude squared factorization of the SH expansion
 
 %Author: Yuancheng Luo, 2026
 

@@ -1,6 +1,6 @@
 ## Spherical Harmonic (SH) Functions
 
-Operators:
+## Operators
 | File | Description |
 | --- | --- | 
 | sh_rot.m | Rotation | 
@@ -16,26 +16,26 @@ Operators:
 | sh_re2cpx.m | Real to complex form | 
 | sh_resize.m | Truncation and zero-padding | 
 
-Evaluations:
+## Evaluations
 | File | Description |
 | --- | --- | 
 |sh_val.m| Evaluate SH bases |
 |sh_dec.m| Evaluate SH expansions |
 
-SRIR generation:
+## Spatial Room Impulse Response Generation
 | File | Description |
 | --- | --- | 
 |sh_ism.m| Image-source model |
 |sh_rand.m| Random field |
 |sh_rand_pp.m| Poisson-process |
 
-Empirical fitting:
+## Empirical Fitting
 | File | Description |
 | --- | --- | 
 |sh_fit_svd.m | Truncated singular value decomposition least-squares |
 |sh_fit_msq.m | Magnitude squared least-squares |
 
-Filtering:
+## Filtering
 | File | Description |
 | --- | --- | 
 |sh_filter_freq.m | Filter frequency domain SH expansion |
@@ -43,7 +43,7 @@ Filtering:
 |sh_exp_conv_gp.m | Direction dependent T60 time-varying exponentiating convolution |
 |sh_rec_conv.m | Time-varying recursive convolution |
 
-Function encodings:
+## Function Encodings
 | File | Description |
 | --- | --- | 
 |sh_enc_proj.m | Dirac-delta projection into spherical harmonics |
@@ -52,7 +52,7 @@ Function encodings:
 |sh_enc_rbf.m | Radial basis functions |
 |sh_enc_pist_sphere.m | External piston on sphere frequency responses|
 
-Probability density functions:
+## Probability Density Functions
 | File | Description |
 | --- | --- | 
 |sh_pdf_fit.m | Density function fitting|
@@ -63,7 +63,7 @@ Probability density functions:
 |sh_cdf_inv_theta.m | Inverse sampling marginal cumulative distribution function over co-latitude|
 |sh_cdf_inv_phi_cond.m | Inverse sampling cumulative distribution function over azimuth given co-latitude|
 
-Miscellaneous:
+## Miscellaneous
 | File | Description |
 | --- | --- | 
 |sh_plt.m| Plot SH expansions|

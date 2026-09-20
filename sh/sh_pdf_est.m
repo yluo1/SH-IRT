@@ -32,7 +32,7 @@ function [C, D, loglike] = sh_pdf_est(theta, phi, max_odr, is_real, mode, option
 
 %options.MaxLogLike_mode:               String, fitting method {'fmincon', 'sdp'}
 %                                               'fmincon':  nonlinear constrained least squares
-%                                               'sdp':      Semi-definite program sum of squares (cvx)
+%                                               'sdp':      Semi-definite program sum of squares (cvx) sum-of-magnitude squared
 %options.MaxLogLike_options_fmincon:    options struct for 'max_loglike' fmincon 
 %options.MaxLogLike_x0_list:            [(max_odr + 1)^2 x M] M initial starting points, 
 %                                                      otherwise, start with kernel density estimates
@@ -267,7 +267,7 @@ elseif strcmp(mode, 'MaxLogLike')
             end
         end
 
-    elseif strcmp(options.MaxLogLike_mode, 'sdp') %Semi-definite programming relaxation (cvx)
+    elseif strcmp(options.MaxLogLike_mode, 'sdp') %Semi-definite programming relaxation (cvx) sum-of-magnitude squared
         
         cvx_clear
         cvx_begin
@@ -292,7 +292,7 @@ elseif strcmp(mode, 'MaxLogLike')
             disp(['Warning: Not tight as largest eigenvalue / trace: ', num2str(C_eig_val / trace(Q))] );
         end
 
-        %Reconstruct D as sum of squares
+        %Reconstruct D as sum-of-magnitude squared
         [C_eig_vec, C_eig_val] = eig(double(Q)); %Weighted eigenvector-eigenvalue pair
         C_eig_val = diag(C_eig_val);
         idx_eigs = (C_eig_val / trace(Q) > 1e-8);

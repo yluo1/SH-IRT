@@ -18,7 +18,7 @@ function [C_pdf, err] = sh_pdf_fit(X, theta, phi, max_odr, is_real, mode, option
 %mode:          String, fitting method {'SqProjNNLS'}
 %                       'SqProjNNLS':       Solve for non-negative least squares weights 
 %                                           of magnitude squared projection kernels, normalize to unity integral constraints in post
-%                       'SqProjQP':         Solve for non-negative least squares weights, subjec to unity integral constraints
+%                       'SqProjQP':         Solve for non-negative least squares weights, subject to unity integral constraints
 %                                           of magnitude squared projection kernels 
 %                       'SqMagFmincon':     Solve for square magnitude function least squares, subject to unity integral constraints
 %                                           with generic fmincon solver

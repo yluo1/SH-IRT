@@ -17,7 +17,7 @@ function [D, C, err] = sh_fit_msq(X, theta, phi, max_odr, is_real, mode, options
 
 %mode:          String, fitting method {'fmincon', 'sdp'}
 %                       'fmincon':  nonlinear constrained least squares
-%                       'sdp':      Semi-definite program (cvx)
+%                       'sdp':      Semi-definite program (cvx) sum-of-magnitude squared least-squares
 
 %options:       struct
 %options.C0:                [(floor(max_odr/2) + 1)^2 x K]  Initial guesses SH coefficients, real-valued
