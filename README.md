@@ -13,9 +13,9 @@ This open-source library provides tools for modifying, generating, and analyzing
 
 ## Content
 
-[Installation](#installation)
-[Guides and Tutorials](#guides-and-tutorials)
-[References](#references)
+* [Installation](#installation)
+* [Guides and Tutorials](#guides-and-tutorials)
+* [References](#references)
 
 ## Installation
 Add the following sub-folders to your search path by calling the Matlab command-line function:
