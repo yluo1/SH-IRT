@@ -15,9 +15,9 @@ and vectorized by increasing degree and order $\bf{C} = \left [ C_0^0 , C_1^{-1}
 Some library functions support expansion coefficients belonging to the real spherical harmonics form following:
 
 $$ Y_{lm}(\theta, \phi) = \left \lbrace \begin{array}{cc}
-(-1)^m \sqrt{2} \sqrt{\frac{(2l + 1)}{4 \pi} \frac{(l-|m|)!}{(l+|m|)!} } P_l^{|m|}(\cos \theta ) \sin (m |\phi|), & m < 0\\[6pt]
+(-1)^m \sqrt{2} \sqrt{\frac{(2l + 1)}{4 \pi} \frac{(l-|m|)!}{(l+|m|)!} } P_l^{|m|}(\cos \theta ) \sin (m |\phi|), & m < 0\\
 %%%%%%%%%
-\sqrt{\frac{2l + 1}{4 \pi} } P_l^0 (\cos \theta) , &  m = 0 \\[6pt]
+\sqrt{\frac{2l + 1}{4 \pi} } P_l^0 (\cos \theta) , &  m = 0 \\
 %%%%%%%%
 (-1)^m \sqrt{2} \sqrt{\frac{(2l + 1)}{4 \pi} \frac{(l-m)!}{(l+m)!} } P_l^m(\cos \theta ) \cos (m \phi), & m > 0
 \end{array} \right . ,$$
