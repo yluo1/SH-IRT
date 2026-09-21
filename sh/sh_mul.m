@@ -1,5 +1,5 @@
 function [E, A] = sh_mul(C, D)
-%Spherical harmonic expansion multiplication:
+%Spherical harmonic expansion multiplication via Clebsch-Gordan coefficients
 
 %f(theta, phi) = C.' * Y(theta, phi)
 %g(theta, phi) = D.' * Y(theta, phi)

@@ -1,4 +1,4 @@
-%function plot_sh_ism_example
+function plot_sh_ism_example
 %Plot examples of spherical harmonic Image-source model RIR augmentation
 
 %Author: Yuancheng Luo, 2026

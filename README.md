@@ -55,7 +55,7 @@ startup
 
 This library was developed from methods in the following works:
 
-> Luo, Y. (2026). "Fast Time-Varying Exponentiated Convolution Methods for Generative Direction Dependent Reverberation", Proceedings of the 161th Audio Engineering Society Convention.
+> Luo, Y. (2026). "Fast Time-Varying Exponentiated Convolution Methods for Generative Direction Dependent Reverberation", Accepted at the 161th Audio Engineering Society Convention.
 >
 > Luo, Y. (2026). [Spherical Harmonic Sliced Wasserstein Displacement Interpolation for Acoustic Source and Reflection Density Modeling](https://arxiv.org/abs/2609.22028). 	arXiv:2609.22028
 > 

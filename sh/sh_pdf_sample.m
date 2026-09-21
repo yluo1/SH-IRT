@@ -145,75 +145,17 @@ elseif strcmp(mode, 'inverseTransform')
         C_pdf = sh_re2cpx(C_pdf);
     end
 
-    tol = 1e-8;
-    max_iter = 1000;
-
     %Sample theta
     u = rand(num_samples, 1);
     theta = sh_cdf_inv_theta(C_pdf, u, 'mode', 'NewtonRaphsonBisection'); %[num_samples x M]
 
+    %Sample phi
     u = rand(num_samples, 1);
     phi = zeros(num_samples, M);
     for m = 1:M
         phi(:, m) = sh_cdf_inv_phi_cond(C_pdf, u, theta(:, m) , 'mode', 'NewtonRaphsonBisection');
     end
-    
-    %for m = 1:M     %Iterate over functions
-        %for n = 1:num_samples %Iterate over samples    
-
-            %Sample theta
-            %u = rand(1);
-
-            % up = pi;
-            % lo = 0;
-            % 
-            % if abs(sh_cdf_theta(C_pdf(:, m), lo) - u) <= tol
-            %     theta(n, m) = lo;
-            % elseif abs(sh_cdf_theta(C_pdf(:, m), up) - u) <= tol
-            %     theta(n, m) = up;
-            % else
-            %     theta(n, m) = (up + lo) / 2;
-            %     for iter = 1:max_iter
-            %         v = sh_cdf_theta(C_pdf(:, m), theta(n, m));
-            %         if abs(v - u) <= tol
-            %             break;
-            %         elseif v - u > 0
-            %             up = theta(n, m);
-            %         else
-            %             lo = theta(n, m);
-            %         end
-            %         theta(n, m) = (up + lo) / 2;
-            %     end
-            % end
-            % ;
-            
-            % %Sample phi
-            % u = rand(1);
-            % up = 2 * pi;
-            % lo = 0;
-            % 
-            % if abs(sh_cdf_phi_cond(C_pdf(:, m), theta(n, m), up) - u) <= tol
-            %     phi(n, m) = up;
-            % elseif abs(sh_cdf_phi_cond(C_pdf(:, m), theta(n, m), lo) - u) <= tol
-            %     phi(n, m) = lo;
-            % else
-            %     phi(n, m) = (up + lo) / 2;
-            %     for iter = 1:max_iter
-            %         v = sh_cdf_phi_cond(C_pdf(:, m), theta(n, m), phi(n, m));
-            %         if abs(v - u) <= tol
-            %             break;
-            %         elseif v - u > 0
-            %             up = phi(n, m);
-            %         else
-            %             lo = phi(n, m);
-            %         end
-            %         phi(n, m) = (up + lo) / 2;
-            %     end
-            % end
-
-        %end
-    %end
-
+   
 else
     error('supported mode');
 end

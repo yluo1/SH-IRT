@@ -19,9 +19,10 @@ P_D = 7;
 theta = pi/2;
 phi = 0;
 ell = 0.5;
-D = sh_enc_rbf('SqExp', P_D, theta, phi, ell, false, false);
+is_real = false;
+D = sh_enc_rbf('SqExp', P_D, theta, phi, ell, is_real, false);
 C = sh_rand(P_C, 1);
-[E, A] = sh_mul(D, C); 
+E = sh_filter_dir(D, C, is_real);
 
 %Plotting
 %fig_size = [560, 420 * (3/4)];
@@ -39,6 +40,6 @@ if ~isfolder(out_dir)
     mkdir(out_dir);
 end
 
-exportgraphics(h_D{1}, fullfile(out_dir, 'sample_SqExP_dir.png'));
-exportgraphics(h_C{1}, fullfile(out_dir, 'sample_random_func.png'));
-exportgraphics(h_E{1}, fullfile(out_dir, 'sample_filtered_func.png'));
+% exportgraphics(h_D{1}, fullfile(out_dir, 'sample_SqExP_dir.png'));
+% exportgraphics(h_C{1}, fullfile(out_dir, 'sample_random_func.png'));
+% exportgraphics(h_E{1}, fullfile(out_dir, 'sample_filtered_func.png'));

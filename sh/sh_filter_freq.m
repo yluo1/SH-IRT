@@ -1,5 +1,5 @@
 function D = sh_filter_freq(C, w, varargin)
-%Filter frequency-domain spherical harmonic expansion
+%Frequency-domain filtering of spherical harmonic expansion coefficients
 
 %Author: Yuancheng Luo, 2026
 

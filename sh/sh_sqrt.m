@@ -20,7 +20,7 @@ function [D, E, F] = sh_sqrt(C, is_real, mode)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Code generation
-%codegen('sh_sqrt', '-o', 'sh/sh_sqrt')
+%codegen('sh_sqrt', '-o', 'sh/sh_sqrt_mex')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: Compare magnitude square and square root of squared SH expansions
