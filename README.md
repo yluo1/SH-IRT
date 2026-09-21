@@ -56,10 +56,12 @@ startup
 This library was developed from methods in the following works:
 
 > Luo, Y. (2026). "Fast Time-Varying Exponentiated Convolution Methods for Generative Direction Dependent Reverberation", Proceedings of the 161th Audio Engineering Society Convention.
+>
+> Luo, Y. (2026). [Spherical Harmonic Sliced Wasserstein Displacement Interpolation for Acoustic Source and Reflection Density Modeling](https://arxiv.org/abs/2609.22028). 	arXiv:2609.22028
 > 
-> Luo, Y. (2021). "Spherical harmonic covariance and magnitude function encodings for beamformer design". EURASIP Journal on Audio, Speech, and Music Processing, 2021(1), 41.
+> Luo, Y. (2021). [Spherical harmonic covariance and magnitude function encodings for beamformer design](https://link.springer.com/article/10.1186/s13636-021-00230-7). EURASIP Journal on Audio, Speech, and Music Processing, 2021(1), 41.
 > 
-> Luo, Y., Kim, W. (2020). "Fast source-room-receiver acoustics modeling". In 2020 28th European Signal Processing Conference (EUSIPCO) (pp. 51-55). IEEE.
+> Luo, Y., Kim, W. (2020). [Fast source-room-receiver acoustics modeling](https://ieeexplore.ieee.org/abstract/document/9287377). In 2020 28th European Signal Processing Conference (EUSIPCO) (pp. 51-55). IEEE.
 
  
 

@@ -38,7 +38,9 @@
 ## Filtering
 | File | Description |
 | --- | --- | 
+|sh_filter.m | Filter time domain SH expansion |
 |sh_filter_freq.m | Filter frequency domain SH expansion |
+|sh_freqz.m | Frequency response of SH expansion |
 |sh_exp_conv.m | Direction independent time-varying exponentiating convolution|
 |sh_exp_conv_gp.m | Direction dependent T60 time-varying exponentiating convolution |
 |sh_rec_conv.m | Time-varying recursive convolution |

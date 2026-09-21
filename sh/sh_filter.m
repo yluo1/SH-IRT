@@ -1,12 +1,11 @@
-function D = sh_filter_freq(C, w, varargin)
-%Filter frequency-domain spherical harmonic expansion
+function D = sh_filter(C, varargin)
+%Filter spherical harmonic expansion
 
 %Author: Yuancheng Luo, 2026
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
 %C:         [(P + 1)^2 x M] SH coefficients
-%w:         [1 x M] Angular frequency (radians / sample)
 
 %varargin:  Filter coefficients
 
@@ -27,10 +26,11 @@ function D = sh_filter_freq(C, w, varargin)
 %D:          [(P + 1)^2 x M] SH coefficients
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Sample usage:  Filter SH piston frequency response
+%Sample usage:  Filter SH random field
 
 % Fs    = 48000;
-% freq  = logspace(log10(100), log10(Fs / 2), 256);
+% M_w   = 256;
+% freq  = logspace(log10(100), log10(Fs / 2), M_w);
 % w     = freq / Fs * 2 * pi;
 
 % fc = 2000;
@@ -38,18 +38,28 @@ function D = sh_filter_freq(C, w, varargin)
 % [z,p,k]   = butter(4,fc/(Fs/2));
 % sos       = zp2sos(z,p,k);
 
-% C = sh_enc_pist_sphere(40, pi/2, 0, 0.25, deg2rad(20), freq, 4);
-% C_butter_ba  =  sh_filter_freq(C, w, b, a);
-% C_butter_sos =  sh_filter_freq(C, w, sos);
+% rng(234);
+% max_odr = 3;
+% num_func = 1024;
+
+% is_real = true;
+% C = sh_rand(max_odr, num_func, is_real, true);
+% C_butter_ba  =  sh_filter(C, b, a);
+% C_butter_sos =  sh_filter(C, sos);
+
+% D     = sh_freqz(C, w);
+% D_ba  = sh_freqz(C_butter_ba, w);
+% D_sos = sh_freqz(C_butter_sos, w);
 
 % dB_lim = [-10, 70];
-% sh_plt(C, 'horizontal', false, 'hz', freq, 'title_name', 'Piston on Spherical Baffle', 'dB_lim', dB_lim);
-% sh_plt(C_butter_ba, 'horizontal', false, 'hz', freq, 'title_name', 'Piston on Spherical Baffle * LPF (b/a)', 'dB_lim', dB_lim);
-% sh_plt(C_butter_sos, 'horizontal', false, 'hz', freq, 'title_name', 'Piston on Spherical Baffle * LPF SOS', 'dB_lim', dB_lim);
+% sh_plt(D, 'horizontal', is_real, 'hz', freq, 'title_name', 'Real Random Field', 'dB_lim', dB_lim);
+% sh_plt(D_ba, 'horizontal', is_real, 'hz', freq, 'title_name', 'Real Random Field * LPF (b/a)', 'dB_lim', dB_lim);
+% sh_plt(D_sos, 'horizontal', is_real, 'hz', freq, 'title_name', 'Real Random Field * LPF SOS', 'dB_lim', dB_lim);
+
+% err = norm(D_ba - D_sos)
 
 arguments
-    C (:,:) double {coder.mustBeComplex} = complex(0);
-    w (1,:) double = 0;
+    C (:,:) double = 0;
 end
 
 arguments (Repeating)
@@ -57,13 +67,6 @@ arguments (Repeating)
 end
 
 N_varagin = numel(varargin);
-M = size(C, 2);
-
-if M ~= numel(w)
-    error('Size mismatch C, w');
-end
-
-w_aug = [0; w(:)]';     %Include DC component for freqz
 
 if N_varagin == 0       %Identity
 
@@ -72,36 +75,19 @@ if N_varagin == 0       %Identity
 elseif N_varagin <= 1   %Second-order sections (SOS) matrix
     
     sos = varargin{1};
-
-    if size(sos, 1) == 1
-        H = freqz(sos(1:3), sos(4:6), w_aug);
-    else
-        H = freqz(sos, w_aug);
-    end
-    D = bsxfun(@times, C, H(2:end));
+    D = sosfilt(sos, C, 2);
 
 elseif N_varagin <= 2    %Numerator / Denominator filter cofficients b, a
 
     b = varargin{1}(:).';
-    a = varargin{2}(:).';
-    
-    H = freqz(b, a, w_aug);
-    D = bsxfun(@times, C, H(2:end));
+    a = varargin{2}(:).';    
+    D = filter(b, a, C, [],2); 
     
 elseif N_varagin <= 3    %Mixed coefficient vectors and matrix b, a, SOS
     
     b = varargin{1}(:).';
     a = varargin{2}(:).';
     sos = varargin{3};
-        
-    if size(SOS, 1) == 1
-        H = freqz(sos(1:3), sos(4:6), w_aug);
-    else
-        H = freqz(sos, w_aug);
-    end
-    H = H .* freqz(b, a, w_aug);
-    D = bsxfun(@times, C, H(2:end));
-
+    D = sosfilt(sos, filter(b, a, C, [], 2), 2); 
+       
 end
-
-
