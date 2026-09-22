@@ -1,4 +1,4 @@
-function f = rbf_val(mode, d, ell, enable_disp)
+function [f, df_dell] = rbf_val(mode, d, ell, enable_disp)
 %Evaluate radial basis functions (RBF) at distance and bandwidth
 
 %Reference:
@@ -28,6 +28,7 @@ function f = rbf_val(mode, d, ell, enable_disp)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
 %f:             [N x M] Function evaluations
+%df_dell:       [N x M] Derivative of f w.r.t. ell
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Code generation
@@ -69,7 +70,7 @@ function f = rbf_val(mode, d, ell, enable_disp)
 % err = norm(f_SqExp_mat - f_SqExp_mex)
 
 arguments
-    mode (1,:) char  = 'SqExp';
+    mode (1,:) char {mustBeMember(mode, {'SqExp', 'SqExpNorm', 'Mat52', 'Mat32', 'Exp', 'ExpNorm', 'Sinc'})}  = 'SqExp';
     d (:,:) double {mustBeNonnegative} = 0;
     ell (1,1) double {mustBePositive} = 1;
     enable_disp (1,1) logical = false;
@@ -83,15 +84,38 @@ if contains(mode, 'SqExp')
         c = 1;
     end
 
-    f = c * exp(-d.^2 ./ (2 * ell.^2));   
+    d_sq = d.^2;
+    exp_term = exp(-d_sq ./ (2 * ell.^2));
+    f = c * exp_term;   
+
+    if nargout > 1
+        dexp_dell = exp_term .* d_sq / (ell.^3);
+
+        if contains(mode, 'SqExpNorm')
+            exp_tmp = exp(-2 / (ell^2));
+            dc_dell = ((ell^2 + 2) * exp_tmp  - ell^2) / (pi * (ell^5) * (1 - exp_tmp )^2);
+            df_dell =  dc_dell * exp_term + c * dexp_dell;
+        else
+            df_dell = dexp_dell;
+        end
+    end
 
 elseif strcmp(mode, 'Mat52')
 
-    f = (1 + sqrt(5) .* d ./ ell + 5/3 .* (d ./ ell).^2 ) .* exp(-sqrt(5) .* d ./ ell);    
+    exp_term = exp(-sqrt(5) .* d ./ ell);
+    f = (1 + sqrt(5) .* d ./ ell + 5/3 .* (d ./ ell).^2 ) .* exp_term;
+
+    if nargout > 1
+        df_dell = 5 * (d.^2) .* (ell + sqrt(5) * d) / (3 * ell^4) .* exp_term;
+    end
 
 elseif strcmp(mode, 'Mat32')
 
-    f = (1 + sqrt(3) .* d ./ ell) .* exp(-sqrt(3) * d / ell );    
+    exp_term = exp(-sqrt(3) * d / ell );
+    f = (1 + sqrt(3) .* d ./ ell) .* exp_term; 
+    if nargout > 1
+        df_dell = 3 * (d.^2) / (ell^3) .* exp_term;
+    end
 
 elseif contains(mode, 'Exp')
 
@@ -100,8 +124,21 @@ elseif contains(mode, 'Exp')
     else
         c = 1;
     end
+    
+    exp_term = exp(-(d ./ ell));
+    f = c * exp_term;
 
-    f = c * exp(-(d ./ ell));
+    if nargout > 1
+        dexp_dell = exp_term .* d / (ell.^2);
+
+        if contains(mode, 'ExpNorm')
+            exp_tmp = exp(-2 / ell);
+            dc_dell = (exp_tmp * (ell + 2 + 2 / ell) - ell) / (pi * (ell^2 - ell * (ell + 2) * exp_tmp )^2 );
+            df_dell =  dc_dell * exp_term + c * dexp_dell;
+        else
+            df_dell = dexp_dell;
+        end
+    end
     
 elseif contains(mode, 'Sinc')
 

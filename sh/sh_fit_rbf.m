@@ -1,6 +1,14 @@
 function [C, err] = sh_fit_rbf(X, theta, phi, max_odr, is_real, mode, ell, lambda, options)
-%Radial basis function kernel regression
-%C = (K + lambda * I)^(-1) * (X - mean(X, 1));
+%Radial basis function (RBF) kernel expansion:
+%C = K_exp *  (K + lambda * I)^(-1) * (X - mean(X, 1));
+
+%where K_exp is the expansion of RBF kernels along SH bases [(max_odr + 1)^2 x N],
+%K is the covariance matrix of RBFs [N x N]
+%lambda is the noise variance term for diagonal loading
+
+%Paper reference: 
+%Luo, Y., 2021. Spherical harmonic covariance and magnitude function encodings for beamformer design.
+%EURASIP Journal on Audio, Speech, and Music Processing, 2021(1), p.41.
 
 %Author: Yuancheng Luo, 2026
 
@@ -15,12 +23,17 @@ function [C, err] = sh_fit_rbf(X, theta, phi, max_odr, is_real, mode, ell, lambd
 
 %is_real:       Logical, if true, evaluate real SH
 
-%mode:          String, kernel function {'SqExp', 'Mat52', 'Mat32', 'Exp'}
-%ell:           Spatial bandwidth
+%mode:          String, kernel function {'SqExp', 'SqExpNorm', 'Mat52', 'Mat32', 'Exp', 'ExpNorm'}
+%ell:           Spatial bandwidth hyperparameter of covariance function
 %lambda:        Noise variance
 
 %options:               struct
 %options.max_iter:      Maximum iterations for fitting parameters
+%options.lb:            [1 x 2]     Lower bound [ell_min, lambda_min]
+%options.ub:            [1 x 2]     Upper bound [ell_max, lambda_max]
+%options.objective:     String, objective function {'NLMH', 'MSE'}
+%                           'NLMH':     Negative log marginal likelihood
+%                           'MSE':      Mean squared error
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
@@ -28,45 +41,7 @@ function [C, err] = sh_fit_rbf(X, theta, phi, max_odr, is_real, mode, ell, lambd
 %err:               Scalar, norm(Y*C - X);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Sample usage: Fit to random field over random sampled points over sphere
-
-% rng(4141);
-% max_odr = 3;
-% is_real = false;
-% N_pts = (max_odr + 1)^2;
-% C = sh_rand(max_odr, 1, is_real);
-% %[theta, phi] = sh_fib(N_pts);
-% [theta, phi] = sh_rand_unis(N_pts);
-% X = sh_dec(C, theta, phi, is_real);
-% X = X + (randn(size(X)) + randn(size(X)) * 1i) * 1e-1; % Add noise
-
-
-% max_odr_fit = 6;
-% ell = 0.5;
-% lambda = 0;
-% ub = [inf, 0.1];
-% max_iter = 0;
-% dB_lim = [-40, 20];
-% C = sh_resize(C, max_odr_fit);
-
-% sh_plt(C, 'mercator', is_real, 'dB_lim', dB_lim, 'title_name', 'Reference', 'disp_theta_phi', [theta, phi]);
-%
-% [C_SqExp] = sh_fit_rbf(X, theta, phi, max_odr_fit, is_real, 'SqExp', ell, lambda, 'max_iter', max_iter, 'ub', ub); 
-% err_SqExp = norm(C - C_SqExp)
-% sh_plt(C_SqExp, 'mercator', is_real, 'dB_lim', dB_lim, 'title_name', 'SqExp', 'disp_theta_phi', [theta, phi]); 
-% 
-% [C_Mat52] = sh_fit_rbf(X, theta, phi, max_odr_fit, is_real, 'Mat52', ell, lambda, 'max_iter', max_iter, 'ub', ub); 
-% err_Mat52 = norm(C - C_Mat52)
-% sh_plt(C_Mat52, 'mercator', is_real, 'dB_lim', dB_lim, 'title_name', 'Mat32', 'disp_theta_phi', [theta, phi]);
-% 
-% [C_Exp] = sh_fit_rbf(X, theta, phi, max_odr_fit, is_real, 'Exp', ell, lambda, 'max_iter', max_iter, 'ub', ub); 
-% err_Exp = norm(C - C_Exp)
-% sh_plt(C_Exp, 'mercator', is_real, 'dB_lim', dB_lim, 'title_name', 'Exp', 'disp_theta_phi', [theta, phi]);
-
-% [C_svd] = sh_fit_svd(X, theta, phi, max_odr_fit, is_real, 0); 
-% err_svd = norm(C - C_svd)
-% sh_plt(C_svd, 'mercator', is_real, 'dB_lim', dB_lim, 'title_name', 'SVD', 'disp_theta_phi', [theta, phi]);
-
+%Sample usage: See plot_sh_fit_example.m
 
 arguments
     X (:,:) double {coder.mustBeComplex} = complex(0);
@@ -77,13 +52,14 @@ arguments
     max_odr (1,1) double {mustBeNonnegative, mustBeInteger} = 1;
     is_real (1,1) logical = false;
 
-    mode (1,:) char {mustBeMember(mode, {'SqExp', 'Mat52', 'Mat32', 'Exp'})}  = 'SqExp';
+    mode (1,:) char {mustBeMember(mode, {'SqExp', 'SqExpNorm', 'Mat52', 'Mat32', 'Exp', 'ExpNorm'})}  = 'SqExp';
     ell (1,1) double {mustBePositive} = 1;
     lambda (1,1) double {mustBeNonnegative} = 0;
 
     options.max_iter (1,1) double {mustBeNonnegative, mustBeInteger} = 100;
     options.lb (1,2) double {mustBeNonnegative} = [0, 0];
     options.ub (1,2) double {mustBeNonnegative} = [inf, inf];
+    options.objective (1,:) char {mustBeMember(options.objective, {'NLMH', 'MSE'})} = 'NLMH';
     
 end
 
@@ -101,20 +77,36 @@ X_centered = bsxfun(@minus, X, X_mean); % Center observations about mean
 % Maximize log marginal likelihood
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if options.max_iter > 0
-    options_fmincon = optimoptions("fmincon", SpecifyObjectiveGradient=false, Display="iter", checkGradients=false, ...
-        ScaleProblem=true, ...
-        FunctionTolerance=1e-8, ConstraintTolerance=1e-8, OptimalityTolerance=1e-10, StepTolerance=1e-8, ...
-        MaxIterations=options.max_iter, MaxFunctionEvaluations=10000);
-    
-    param_list_0 = [ell, lambda];
-    [param_list, fval, exitflag] = fmincon(@(x) neg_log_marginal_likelihood(x, mode, D, X_centered), ... 
+
+    param_list_0 = [ell, lambda]';
+    if strcmp(options.objective, 'NLMH')
+
+        options_fmincon = optimoptions("fmincon", SpecifyObjectiveGradient=true, Display="final", checkGradients=false, ...
+            ScaleProblem=true, ...
+            FunctionTolerance=1e-8, ConstraintTolerance=1e-8, OptimalityTolerance=1e-10, StepTolerance=1e-8, ...
+            MaxIterations=options.max_iter, MaxFunctionEvaluations=10000);
+
+        func_obj = @(x) neg_log_marginal_likelihood(x, mode, D, X_centered);
+
+    elseif strcmp(options.objective, 'MSE')
+
+        options_fmincon = optimoptions("fmincon", SpecifyObjectiveGradient=false, Display="iter", checkGradients=false, ...
+            ScaleProblem=true, ...
+            FunctionTolerance=1e-8, ConstraintTolerance=1e-8, OptimalityTolerance=1e-10, StepTolerance=1e-8, ...
+            MaxIterations=options.max_iter, MaxFunctionEvaluations=10000);
+
+        func_obj = @(x) mean_squared_error(x, theta, phi, max_odr, is_real, mode, ...
+            D, X_centered, sh_val(max_odr, theta, phi, is_real));
+
+    else
+        error('Unsupported options.objective')
+    end
+    [param_list, fval, exitflag] = fmincon(func_obj, ... 
         param_list_0, [], [], [], [], options.lb, options.ub, [], options_fmincon);
     
-    ell = param_list(1);
-    lambda = param_list(2);
+    ell     = param_list(1)
+    lambda  = param_list(2)
 
-    ell
-    lambda
 end
 
 K = rbf_val(mode, D, ell);
@@ -130,19 +122,65 @@ if nargout > 1
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Compute log-marginal likelihood
+%Compute negative log-marginal likelihood
+
+%Input
+%param_list:        [2 x 1] [ell, lambda]
+%mode:              String, kernel function {'SqExp', 'Mat52', 'Mat32', 'Exp'}
+
+%D:                 [N x N] Distance matrix
+%X_centered:        [N x M] Centered measurements
+
+%Output
+%fval:              negative log marginal likelihood
+%grad:              [2 x 1] df / dell
+
+function [fval, grad] = neg_log_marginal_likelihood(param_list, mode, D, X_centered)
+
+N = numel(X_centered);
+
+ell = param_list(1);
+lambda = param_list(2);
+
+if nargout > 1
+    [K, dK_dell] = rbf_val(mode, D, ell);
+    dK_dlambda   = eye(N);
+else
+    K = rbf_val(mode, D, ell);
+end
+
+K = K + lambda * eye(N);
+
+K_inv_X = K \ X_centered; %[N x M]
+
+fval = 1/2 * ( trace(real( X_centered' * K_inv_X )) + sum(log( eig(K) )) + N * log(2*pi) );
+fval = real(fval);
+
+if nargout > 1
+    grad    = zeros(2, 1);
+    grad(1) = 1/2 * (trace( (K \ dK_dell) )    - K_inv_X' * dK_dell * K_inv_X );
+    grad(2) = 1/2 * (trace( (K \ dK_dlambda) ) - K_inv_X' * dK_dlambda * K_inv_X );
+    grad = real(grad);
+end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Compute mean squared error
 
 %Input
 %param_list:        [1 x 2] [ell, lambda]
 %mode:              String, kernel function {'SqExp', 'Mat52', 'Mat32', 'Exp'}
 
 %D:                 [N x N] Distance matrix
-%X_centered:        [N x 1] Centered measurements
+%X_centered:        [N x M] Centered measurements
+
+%X_mean:            [1 x M] Means per function
+%Y:                 [N x (max_ord + 1)^2] SH bases evaluated over theta, phi
 
 %Output
 %fval:              negative log marginal likelihood
 
-function fval = neg_log_marginal_likelihood(param_list, mode, D, X_centered)
+function fval = mean_squared_error(param_list, theta, phi, max_odr, is_real, mode, D, X_centered, Y)
 
 N = numel(X_centered);
 
@@ -153,4 +191,7 @@ K = rbf_val(mode, D, ell) + lambda * eye(N);
 
 K_inv_X = K \ X_centered;
 
-fval = 1/2 * ( trace(real( X_centered' * K_inv_X )) + sum(log( eig(K) )) + N * log(2*pi) );
+C = sh_enc_rbf(mode, max_odr, theta, phi, ell, is_real) * K_inv_X;
+
+% Compute error
+fval = mean(mean(abs(Y * C - X_centered ).^2));

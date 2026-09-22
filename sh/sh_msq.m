@@ -1,5 +1,5 @@
 function D = sh_msq(C, is_real)
-%Spherical harmonic expansion magnitude squared
+%Spherical harmonic expansion magnitude squared expansion
 %Y(theta, phi) * D = (Y(theta, phi)*C) * conj(Y(theta, phi)*C) 
 %                  = |Y(theta, phi)*C|^2
 
