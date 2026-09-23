@@ -10,8 +10,8 @@ function [D, C, err] = sh_fit_msq(X, theta, phi, max_odr, is_real, mode, options
 %Sum-of-magnitude square form for unknown C_n (used in mode = 'sdp')
 %Y(theta, phi) * D = \sum_n abs(Y(theta, phi) * C_n)^2 
 
-%Mixture-power form for unknown w, and known C0 (used in mode = 'sdr')
-%Y(theta, phi) * D = abs( Y(theta, phi) * C0 * W )^2,  W is size [K x K_sdr]
+%Mixture-power form for unknown W, and known C0 (used in mode = 'sdr')
+%Y(theta, phi) * D = abs( Y(theta, phi) * sum(C0 * W, 2) )^2,  W is size [K x K_sdr]
 
 %Author: Yuancheng Luo, 2026
 
