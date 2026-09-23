@@ -227,7 +227,7 @@ elseif strcmp(mode, 'sdr')
     for m = 1:M
         cvx_clear
         cvx_begin
-            variable Q(K, K) symmetric %Q ~ w*w'
+            variable Q(K, K) symmetric %Q ~ W*W'
             expression f_C(N,1)
             
             for n = 1:N %Sum-of-square polynomials evaluated at theta(n), phi(n)
