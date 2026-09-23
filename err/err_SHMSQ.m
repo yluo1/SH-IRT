@@ -1,5 +1,6 @@
 function err = err_SHMSQ(C, D)
 %Spherical harmonic mean magnitude squared error over spherical coordinates
+%\int_{\Omega} |Y(\Omega) * (C - D)|^2 / (4 * pi)
 
 %Author: Yuancheng Luo, 2026
 
