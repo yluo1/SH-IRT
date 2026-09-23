@@ -10,8 +10,8 @@ function [D, C, err] = sh_fit_msq(X, theta, phi, max_odr, is_real, mode, options
 %Sum-of-magnitude square form for unknown C_n (used in mode = 'sdp')
 %Y(theta, phi) * D = \sum_n abs(Y(theta, phi) * C_n)^2 
 
-%Mixture-power form for unknown W, and known C0 (used in mode = 'sdr')
-%Y(theta, phi) * D = abs( Y(theta, phi) * sum(C0 * W, 2) )^2,  W is size [K x K_sdr]
+%Mixture-power form for unknown W, and known B (used in mode = 'sdr')
+%Y(theta, phi) * D = abs( Y(theta, phi) * sum(B * W, 2) )^2,  W is size [K x K_sdr]
 
 %Author: Yuancheng Luo, 2026
 
@@ -33,7 +33,9 @@ function [D, C, err] = sh_fit_msq(X, theta, phi, max_odr, is_real, mode, options
 
 %options:       struct
 
-%options.C0:                [(floor(max_odr/2) + 1)^2 x K]  Initial guesses SH coefficients, real-valued
+%options.C0:                [(floor(max_odr/2) + 1)^2 x K]  Initial guesses SH coefficients for mode = 'fmincon', real-valued
+
+%options.B:                 [(floor(max_odr/2) + 1)^2 x K]  Dictionary of SH coefficients for mode = 'sdr'
 %options.K_sdr:             Number of largest eigenvalue-eigenvector pairs for semi-definite relaxation
 
 %options.is_pdf:            Logical, if true, enforce unity total energy constraint on D
@@ -68,7 +70,7 @@ function [D, C, err] = sh_fit_msq(X, theta, phi, max_odr, is_real, mode, options
 
 %D_fmc = sh_fit_msq(X, theta, phi, max_odr, is_real, 'fmincon', 'C0', [C0]);
 %D_sdp = sh_fit_msq(X, theta, phi, max_odr, is_real, 'sdp');
-%D_sdr = sh_fit_msq(X, theta, phi, max_odr, is_real, 'sdr', 'C0', [C0], 'K_sdr', K);
+%D_sdr = sh_fit_msq(X, theta, phi, max_odr, is_real, 'sdr', 'B', [C0], 'K_sdr', K);
 
 %err_fmc = err_SHMSQ(D_ref, D_fmc)
 %err_sdp = err_SHMSQ(D_ref, D_sdp)
@@ -93,6 +95,8 @@ arguments
     mode (1,:) char {mustBeMember(mode, {'fmincon', 'sdp', 'sdr'})} = 'fmincon';
 
     options.C0 (:,:) double {mustBeReal} = [];
+    options.B (:,:) double = [];
+
     options.K_sdr (1,1) double {mustBePositive, mustBeInteger} = 1;
     options.is_pdf (1,1) logical = false;
 
@@ -210,15 +214,15 @@ elseif strcmp(mode, 'sdp')
 
 elseif strcmp(mode, 'sdr')
     
-    C0 = options.C0; 
-    assert(size(C0, 1) == N_C, 'C0 size mismatch')
-    K = size(C0, 2);
+    B = options.B; 
+    assert(size(B, 1) == N_C, 'B size mismatch')
+    K = size(B, 2);
     K_sdr = options.K_sdr;
     assert(options.K_sdr <= K, 'Require options.K_sdr <= k');
     
     A_mat = cell(N, 1);
     for n = 1:N
-        A_mat{n} = C0' * Y_half(n,:)' * Y_half(n,:) * C0;
+        A_mat{n} = B' * Y_half(n,:)' * Y_half(n,:) * B;
     end
 
     C = zeros([N_C, K_sdr, M]);
@@ -257,13 +261,13 @@ elseif strcmp(mode, 'sdr')
         end
 
         %Rank-1 solution
-        % C(:, :, m) = C0 * diag(w_eig_vec * sqrt(w_eig_val));
+        % C(:, :, m) = B * diag(w_eig_vec * sqrt(w_eig_val));
         % D_m = sh_msq(sum(C(:, :, m), 2), true); %Real
 
         %Rank K_sdr solution
         [w_eig_vec, w_eig_val] = eigs(double(Q), K_sdr, 'largestabs'); %Weighted eigenvector-eigenvalue pair
         w_eig_val = diag(w_eig_val);
-        C(:, :, m) = C0 * (w_eig_vec * diag( sqrt(w_eig_val) ));    
+        C(:, :, m) = B * (w_eig_vec * diag( sqrt(w_eig_val) ));    
         D_m = sh_msq(sum(C(:, :, m), 2), true); %Real
 
         D(1:numel(D_m), m) = D_m;
