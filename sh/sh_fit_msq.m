@@ -1,8 +1,7 @@
 function [D, C, err] = sh_fit_msq(X, theta, phi, max_odr, is_real, mode, options)
 %Least-squares fit of magnitude squared SH expansion variants to real observations:
 
-%\min_D \sum_{\theta, phi} |Y(theta, phi) * D - X(theta, phi)|^2
-%s.t.
+%\min_D \sum_{\theta, phi} |Y(theta, phi) * D - X(theta, phi)|^2    s.t.
 
 %Magnitude square form for unknown C (used in mode = 'fmincon')
 %Y(theta, phi) * D = abs(Y(theta, phi) * C)^2
@@ -10,8 +9,8 @@ function [D, C, err] = sh_fit_msq(X, theta, phi, max_odr, is_real, mode, options
 %Sum-of-magnitude square form for unknown C_n (used in mode = 'sdp')
 %Y(theta, phi) * D = \sum_n abs(Y(theta, phi) * C_n)^2 
 
-%Mixture-power form for unknown W, and known B (used in mode = 'sdr')
-%Y(theta, phi) * D = abs( Y(theta, phi) * sum(B * W, 2) )^2,  W is size [K x K_sdr]
+%Mix-of-magnitude square form for unknown w_n, and dictionary of coefficients B (used in mode = 'dic')
+%Y(theta, phi) * D = \sum_n abs(Y(theta, phi) * B * w_n)^2 
 
 %Author: Yuancheng Luo, 2026
 
@@ -26,17 +25,15 @@ function [D, C, err] = sh_fit_msq(X, theta, phi, max_odr, is_real, mode, options
 
 %is_real:       Logical, if true, evaluate real SH
 
-%mode:          String, fitting method {'fmincon', 'sdp', 'sdr'}
+%mode:          String, fitting method {'fmincon', 'sdp', 'dic'}
 %                       'fmincon':  Magnitude squared least-squares via constrained optimization (fmincon)
 %                       'sdp':      Sum-of-magnitude squared least-squares semi-definite program (cvx)
-%                       'sdr':      Mixture-power least-squares via semi-definite relaxation (cvx)
+%                       'dic':      Mix-of-magnitude squared least-squares semi-definite program (cvx)
 
 %options:       struct
 
 %options.C0:                [(floor(max_odr/2) + 1)^2 x K]  Initial guesses SH coefficients for mode = 'fmincon', real-valued
-
-%options.B:                 [(floor(max_odr/2) + 1)^2 x K]  Dictionary of SH coefficients for mode = 'sdr'
-%options.K_sdr:             Number of largest eigenvalue-eigenvector pairs for semi-definite relaxation
+%options.B:                 [(floor(max_odr/2) + 1)^2 x K]  Dictionary of SH coefficients for mode = 'dic'
 
 %options.is_pdf:            Logical, if true, enforce unity total energy constraint on D
 
@@ -48,7 +45,7 @@ function [D, C, err] = sh_fit_msq(X, theta, phi, max_odr, is_real, mode, options
 
 %C:                 [(floor(max_odr/2) + 1)^2 x M] SH coefficients for mode = 'fmincon'
 %                   [(floor(max_odr/2) + 1)^2 x (floor(max_odr/2) + 1)^2 x M] SH coefficients for mode = 'sdp'
-%                   [(floor(max_odr/2) + 1)^2 x K x M] SH coefficients for mode = 'sdr'
+%                   [(floor(max_odr/2) + 1)^2 x K x M] SH coefficients for mode = 'dic'
 
 %err:               Sum-of-squared errors:   sum((Y(theta, phi) * D - X(theta, phi))^2)
 
@@ -70,17 +67,17 @@ function [D, C, err] = sh_fit_msq(X, theta, phi, max_odr, is_real, mode, options
 
 %D_fmc = sh_fit_msq(X, theta, phi, max_odr, is_real, 'fmincon', 'C0', [C0]);
 %D_sdp = sh_fit_msq(X, theta, phi, max_odr, is_real, 'sdp');
-%D_sdr = sh_fit_msq(X, theta, phi, max_odr, is_real, 'sdr', 'B', [C0], 'K_sdr', K);
+%D_dic = sh_fit_msq(X, theta, phi, max_odr, is_real, 'dic', 'B', [C0]);
 
 %err_fmc = err_SHMSQ(D_ref, D_fmc)
 %err_sdp = err_SHMSQ(D_ref, D_sdp)
-%err_sdr = err_SHMSQ(D_ref, D_sdr)
+%err_dic = err_SHMSQ(D_ref, D_dic)
 
 %dB_lim = [-80, 20];
 %sh_plt(D_ref, 'mercator', is_real, 'title_name', 'Ref. D', 'disp_theta_phi', [theta, phi], 'dB_lim', dB_lim);
 %sh_plt(D_fmc, 'mercator', is_real, 'title_name', 'Magnitude Square D', 'disp_theta_phi', [theta, phi], 'dB_lim', dB_lim);
 %sh_plt(D_sdp, 'mercator', is_real, 'title_name', 'Sum-of-Magnitude Square  D', 'disp_theta_phi', [theta, phi], 'dB_lim', dB_lim);
-%sh_plt(D_sdr, 'mercator', is_real, 'title_name', 'Mixture-power D', 'disp_theta_phi', [theta, phi], 'dB_lim', dB_lim);
+%sh_plt(D_dic, 'mercator', is_real, 'title_name', 'Mix-of-Magnitude Square D', 'disp_theta_phi', [theta, phi], 'dB_lim', dB_lim);
 
 arguments
     X (:,:) double {mustBeReal} = 1;
@@ -92,12 +89,11 @@ arguments
 
     is_real (1,1) logical = false;
 
-    mode (1,:) char {mustBeMember(mode, {'fmincon', 'sdp', 'sdr'})} = 'fmincon';
+    mode (1,:) char {mustBeMember(mode, {'fmincon', 'sdp', 'dic'})} = 'fmincon';
 
     options.C0 (:,:) double {mustBeReal} = [];
     options.B (:,:) double = [];
 
-    options.K_sdr (1,1) double {mustBePositive, mustBeInteger} = 1;
     options.is_pdf (1,1) logical = false;
 
     options.options_fmincon = optimoptions("fmincon", ...
@@ -212,20 +208,19 @@ elseif strcmp(mode, 'sdp')
         end
     end
 
-elseif strcmp(mode, 'sdr')
+
+elseif strcmp(mode, 'dic')
     
     B = options.B; 
     assert(size(B, 1) == N_C, 'B size mismatch')
     K = size(B, 2);
-    K_sdr = options.K_sdr;
-    assert(options.K_sdr <= K, 'Require options.K_sdr <= k');
     
     A_mat = cell(N, 1);
     for n = 1:N
         A_mat{n} = B' * Y_half(n,:)' * Y_half(n,:) * B;
     end
 
-    C = zeros([N_C, K_sdr, M]);
+    C = zeros([N_C, K, M]);
     D = zeros(N_D, M);
 
     for m = 1:M
@@ -252,22 +247,9 @@ elseif strcmp(mode, 'sdr')
 
         cvx_end
 
-        [w_eig_vec, w_eig_val] = eigs(double(Q), 1, 'largestabs'); %Largest eigenvector-eigenvalue pair
-
-        %Check tightness
-        eig_ratio = max(w_eig_val) / trace(Q);
-        if eig_ratio <= 0.95
-            disp(['Warning: Not tight as largest eigenvalue / trace: ', num2str(max(w_eig_val) / trace(Q))] );
-        end
-
-        %Rank-1 solution
-        % C(:, :, m) = B * diag(w_eig_vec * sqrt(w_eig_val));
-        % D_m = sh_msq(sum(C(:, :, m), 2), true); %Real
-
-        %Rank K_sdr solution
-        [w_eig_vec, w_eig_val] = eigs(double(Q), K_sdr, 'largestabs'); %Weighted eigenvector-eigenvalue pair
-        w_eig_val = diag(w_eig_val);
-        C(:, :, m) = B * (w_eig_vec * diag( sqrt(w_eig_val) ));    
+        [W_eig_vec, W_eig_val] = eig(double(Q)); %Weighted eigenvector-eigenvalue pair
+        W_eig_val = diag(W_eig_val);
+        C(:, :, m) = B * (W_eig_vec * diag( sqrt(W_eig_val) ));    
         D_m = sh_msq(sum(C(:, :, m), 2), true); %Real
 
         D(1:numel(D_m), m) = D_m;
@@ -276,7 +258,6 @@ elseif strcmp(mode, 'sdr')
             C(:, :, m) = sh_re2cpx(C(:, :, m));
         end
     end
-
 
 else
     error('Unknown mode');
