@@ -1,16 +1,18 @@
-function [D, C, err] = sh_fit_msq(X, theta, phi, max_odr, is_real, mode, options)
+function [D, C, err, output] = sh_fit_msq(X, theta, phi, max_odr, is_real, mode, options)
 %Least-squares fit of magnitude squared SH expansion variants to real observations:
 
 %\min_D \sum_{\theta, phi} |Y(theta, phi) * D - X(theta, phi)|^2    s.t.
 
-%Magnitude square form for unknown C (used in mode = 'fmincon')
+%Magnitude square form for unknown C (mode = 'MS')
 %Y(theta, phi) * D = abs(Y(theta, phi) * C)^2
 
-%Sum-of-magnitude square form for unknown C_n (used in mode = 'sdp')
+%Sum-of-magnitude square form for unknown C_n (mode = 'SOMS')
 %Y(theta, phi) * D = \sum_n abs(Y(theta, phi) * C_n)^2 
 
-%Mix-of-magnitude square form for unknown w_n, and dictionary of coefficients B (used in mode = 'dic')
+%Mix-of-magnitude square form for unknown w_n, and dictionary of coefficients B (mode = 'MOMS')
 %Y(theta, phi) * D = \sum_n abs(Y(theta, phi) * B * w_n)^2 
+
+%Mixture power form for unknown w, and dictionary of coefficients B (mode = 'MP')
 
 %Author: Yuancheng Luo, 2026
 
@@ -25,15 +27,18 @@ function [D, C, err] = sh_fit_msq(X, theta, phi, max_odr, is_real, mode, options
 
 %is_real:       Logical, if true, evaluate real SH
 
-%mode:          String, fitting method {'fmincon', 'sdp', 'dic'}
-%                       'fmincon':  Magnitude squared least-squares via constrained optimization (fmincon)
-%                       'sdp':      Sum-of-magnitude squared least-squares semi-definite program (cvx)
-%                       'dic':      Mix-of-magnitude squared least-squares semi-definite program (cvx)
+%mode:          String, fitting method {'MS', 'SOMS', 'MOMS', 'MP'}
+%                       'MS':       Magnitude squared least-squares via constrained optimization (fmincon)
+%                       'SOMS':     Sum-of-magnitude squared least-squares semi-definite program (cvx)
+%                       'MOMS':     Mix-of-magnitude squared least-squares semi-definite program (cvx)
+%                       'MP':       Mixture power least-squares via constrained optimization (fmincon)
 
 %options:       struct
 
-%options.C0:                [(floor(max_odr/2) + 1)^2 x K]  Initial guesses SH coefficients for mode = 'fmincon', real-valued
-%options.B:                 [(floor(max_odr/2) + 1)^2 x K]  Dictionary of SH coefficients for mode = 'dic'
+%options.C0:                [(floor(max_odr/2) + 1)^2 x K0]  Initial guesses SH coefficients for mode = 'MS', real-valued
+
+%options.B:                 [(floor(max_odr/2) + 1)^2 x K]  Dictionary of SH coefficients for mode = 'MOMS', 'MP'
+%options.B0:                [K x K0] Initial guesses dictionary weights for mode = 'MP'
 
 %options.is_pdf:            Logical, if true, enforce unity total energy constraint on D
 
@@ -43,41 +48,18 @@ function [D, C, err] = sh_fit_msq(X, theta, phi, max_odr, is_real, mode, options
 %Output
 %D:                 [(max_odr + 1)^2 x M] SH coefficients
 
-%C:                 [(floor(max_odr/2) + 1)^2 x M] SH coefficients for mode = 'fmincon'
-%                   [(floor(max_odr/2) + 1)^2 x (floor(max_odr/2) + 1)^2 x M] SH coefficients for mode = 'sdp'
-%                   [(floor(max_odr/2) + 1)^2 x K x M] SH coefficients for mode = 'dic'
+%C:                 [(floor(max_odr/2) + 1)^2 x M] SH coefficients for mode = 'MS'
+%                   [(floor(max_odr/2) + 1)^2 x (floor(max_odr/2) + 1)^2 x M] SH coefficients for mode = 'SOMS'
+%                   [(floor(max_odr/2) + 1)^2 x K x M] SH coefficients for mode = 'MOMS'
 
 %err:               Sum-of-squared errors:   sum((Y(theta, phi) * D - X(theta, phi))^2)
 
+%output:            struct, additional outputs
+%output.W:          [K x K x M] mixture weights for mode = 'MOMS'
+%                   [K x M] mixture weights for mode = 'MP'
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Sample usage: Least-squares magnitude squared fit to random function
-
-%rng(2354);
-%N = 100;
-%max_odr_half = 4;
-%max_odr = 2 * max_odr_half;
-%is_real = true;
-%C_ref = sh_rand(max_odr_half, 1, is_real);
-%D_ref = sh_msq(C_ref, is_real);
-%[theta, phi] = sh_fib(N);
-%X = sh_dec(D_ref, theta, phi, is_real);
-
-%K = (max_odr_half + 1)^2;
-%C0 = randn((floor(max_odr/2) + 1)^2, K);
-
-%D_fmc = sh_fit_msq(X, theta, phi, max_odr, is_real, 'fmincon', 'C0', [C0]);
-%D_sdp = sh_fit_msq(X, theta, phi, max_odr, is_real, 'sdp');
-%D_dic = sh_fit_msq(X, theta, phi, max_odr, is_real, 'dic', 'B', [C0]);
-
-%err_fmc = err_SHMSQ(D_ref, D_fmc)
-%err_sdp = err_SHMSQ(D_ref, D_sdp)
-%err_dic = err_SHMSQ(D_ref, D_dic)
-
-%dB_lim = [-80, 20];
-%sh_plt(D_ref, 'mercator', is_real, 'title_name', 'Ref. D', 'disp_theta_phi', [theta, phi], 'dB_lim', dB_lim);
-%sh_plt(D_fmc, 'mercator', is_real, 'title_name', 'Magnitude Square D', 'disp_theta_phi', [theta, phi], 'dB_lim', dB_lim);
-%sh_plt(D_sdp, 'mercator', is_real, 'title_name', 'Sum-of-Magnitude Square  D', 'disp_theta_phi', [theta, phi], 'dB_lim', dB_lim);
-%sh_plt(D_dic, 'mercator', is_real, 'title_name', 'Mix-of-Magnitude Square D', 'disp_theta_phi', [theta, phi], 'dB_lim', dB_lim);
+%Sample usage: See tst_sh_fit_msq.m
 
 arguments
     X (:,:) double {mustBeReal} = 1;
@@ -89,17 +71,19 @@ arguments
 
     is_real (1,1) logical = false;
 
-    mode (1,:) char {mustBeMember(mode, {'fmincon', 'sdp', 'dic'})} = 'fmincon';
+    mode (1,:) char {mustBeMember(mode, {'MS', 'SOMS', 'MOMS', 'MP'})} = 'MS';
 
     options.C0 (:,:) double {mustBeReal} = [];
     options.B (:,:) double = [];
+    options.B0 (:,:) double {mustBeReal}  = [];
 
     options.is_pdf (1,1) logical = false;
 
     options.options_fmincon = optimoptions("fmincon", ...
             Algorithm="interior-point", EnableFeasibilityMode=false, ...
-            SpecifyObjectiveGradient=true, SpecifyConstraintGradient=false, ...
-            Display="off", ScaleProblem=true, checkGradients=false, ...
+            SpecifyObjectiveGradient=true, SpecifyConstraintGradient=true, ...
+            Display="off", ScaleProblem=true, ...
+            checkGradients=false, FiniteDifferenceStepSize=1e-12, FiniteDifferenceType='central', ...
             FunctionTolerance=1e-8, OptimalityTolerance=1e-10, StepTolerance=1e-8, ...
             MaxIterations=1000, MaxFunctionEvaluations = 10000);
 
@@ -112,8 +96,9 @@ N_D = (max_odr + 1)^2;
 N_C = (floor(max_odr/2) + 1)^2;
 
 Y_half = Y(:, 1:N_C);
+output = [];
 
-if strcmp(mode, 'fmincon')
+if strcmp(mode, 'MS')
   
     if isempty(options.C0) %Initial guess   
         C0 = sh_enc_uni(floor(max_odr/2)); 
@@ -121,7 +106,7 @@ if strcmp(mode, 'fmincon')
         C0 = options.C0;   
     end
     assert(size(C0, 1) == N_C, 'C0 size mismatch')
-    K = size(C0, 2);
+    K0 = size(C0, 2);
 
     if options.is_pdf
         nonlcon = @(x) sh_msq_pdf_nonlcon(x);
@@ -129,11 +114,12 @@ if strcmp(mode, 'fmincon')
         nonlcon = [];
     end
 
-    C = zeros(N_C, M);
+    C = zeros(N_C, M);    
     fval = inf(1, M);
     exitflag = zeros(1, M);
+
     for m = 1:M
-        for k = 1:K
+        for k = 1:K0
             [C_k, fval_k, exitflag_k] = fmincon(@(x) sh_msq_err(x, X(:, m), Y_half), C0(:, k), ...
                 [], [], [], [], [], [], nonlcon, options.options_fmincon);
             if fval_k < fval(m)
@@ -151,7 +137,7 @@ if strcmp(mode, 'fmincon')
         C = sh_re2cpx(C);
     end
 
-elseif strcmp(mode, 'sdp')
+elseif strcmp(mode, 'SOMS')
     
     A_mat = cell(N, 1);
     for n = 1:N
@@ -193,12 +179,10 @@ elseif strcmp(mode, 'sdp')
             disp(['Warning: Not tight as largest eigenvalue / trace: ', num2str(max(C_eig_val) / trace(Q))] );
         end
 
-        %Reconstruct D as sum of squares
+        %Reconstruct D as sum-of-magnitude square
         [C_eig_vec, C_eig_val] = eig(double(Q)); %Weighted eigenvector-eigenvalue pair
         C_eig_val = diag(C_eig_val);
-        idx_eigs = (C_eig_val / trace(Q) > 1e-8);
-
-        C(:, :, m) = C_eig_vec(:, idx_eigs) * diag(sqrt(C_eig_val(idx_eigs)));
+        C(:, :, m) = C_eig_vec * diag(sqrt(C_eig_val));
                 
         D_m = sum(sh_msq(C(:, :, m), true), 2); %Real
         D(1:numel(D_m), m) = D_m;
@@ -206,10 +190,10 @@ elseif strcmp(mode, 'sdp')
         if ~is_real
             C(:, :, m) = sh_re2cpx(C(:, :, m));
         end
+
     end
 
-
-elseif strcmp(mode, 'dic')
+elseif strcmp(mode, 'MOMS')
     
     B = options.B; 
     assert(size(B, 1) == N_C, 'B size mismatch')
@@ -222,6 +206,7 @@ elseif strcmp(mode, 'dic')
 
     C = zeros([N_C, K, M]);
     D = zeros(N_D, M);
+    output.W = zeros([K, K, M]);
 
     for m = 1:M
         cvx_clear
@@ -249,7 +234,8 @@ elseif strcmp(mode, 'dic')
 
         [W_eig_vec, W_eig_val] = eig(double(Q)); %Weighted eigenvector-eigenvalue pair
         W_eig_val = diag(W_eig_val);
-        C(:, :, m) = B * (W_eig_vec * diag( sqrt(W_eig_val) ));    
+        W = W_eig_vec * diag( sqrt(W_eig_val) );
+        C(:, :, m) = B * W;    
         D_m = sum(sh_msq(C(:, :, m), true), 2); %Real
 
         D(1:numel(D_m), m) = D_m;
@@ -257,7 +243,60 @@ elseif strcmp(mode, 'dic')
         if ~is_real
             C(:, :, m) = sh_re2cpx(C(:, :, m));
         end
+        
+        output.W(:, :, m) = W;
+                
     end
+
+elseif strcmp(mode, 'MP')
+
+    B = options.B; 
+    assert(size(B, 1) == N_C, 'B size mismatch')
+    K = size(B, 2);
+
+    if isempty(options.B0) %Initial guess   
+        B0 = zeros(K, 1); 
+    else
+        B0 = options.B0;   
+    end
+    assert(size(B0, 1) == K, 'B0 size mismatch')
+    K0 = size(B0, 2);
+
+    % if options.is_pdf
+    %     nonlcon = @(x) sh_msq_pdf_nonlcon(x);
+    % else
+    %     nonlcon = [];
+    % end
+    nonlcon = [];
+
+    Y_half_B = Y_half * B;
+
+    C = zeros(N_C, M);
+    W = zeros(K, M);
+    fval = inf(1, M);
+    exitflag = zeros(1, M);
+
+    for m = 1:M
+        for k = 1:K0
+            [w_k, fval_k, exitflag_k] = fmincon(@(x) sh_msq_err(x, X(:, m), Y_half_B), B0(:, k), ...
+                [], [], [], [], [], [], nonlcon, options.options_fmincon);
+            if fval_k < fval(m)
+                fval(m) = fval_k;
+                W(:, m) = w_k;
+                C(:, m) = B * w_k;
+                exitflag(m) = exitflag_k;
+            end
+        end
+    end
+    
+    D = sh_msq(C, true); %Real
+    D = [D; zeros(N_D - size(D, 1), M)]; %Real
+
+    if ~is_real
+        C = sh_re2cpx(C);
+    end
+
+    output.W = W;
 
 else
     error('Unknown mode');
@@ -269,7 +308,3 @@ end
 
 %Compute error
 err = norm(Y * D - X);
-
-
-
-

@@ -32,7 +32,7 @@ function [E_pdf] = sh_pdf_transport(C_pdf, D_pdf, t, mode, is_real, options)
 %                           'LS_MSQ':       Least-squares estimate of SH coefficients and fit magnitude-square SH expansion
 %                           'NNLS':         Estimate non-negative points on sphere and fit SH expansion
 %                           'NNLS_MSQ':     Estimate non-negative points on sphere and fit magnitude-square SH expansion
-%options.SW_msq_mode:   String, magnitude squared fitting method for NNLS estimated points of sliced Wasserstein projections {'fmincon', 'sdp'}
+%options.SW_msq_mode:   String, magnitude squared fitting method for NNLS estimated points of sliced Wasserstein projections {'MS', 'SOMS'}
 %                           See sh_fit_msq.m
 %options.SW_N_C_fac:    Oversample number of projections by this non-negative factor
 %options.SW_N_u:        Number of samples along marginal CDF
@@ -46,7 +46,7 @@ function [E_pdf] = sh_pdf_transport(C_pdf, D_pdf, t, mode, is_real, options)
 %                                           Nguyen, K., & Ho, N. (2023). Energy-based sliced wasserstein distance. Advances in Neural Information Processing Systems, 36, 18046-18075.
 
 
-%options.GI_msq_mode:   String, magnitude squared fitting method {'fmincon', 'sdp'}
+%options.GI_msq_mode:   String, magnitude squared fitting method {'MS', 'SOMS'}
 %                           See sh_fit_msq.m
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -97,14 +97,14 @@ arguments
      options.EMD_K_pdf (:,1) double {coder.mustBeComplex} = [];
 
      options.SW_fit_mode (1,:) char {mustBeMember(options.SW_fit_mode, {'LeastSquares', 'LS_MSq', 'NNLS', 'NNLS_MSq'})} = 'NNLS_MSq';
-     options.SW_msq_mode (1,:) char {mustBeMember(options.SW_msq_mode, {'fmincon', 'sdp'})} = 'sdp';
+     options.SW_msq_mode (1,:) char {mustBeMember(options.SW_msq_mode, {'MS', 'SOMS'})} = 'SOMS';
      options.SW_N_C_fac (1,1) double {mustBeNonnegative, mustBeInteger} = 8;
      options.SW_N_u (1,1) double {mustBeNonnegative, mustBeInteger} = 8;
      options.SW_tol (1,1) double {mustBeNonnegative} = 1e-8;
      options.SW_max_iter (1,1) double {mustBeNonnegative} = 1000;
      options.SW_wt_mode (1,:) char {mustBeMember(options.SW_wt_mode, {'uniform', 'exp'})} = 'uniform';
 
-     options.GI_msq_mode (1,:) char {mustBeMember(options.GI_msq_mode, {'fmincon', 'sdp'})} = 'sdp';
+     options.GI_msq_mode (1,:) char {mustBeMember(options.GI_msq_mode, {'MS', 'SOMS'})} = 'SOMS';
      
 end
 
@@ -337,7 +337,7 @@ elseif strcmp(mode, 'SlicedWass') %Sliced Wasserstein projections
                 E_pdf_LS = wA_mat \ wCDF_u(:); 
                 E_pdf_LS = sh_nrm(E_pdf_LS, 'Sum'); %Normalize, ~ 1/(2*pi)
                 X = real(sh_dec(E_pdf_LS, theta_fit, phi_fit, true));
-                if strcmp(options.SW_msq_mode, 'fmincon')
+                if strcmp(options.SW_msq_mode, 'MS')
                     C0 = sh_rand(floor(P/2), 100, true);
                 else
                     C0 = [];
@@ -361,7 +361,7 @@ elseif strcmp(mode, 'SlicedWass') %Sliced Wasserstein projections
                 A_inv_Y_fit = wA_mat / Y_fit;
                 X = lsqnonneg(A_inv_Y_fit, wCDF_u(:));    %min ||A_mat * inv(Y) * X -  CDF_u||^2, s.t. x >= 0
                 %X = X / (2*pi); %Normalize
-                if strcmp(options.SW_msq_mode, 'fmincon')
+                if strcmp(options.SW_msq_mode, 'MS')
                     C0 = sh_rand(floor(P/2), 100, true);
                 else
                     C0 = [];

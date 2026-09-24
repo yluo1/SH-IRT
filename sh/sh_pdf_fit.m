@@ -15,14 +15,14 @@ function [C_pdf, err] = sh_pdf_fit(X, theta, phi, max_odr, is_real, mode, option
 
 %is_real:       Logical, if true, evaluate real SH
 
-%mode:          String, fitting method {'SqProjNNLS'}
+%mode:          String, fitting method {'SqProjNNLS', 'SqProjQP', 'SqMagMS', 'SqMagSOMS'}
 %                       'SqProjNNLS':       Solve for non-negative least squares weights 
 %                                           of magnitude squared projection kernels, normalize to unity integral constraints in post
 %                       'SqProjQP':         Solve for non-negative least squares weights, subject to unity integral constraints
 %                                           of magnitude squared projection kernels 
-%                       'SqMagFmincon':     Solve for square magnitude function least squares, subject to unity integral constraints
+%                       'SqMagMS':          Solve for magnitude square least squares, subject to unity integral constraints
 %                                           with generic fmincon solver
-%                       'SqMagSDP':         Solve for square magnitude function least squares, subject to unity integral constraints
+%                       'SqMagSOMS':        Solve for sum-of-magnitude square least squares, subject to unity integral constraints
 %                                           with semi-definite programming (cvx)
 
 %options:       struct
@@ -76,7 +76,7 @@ arguments
 
     is_real (1,1) logical = false;
 
-    mode (1,:) char {mustBeMember(mode, {'SqProjNNLS', 'SqProjQP', 'SqMagFmincon', 'SqMagSDP'})} = 'SqProjQP';
+    mode (1,:) char {mustBeMember(mode, {'SqProjNNLS', 'SqProjQP', 'SqMagMS', 'SqMagSOMS'})} = 'SqProjQP';
 
     options.options_quadprog = optimoptions('quadprog');
     options.SqProjQP_C0 (:,:) double = [];
@@ -118,7 +118,7 @@ elseif strcmp(mode, 'SqProjQP') %Quadratic programming with linear constraints o
         C_pdf = sh_re2cpx(C_pdf);
     end
 
-elseif strcmp(mode, 'SqMagFmincon') %Squared magnitude SH expansion least squares fitting 
+elseif strcmp(mode, 'SqMagMS') %Magnitude square SH expansion least squares fitting 
                                     %with unit energy constraints on the squared function coefficient
 
     if isempty(options.SqProjQP_C0)
@@ -128,13 +128,13 @@ elseif strcmp(mode, 'SqMagFmincon') %Squared magnitude SH expansion least square
         C0 = options.SqProjQP_C0;
     end
 
-    [C_pdf] = sh_fit_msq(X, theta, phi, max_odr, is_real, 'fmincon', ...
+    [C_pdf] = sh_fit_msq(X, theta, phi, max_odr, is_real, 'MS', ...
         'is_pdf', true, 'C0', C0);
     C_pdf = sh_nrm(C_pdf, 'Sum');
     
-elseif strcmp(mode, 'SqMagSDP')
+elseif strcmp(mode, 'SqMagSOMS') %Sum-of-magnitude square SH expansion least squares fitting
 
-    [C_pdf] = sh_fit_msq(X, theta, phi, max_odr, is_real, 'sdp', ...
+    [C_pdf] = sh_fit_msq(X, theta, phi, max_odr, is_real, 'SOMS', ...
         'is_pdf', true);
     C_pdf = sh_nrm(C_pdf, 'Sum');
 

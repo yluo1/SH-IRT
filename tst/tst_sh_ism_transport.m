@@ -125,19 +125,19 @@ if strcmp(mode, 'barycenter')
     
     
     %export
-    out_dir = 'figs_sh';
-    mkdir(out_dir);
-    exportgraphics(h_RIR_left{1} , fullfile(out_dir, ['RIR_left', '.png']));
-    exportgraphics(h_RIR_right{1} , fullfile(out_dir, ['RIR_right', '.png']));
-    exportgraphics(h_RIR_center{1} , fullfile(out_dir, ['RIR_center', '.png']));
-    
-    exportgraphics(h_density_left{1} , fullfile(out_dir, ['density_left', '.png']));
-    exportgraphics(h_density_right{1} , fullfile(out_dir, ['density_right', '.png']));
-    exportgraphics(h_density_center{1} , fullfile(out_dir, ['density_center', '.png']));
-    
-    exportgraphics(h_arithemtic{1} , fullfile(out_dir, ['arithemtic_mean', '.png']));
-    exportgraphics(h_geometric{1} , fullfile(out_dir, ['geometric_mean', '.png']));
-    exportgraphics(h_barycentric{1} , fullfile(out_dir, ['barycentric_mean', '.png']));
+    % out_dir = 'figs_sh';
+    % mkdir(out_dir);
+    % exportgraphics(h_RIR_left{1} , fullfile(out_dir, ['RIR_left', '.png']));
+    % exportgraphics(h_RIR_right{1} , fullfile(out_dir, ['RIR_right', '.png']));
+    % exportgraphics(h_RIR_center{1} , fullfile(out_dir, ['RIR_center', '.png']));
+    % 
+    % exportgraphics(h_density_left{1} , fullfile(out_dir, ['density_left', '.png']));
+    % exportgraphics(h_density_right{1} , fullfile(out_dir, ['density_right', '.png']));
+    % exportgraphics(h_density_center{1} , fullfile(out_dir, ['density_center', '.png']));
+    % 
+    % exportgraphics(h_arithemtic{1} , fullfile(out_dir, ['arithemtic_mean', '.png']));
+    % exportgraphics(h_geometric{1} , fullfile(out_dir, ['geometric_mean', '.png']));
+    % exportgraphics(h_barycentric{1} , fullfile(out_dir, ['barycentric_mean', '.png']));
 
     ;
 
@@ -232,9 +232,9 @@ elseif strcmp(mode, 'path_dist')
 
     %Export
     out_dir = 'figs_sh';
-    mkdir(out_dir);
-    exportgraphics(h_fig , fullfile(out_dir, ['RIR_Wasserstein_dists', '.png']));
-    exportgraphics(h_fig_path , fullfile(out_dir, ['RIR_Wasserstein_room', '.png']));
+    % mkdir(out_dir);
+    % exportgraphics(h_fig , fullfile(out_dir, ['RIR_Wasserstein_dists', '.png']));
+    % exportgraphics(h_fig_path , fullfile(out_dir, ['RIR_Wasserstein_room', '.png']));
     ;
 
 else

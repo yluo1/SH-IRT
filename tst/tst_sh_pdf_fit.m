@@ -43,11 +43,10 @@ else
 end
 
 %Solve
-[C_pdf_SqProjNNLS, err_SqProjNNLS]         = sh_pdf_fit(X, theta, phi, max_odr, is_real, 'SqProjNNLS');
-[C_pdf_SqProjQP, err_SqProjQP]             = sh_pdf_fit(X, theta, phi, max_odr, is_real, 'SqProjQP');
-[C_pdf_SqMagFmincon, err_SqMagFmincon]     = sh_pdf_fit(X, theta, phi, max_odr, is_real, 'SqMagFmincon', ...
-    'SqProjQP_C0', sh_rand(floor(max_odr/2), 50, true));
-[C_pdf_SqMagSDP, err_SqProjSDP]            = sh_pdf_fit(X, theta, phi, max_odr, is_real, 'SqMagSDP');
+[C_pdf_SqProjNNLS, err_SqProjNNLS]  = sh_pdf_fit(X, theta, phi, max_odr, is_real, 'SqProjNNLS');
+[C_pdf_SqProjQP, err_SqProjQP]      = sh_pdf_fit(X, theta, phi, max_odr, is_real, 'SqProjQP');
+[C_pdf_SqMagMS, err_SqMagMS]        = sh_pdf_fit(X, theta, phi, max_odr, is_real, 'SqMagMS', 'SqProjQP_C0', sh_rand(floor(max_odr/2), 50, true));
+[C_pdf_SqMagSOMS, err_SqProjSOMS]   = sh_pdf_fit(X, theta, phi, max_odr, is_real, 'SqMagSOMS');
 
 %Plot
 sh_plt(C_pdf_SqProjNNLS, 'mercator', is_real, 'dB_lim', dB_lim, 'disp_phase', disp_phase, 'title_name', 'SqProjNNLS');
@@ -56,9 +55,9 @@ err_SqProjNNLS
 sh_plt(C_pdf_SqProjQP, 'mercator', is_real, 'dB_lim', dB_lim, 'disp_phase', disp_phase, 'title_name', 'SqProjQP');
 err_SqProjQP
 
-sh_plt(C_pdf_SqMagFmincon, 'mercator', is_real, 'dB_lim', dB_lim, 'disp_phase', disp_phase, 'title_name', 'SqProjQP');
-err_SqMagFmincon
+sh_plt(C_pdf_SqMagMS, 'mercator', is_real, 'dB_lim', dB_lim, 'disp_phase', disp_phase, 'title_name', 'SqProjQP');
+err_SqMagMS
 
-sh_plt(C_pdf_SqMagSDP, 'mercator', is_real, 'dB_lim', dB_lim, 'disp_phase', disp_phase, 'title_name', 'SqProjSDP');
-err_SqProjSDP
+sh_plt(C_pdf_SqMagSOMS, 'mercator', is_real, 'dB_lim', dB_lim, 'disp_phase', disp_phase, 'title_name', 'SqProjSOMS');
+err_SqProjSOMS
 

@@ -38,5 +38,5 @@ f = sum(err.^2);
 %      = 4 * Y' * diag(Y*C) * err
 %      = 4 * Y' * f_c .* err
 
-g = 4 * Y' * (f_c .* (fc_c_sq - X));
+g = 4 * Y' * (f_c .* err);
 

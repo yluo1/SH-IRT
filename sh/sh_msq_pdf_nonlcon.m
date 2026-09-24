@@ -1,4 +1,4 @@
-function [ineqnonlin,eqnonlin, gradineqnonlin,gradeqnonlin] = sh_msq_pdf_nonlcon(C, relax_eq_constr)
+function [ineqnonlin, eqnonlin, gradineqnonlin, gradeqnonlin] = sh_msq_pdf_nonlcon(C, relax_eq_constr)
 %Equality constraints for unity integration of magnitude squared spherical harmonic
 %expansion density functions
 
