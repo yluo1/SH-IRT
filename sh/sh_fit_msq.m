@@ -250,7 +250,7 @@ elseif strcmp(mode, 'dic')
         [W_eig_vec, W_eig_val] = eig(double(Q)); %Weighted eigenvector-eigenvalue pair
         W_eig_val = diag(W_eig_val);
         C(:, :, m) = B * (W_eig_vec * diag( sqrt(W_eig_val) ));    
-        D_m = sh_msq(sum(C(:, :, m), 2), true); %Real
+        D_m = sum(sh_msq(C(:, :, m), true), 2); %Real
 
         D(1:numel(D_m), m) = D_m;
 
