@@ -13,6 +13,7 @@ function [D, C, err, output] = sh_fit_msq(X, theta, phi, max_odr, is_real, mode,
 %Y(theta, phi) * D = \sum_n abs(Y(theta, phi) * B * w_n)^2 
 
 %Mixture power form for unknown w, and dictionary of coefficients B (mode = 'MP')
+%Y(theta, phi) * D = abs(Y(theta, phi) * B * w)^2 
 
 %Author: Yuancheng Luo, 2026
 
