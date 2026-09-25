@@ -56,14 +56,14 @@ and is vectorized in the same format as the complex case. In such instances, the
 | --- | --- | 
 |sh_ism.m| Image-source model |
 |sh_rand.m| Random field |
-|sh_rand_pp.m| Poisson-process |
+|sh_rand_pp.m| Poisson process |
 
 ## Empirical Fitting
 | File | Description |
 | --- | --- | 
 |sh_fit_svd.m | Truncated singular value decomposition least-squares |
-|sh_fit_msq.m | Magnitude squared least-squares |
-|sh_fit_rbf.m | Radial basis function fitting |
+|sh_fit_msq.m | Magnitude squared least-squares: Magnitude squared, sum-of-magnitude squared, mix-of-magnitude squared, mixture power|
+|sh_fit_rbf.m | Radial basis function fitting: Squared exponential, Matérn, exponential |
 
 
 ## Filtering
@@ -83,13 +83,14 @@ and is vectorized in the same format as the complex case. In such instances, the
 |sh_enc_proj.m | Dirac-delta projection into spherical harmonics |
 |sh_enc_proj_msq.m | Dirac-delta projection magnitude square into spherical harmonics |
 |sh_enc_uni.m | Constant function |
-|sh_enc_rbf.m | Radial basis functions |
+|sh_enc_rbf.m | Radial basis functions: Squared exponential, Matérn, exponential, sinc |
 |sh_enc_pist_sphere.m | External piston on sphere frequency responses|
 
 ## Probability Density Functions
 | File | Description |
 | --- | --- | 
 |sh_pdf_fit.m | Density function fitting|
+|sh_pdf_dist.m | Density function distances: Spherical sliced Wasserstein, Kullback-Lieber divergence|
 |sh_pdf_sample.m | Sampling spherical coordinates from density|
 |sh_pdf_scatter.m | Transport density function towards uniform density|
 |sh_pdf_transport.m | Transport between density functions|

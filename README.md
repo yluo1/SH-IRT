@@ -3,7 +3,7 @@
 This open-source library provides tools for modifying, generating, and analyzing spatial room impulse responses (SRIRs) in the spherical harmonics (SH) domain. SH-IRT supports the following features:
 
 * **Operators**:  Rotation, reflection, convolution, multiplication, conjugation, square magnitude, integration, complex-real conversion
-* **Fitting**: Least squares, magnitude squared least squares, sum-of-magnitude squared least squares, radial basis functions
+* **Fitting**: Least squares (truncated singular value decomposition, magnitude squared, sum-of-magnitude squared, mix-of-magnitude squared, mixture power), radial basis functions
 * **Filtering**: Time / frequency domain LTI convolution, time-varying exponentiating and recursive convolution
 * **Density Modeling**: Maximum likelihood fitting, inverse sampling, scattering transport, spherical sliced Wasserstein optimal transport
 * **Encoding**: Projections, radial basis functions, spherical piston
@@ -57,7 +57,7 @@ This library was developed from methods in the following works:
 
 > Luo, Y. (2026). [Fast Time-Varying Exponentiated Convolution Methods for Generative Direction Dependent Reverberation](https://arxiv.org/abs/2609.24809), Accepted at the 161th Audio Engineering Society Convention.
 >
-> Luo, Y. (2026). [Spherical Harmonic Sliced Wasserstein Displacement Interpolation for Acoustic Source and Reflection Density Modeling](https://arxiv.org/abs/2609.22028). 	arXiv:2609.22028
+> Luo, Y. (2026). [Spherical Harmonic Sliced Wasserstein Displacement Interpolation for Acoustic Source and Reflection Density Modeling](https://arxiv.org/abs/2609.22028). 	arXiv:2609.22028.
 > 
 > Luo, Y. (2021). [Spherical Harmonic Covariance and Magnitude Function Encodings for Beamformer Design](https://link.springer.com/article/10.1186/s13636-021-00230-7). EURASIP Journal on Audio, Speech, and Music Processing, 2021(1), 41.
 > 
