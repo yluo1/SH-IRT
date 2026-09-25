@@ -1,5 +1,5 @@
 function err = err_NSHMSQ(C, D)
-%Spherical harmonic mean magnitude squared error normalized by variance over spherical coordinates
+%Spherical harmonic mean magnitude squared error normalized by variance of C over spherical coordinates
 
 %Author: Yuancheng Luo, 2026
 
@@ -31,4 +31,4 @@ P = max(P_C, P_D); % Max-order
 
 E = sh_resize(C, P) - sh_resize(D, P);
 
-err = sh_int(E, 'PowAvg') ./ sh_int(E, 'Var');
+err = sh_int(E, 'PowAvg') ./ sh_int(C, 'Var');

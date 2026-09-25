@@ -86,6 +86,23 @@ function [E_pdf] = sh_pdf_transport(C_pdf, D_pdf, t, mode, is_real, options)
 % sh_plt(E_pdf, 'mercator', is_real, 'dB_lim', dB_lim, 'disp_phase', disp_phase, 'fig_size', fig_size, 'title_name', ['PDF t = ', num2str(t)]);
 % sh_plt(D_pdf, 'mercator', is_real, 'dB_lim', dB_lim, 'disp_phase', disp_phase, 'fig_size', fig_size, 'title_name', 'PDF t = 1');
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Sample usage: Test real versus complex SH SlicedWass transport
+
+%rng(123);
+%C_pdf_cpx = sh_nrm(sh_msq(sh_rand(3, 1, false), false ), 'Sum');
+%D_pdf_cpx = sh_nrm(sh_msq(sh_rand(3, 1, false), false ), 'Sum');
+%C_pdf_real  = sh_cpx2re(C_pdf_cpx);
+%D_pdf_real  = sh_cpx2re(D_pdf_cpx);
+
+%E_pdf_cpx = sh_pdf_transport(C_pdf_cpx, D_pdf_cpx, 0.5, 'SlicedWass', false);
+%E_pdf_real = sh_pdf_transport(C_pdf_real, D_pdf_real, 0.5, 'SlicedWass', true);
+
+%err = err_SHMSQ(E_pdf_cpx, sh_re2cpx(E_pdf_real) )
+%sh_plt(E_pdf_cpx, 'mercator', false); 
+%sh_plt(E_pdf_real, 'mercator', true); 
+
+
 arguments
      C_pdf (:,:) double {coder.mustBeComplex} = complex(0);
      D_pdf (:,:) double {coder.mustBeComplex} = complex(0);
@@ -245,7 +262,7 @@ if strcmp(mode, 'EarthMoverDist') %Earth-mover distance
         end
     end
 
-elseif strcmp(mode, 'SlicedWass') %Sliced Wasserstein projections
+elseif strcmp(mode, 'SlicedWass') %Sliced Wasserstein projections, real or complex SH
 
     N   = options.SW_N_C_fac * N_C; %Number of projections
     N_u = options.SW_N_u;           %Number of points to sample in CDF
@@ -256,12 +273,6 @@ elseif strcmp(mode, 'SlicedWass') %Sliced Wasserstein projections
     %psi = rand(N, 1) * 2 * pi;
     %psi = linspace(0, 2 * pi * (N / N_C), N)';
     psi = zeros(N, 1);
-
-    if ~is_real
-        %Convert from complex to real
-        C_pdf = sh_cpx2re(C_pdf);
-        D_pdf = sh_cpx2re(D_pdf);        
-    end
 
     %CDF targets
     u_list = (1:N_u)' ./ (N_u + 1);
@@ -278,9 +289,9 @@ elseif strcmp(mode, 'SlicedWass') %Sliced Wasserstein projections
         for n = 1:N
 
             %Compute rotation matrices, real
-            C_pdf_rot_m(:, n) = sh_rot(C_pdf(:, m), -[phi(n), theta(n), psi(n)], true, rot_intrinsic);
-            D_pdf_rot_m(:, n) = sh_rot(D_pdf(:, m), -[phi(n), theta(n), psi(n)], true, rot_intrinsic);
-            [R_list] = sh_rot_mat(P, [phi(n), theta(n), psi(n)], true, 'convention', 'zyx', 'rot_intrinsic', rot_intrinsic);
+            C_pdf_rot_m(:, n) = sh_rot(C_pdf(:, m), -[phi(n), theta(n), psi(n)], is_real, rot_intrinsic);
+            D_pdf_rot_m(:, n) = sh_rot(D_pdf(:, m), -[phi(n), theta(n), psi(n)], is_real, rot_intrinsic);
+            [R_list] = sh_rot_mat(P, [phi(n), theta(n), psi(n)], is_real, 'convention', 'zyx', 'rot_intrinsic', rot_intrinsic);
 
             %Non-uniform weighting
             if strcmp(options.SW_wt_mode, 'exp')
@@ -328,7 +339,7 @@ elseif strcmp(mode, 'SlicedWass') %Sliced Wasserstein projections
             wA_mat = bsxfun(@times, A_mat, wt_idx_t);
             wCDF_u = CDF_u(:) .* wt_idx_t;
             
-            if strcmp(options.SW_fit_mode, 'LeastSquares')   %Least squares fit, does not ensure non-negative pdf
+            if strcmp(options.SW_fit_mode, 'LeastSquares')   %Least squares fit, does not ensure non-negative pdf                
                 E_pdf(:, m, idx_t) = wA_mat \ wCDF_u(:);        
                    
             elseif strcmp(options.SW_fit_mode, 'LS_MSq') %Least-squares fit, and magnitude squared fit
@@ -336,37 +347,45 @@ elseif strcmp(mode, 'SlicedWass') %Sliced Wasserstein projections
                 [theta_fit, phi_fit] = sh_fib(N_C);
                 E_pdf_LS = wA_mat \ wCDF_u(:); 
                 E_pdf_LS = sh_nrm(E_pdf_LS, 'Sum'); %Normalize, ~ 1/(2*pi)
-                X = real(sh_dec(E_pdf_LS, theta_fit, phi_fit, true));
+                X = real(sh_dec(E_pdf_LS, theta_fit, phi_fit, is_real));
                 if strcmp(options.SW_msq_mode, 'MS')
                     C0 = sh_rand(floor(P/2), 100, true);
                 else
                     C0 = [];
                 end
-                [E_pdf(:, m, idx_t), ~, err] = sh_fit_msq(X, theta_fit, phi_fit, P, true, options.SW_msq_mode, 'C0', C0); 
+                [E_pdf(:, m, idx_t), ~, err] = sh_fit_msq(X, theta_fit, phi_fit, P, is_real, options.SW_msq_mode, 'C0', C0); 
                 
                 err
 
             elseif strcmp(options.SW_fit_mode, 'NNLS') %NNLS estimated points on sphere
               
                 [theta_fit, phi_fit] = sh_fib(N_C);
-                Y_fit = sh_val(P, theta_fit, phi_fit, true);  %[N_C x N_C]        
+                Y_fit = sh_val(P, theta_fit, phi_fit, is_real);  %[N_C x N_C]        
                 A_inv_Y_fit = wA_mat / Y_fit;
-                X = lsqnonneg(A_inv_Y_fit, wCDF_u(:));    %min ||A_mat * inv(Y) * X -  CDF_u||^2, s.t. x >= 0
+                if is_real
+                    X = lsqnonneg(real(A_inv_Y_fit), real(wCDF_u(:)));    %min ||A_mat * inv(Y) * X -  CDF_u||^2, s.t. x >= 0
+                else
+                    X = lsqnonneg([real(A_inv_Y_fit); imag(A_inv_Y_fit)], [real(wCDF_u(:)); imag(wCDF_u(:)) ]);    %min ||A_mat * inv(Y) * X -  CDF_u||^2, s.t. x >= 0
+                end
                 E_pdf(:, m, idx_t) = Y_fit \ X;
     
             elseif strcmp(options.SW_fit_mode, 'NNLS_MSq') %NNLS estimated points on sphere, and magnitude squared fit
               
                 [theta_fit, phi_fit] = sh_fib(N_C);
-                Y_fit = sh_val(P, theta_fit, phi_fit, true);  %[N_C x N_C]        
+                Y_fit = sh_val(P, theta_fit, phi_fit, is_real);  %[N_C x N_C]        
                 A_inv_Y_fit = wA_mat / Y_fit;
-                X = lsqnonneg(A_inv_Y_fit, wCDF_u(:));    %min ||A_mat * inv(Y) * X -  CDF_u||^2, s.t. x >= 0
+                if is_real
+                    X = lsqnonneg(real(A_inv_Y_fit), real(wCDF_u(:)));    %min ||A_mat * inv(Y) * X -  CDF_u||^2, s.t. x >= 0
+                else
+                    X = lsqnonneg([real(A_inv_Y_fit); imag(A_inv_Y_fit)], [real(wCDF_u(:)); imag(wCDF_u(:)) ]);    %min ||A_mat * inv(Y) * X -  CDF_u||^2, s.t. x >= 0
+                end
                 %X = X / (2*pi); %Normalize
                 if strcmp(options.SW_msq_mode, 'MS')
                     C0 = sh_rand(floor(P/2), 100, true);
                 else
                     C0 = [];
                 end
-                [E_pdf(:, m, idx_t), ~, err] = sh_fit_msq(X, theta_fit, phi_fit, P, true, options.SW_msq_mode, 'C0', C0); 
+                [E_pdf(:, m, idx_t), ~, err] = sh_fit_msq(X, theta_fit, phi_fit, P, is_real, options.SW_msq_mode, 'C0', C0); 
                 
                 err
 
@@ -375,11 +394,9 @@ elseif strcmp(mode, 'SlicedWass') %Sliced Wasserstein projections
             end
             E_pdf(:, m, idx_t) = sh_nrm(E_pdf(:, m, idx_t), 'Sum'); %Normalize
             
-            if ~is_real %Convert to complex expansions
-                E_pdf(:, m, idx_t) = sh_re2cpx(E_pdf(:, m, idx_t));
-            end
         end
     end
+
 
 elseif strcmp(mode, 'LinearInterp')
 

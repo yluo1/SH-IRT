@@ -6,14 +6,14 @@ function [D, C, err, output] = sh_fit_msq(X, theta, phi, max_odr, is_real, mode,
 %Magnitude square form for unknown C (mode = 'MS')
 %Y(theta, phi) * D = abs(Y(theta, phi) * C)^2
 
+%Mixture power form for unknown w, and dictionary of coefficients B (mode = 'MP')
+%Y(theta, phi) * D = abs(Y(theta, phi) * B * w)^2 
+
 %Sum-of-magnitude square form for unknown C_n (mode = 'SOMS')
 %Y(theta, phi) * D = \sum_n abs(Y(theta, phi) * C_n)^2 
 
 %Mix-of-magnitude square form for unknown w_n, and dictionary of coefficients B (mode = 'MOMS')
 %Y(theta, phi) * D = \sum_n abs(Y(theta, phi) * B * w_n)^2 
-
-%Mixture power form for unknown w, and dictionary of coefficients B (mode = 'MP')
-%Y(theta, phi) * D = abs(Y(theta, phi) * B * w)^2 
 
 %Author: Yuancheng Luo, 2026
 
@@ -72,7 +72,7 @@ arguments
 
     is_real (1,1) logical = false;
 
-    mode (1,:) char {mustBeMember(mode, {'MS', 'SOMS', 'MOMS', 'MP'})} = 'MS';
+    mode (1,:) char {mustBeMember(mode, {'MS', 'MP', 'SOMS', 'MOMS'})} = 'MS';
 
     options.C0 (:,:) double = [];
     options.B (:,:) double = [];
