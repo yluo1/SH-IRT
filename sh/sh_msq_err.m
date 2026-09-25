@@ -6,9 +6,9 @@ function [f, g] = sh_msq_err(C, X, Y)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
-%C: [(P + 1)^2 x 1]             Real spherical harmonic expansion coefficients
+%C: [(P + 1)^2 x 1]             Spherical harmonic expansion coefficients
 %X: [N x 1]                     N target observations, non-negative
-%Y: [N x (P + 1)^2]             Real spherical harmonic bases evaluations 
+%Y: [N x (P + 1)^2]             Spherical harmonic bases evaluations 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
@@ -21,12 +21,12 @@ arguments
      Y (:,:) double = 1;
 end
 
-f_c = Y * C;        %[N x 1]
-fc_c_sq = (f_c.^2); %[N x 1]
-err = fc_c_sq - X;  %[N x 1]
+f_c = Y * C;                     %[N x 1]
+fc_c_mag_sq = f_c .* conj(f_c);  %[N x 1]
+err = fc_c_mag_sq - X;           %[N x 1]
 f = sum(err.^2);
 
-%f = ((Y*C).^2 - X)' * ((Y*C).^2 - X)
+%f = (|Y*C|.^2 - X)' * (|Y*C|.^2 - X)
 %  = err(C)' * err(C)
 
 %derr(C)/dC = d(Y*C)/dC .* (Y*C) + (Y*C) .* d(Y*C)/dC,  %Product rule, Hadamard product commutes

@@ -10,16 +10,18 @@ function [ineqnonlin, eqnonlin, gradineqnonlin, gradeqnonlin] = sh_msq_pdf_nonlc
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
-%C: [(P + 1)^2 x 1]     Real spherical harmonic expansion coefficients
-%relax_eq_constr:       Logical, if true, relax equality constraint C'*C = 1 
-%                       to inequality constraints C'*C <= 1
+%C: [(P + 1)^2 x 1]         Spherical harmonic expansion coefficients
+%   [2 * (P + 1)^2 x 1]     Interleaved real and imaginary spherical harmonic expansion coefficients
+
+%relax_eq_constr:           Logical, if true, relax equality constraint C'*C = 1 
+%                           to inequality constraints C'*C <= 1
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
 %ineqnonlin:        Scalar or empty
 %eqnonlin:          Scalar or empty
-%gradineqnonlin:    [(P + 1)^2 x 1] or empty
-%gradeqnonlin:      [(P + 1)^2 x 1] or empty
+%gradineqnonlin:    [(P + 1)^2 x 1], [2 * (P + 1)^2 x 1], or empty
+%gradeqnonlin:      [(P + 1)^2 x 1], [2 * (P + 1)^2 x 1], or empty
 
 arguments
      C (:,1) double = 0;     
