@@ -1,8 +1,15 @@
-function [C, err, trunc_percent] = sh_fit_svd(X, theta, phi, max_odr, is_real, trunc_frac)
+function [C, err, trunc_percent] = sh_fit_svd(X, theta, phi, max_odr, is_real, trunc_frac, mode)
 %Least-squares spherical harmonic basis fit min ||Y*C - X||^2 
-%via truncated singular value decomposition:
+%via truncated singular value decomposition: inv_singular_values(mask) = 0
 
-%singular_values(singular_values <= max(singular_values) * trunc_frac) = 0
+%mode = 'max' (recommend 0.1)
+%mask: singular_values <= max(singular_values) * trunc_frac
+
+%mode = 'totalvar' (recommend 0.01)
+%mask: cumsum(descending_eigenvalues) / sum(descending_eigenvalues) > 1 - trunc_frac
+
+%mode = 'bottom' (recommend 0.1)
+%mask: smallest ranked 100 * trunc_frac percent of singular values
 
 %Author: Yuancheng Luo, 2026
 
@@ -14,10 +21,10 @@ function [C, err, trunc_percent] = sh_fit_svd(X, theta, phi, max_odr, is_real, t
 %phi:           [N x 1] Azimuth [0, 2 * pi)
 
 %max_odr:       Max SH order 
-
 %is_real:       Logical, if true, evaluate real SH
 
 %trunc_frac:    Fraction of largest singular values
+%mode:          String, truncation method {'max', 'totalvar', 'bottom'}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
@@ -97,6 +104,8 @@ arguments
     is_real (1,1) logical = false;
 
     trunc_frac (1,1) double {mustBeNonnegative, mustBeLessThanOrEqual(trunc_frac, 1)} = 0;
+
+    mode (1,:) char {mustBeMember(mode, {'max', 'totalvar', 'bottom'})} = 'max';
 end
 
 %Compute SH bases
@@ -111,7 +120,26 @@ N_s_list = numel(s_list);
 inv_s_list = 1 ./ s_list;
 
 %Truncate singular values <= frac_trunc * largest singular value 
-trunc_mask = s_list <= (max(s_list) * trunc_frac);
+if strcmp(mode, 'max')
+
+    trunc_mask = s_list <= (max(s_list) * trunc_frac);
+
+elseif strcmp(mode, 'totalvar')
+
+    [eig_list_descend, idx] = sort(s_list.^2, 'descend');
+    trunc_mask = false([N_s_list, 1]);
+    trunc_mask(idx(cumsum(eig_list_descend) / sum(eig_list_descend) > 1 - trunc_frac)) = true;
+
+elseif strcmp(mode, 'bottom')
+
+    [s_list_ascend, idx] = sort(s_list, 'ascend');
+    trunc_mask = false([N_s_list, 1]);   
+    trunc_mask(idx(1:ceil(N_s_list * trunc_frac))) = true;
+
+else
+    error('Unsupported mode');
+end
+
 inv_s_list(trunc_mask) = 0;
 trunc_percent = sum(trunc_mask) / N_s_list * 100;
 
