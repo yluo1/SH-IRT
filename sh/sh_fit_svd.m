@@ -2,14 +2,18 @@ function [C, err, trunc_percent, h_figs] = sh_fit_svd(X, theta, phi, max_odr, is
 %Least-squares spherical harmonic basis fit min ||Y*C - X||^2 
 %via truncated singular value decomposition: inv_singular_values(mask) = 0
 
-%mode = 'max' (recommend 0.1)
+%mode = 'max' (recommend trunc_frac = 0.1)
 %mask: singular_values <= max(singular_values) * trunc_frac
 
-%mode = 'totalvar' (recommend 0.01)
+%mode = 'totalvar' (recommend trunc_frac =  0.01)
 %mask: cumsum(descending_eigenvalues) / sum(descending_eigenvalues) > 1 - trunc_frac
 
-%mode = 'bottom' (recommend 0.1)
+%mode = 'bottom' (recommend trunc_frac =  0.1)
 %mask: smallest ranked 100 * trunc_frac percent of singular values
+
+%mode = 'picardcross' (recommend trunc_frac = 0.5) 
+%mask: singular values smaller than 
+%first ascending singular value CDF / observation projected on left singular value CDF >= trunc_frac
 
 %Author: Yuancheng Luo, 2026
 
@@ -24,7 +28,7 @@ function [C, err, trunc_percent, h_figs] = sh_fit_svd(X, theta, phi, max_odr, is
 %is_real:       Logical, if true, evaluate real SH
 
 %trunc_frac:    Fraction of largest singular values
-%mode:          String, truncation method {'max', 'totalvar', 'bottom'}
+%mode:          String, truncation method {'max', 'totalvar', 'bottom', 'picardcross'}
 %enable_disp:   Logical, if true, plot fit and Picard plot
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -107,7 +111,7 @@ arguments
 
     trunc_frac (1,1) double {mustBeNonnegative, mustBeLessThanOrEqual(trunc_frac, 1)} = 0;
 
-    mode (1,:) char {mustBeMember(mode, {'max', 'totalvar', 'bottom'})} = 'max';
+    mode (1,:) char {mustBeMember(mode, {'max', 'totalvar', 'bottom', 'picardcross'})} = 'max';
 
     enable_disp (1,1) logical = false;
 end
@@ -140,6 +144,20 @@ elseif strcmp(mode, 'bottom')
     trunc_mask = false([N_s_list, 1]);   
     trunc_mask(idx(1:ceil(N_s_list * trunc_frac))) = true;
 
+elseif strcmp(mode, 'picardcross')
+
+    [s_list_ascend, idx] = sort(s_list, 'ascend');
+    U_ascend = U(:, idx);
+    U_ascend_X_mu = mean(abs(U_ascend' * X), 2); %[N_s_list x 1]
+     
+    cdf_s = cumsum(s_list_ascend) / sum(s_list_ascend);
+    cdf_ux = cumsum(U_ascend_X_mu) / sum(U_ascend_X_mu);
+
+    idx_picard_cross = find((cdf_s ./ cdf_ux) >= trunc_frac, 1, 'first');
+    trunc_mask = false([N_s_list, 1]);  
+    trunc_mask(1:(idx_picard_cross-1)) = true;
+    trunc_mask = flipud(trunc_mask);
+
 else
     error('Unsupported mode');
 end
@@ -169,15 +187,36 @@ if enable_disp && coder.target("MATLAB")
     s_list_descend = s_list(idx_descend);
     U_descend_X_mu = mean(abs(U_descend' * X), 2); %[N_s_list x 1]
 
-    fontsize = 16;
+    cdf_s = cumsum(flipud(s_list_descend(:))) / sum(s_list_descend);
+    cdf_ux = cumsum(flipud(U_descend_X_mu(:))) / sum(U_descend_X_mu);
+    
+    idx_picard_cross = find( cdf_s>= cdf_ux, 1, 'first');
+    idx_picard_cross_trunc = find((cdf_s ./ cdf_ux) >= trunc_frac, 1, 'first');
+
+    fontsize = 16;    
     h_figs{end+1} = figure;
-    plot(1:N_s_list, s_list_descend, '*-', 1:N_s_list, U_descend_X_mu, 's-', 'linewidth', 1.5);
+    tiledlayout(2, 1);
+    nexttile;
+    semilogy(1:N_s_list, s_list_descend, 'r*-', 1:N_s_list, U_descend_X_mu, 'bs-', 'linewidth', 1.5);
     grid on; axis tight;
-    xlabel('Singular Value Index i', 'fontsize', fontsize);
+    xlabel('Descending Singular Value Index i', 'fontsize', fontsize);
     ylabel('Magnitude', 'fontsize', fontsize);
     title('Picard Plot', 'fontsize', fontsize + 1);
     set(gca, 'fontsize', fontsize - 1);
     h_lg = legend('$\sigma_i$', '$|u_i^H x_i|$', 'location' ,'best', 'interpreter', 'latex'); 
+    set(h_lg, 'fontsize', fontsize - 1);
+
+    nexttile;
+    semilogy(1:N_s_list, cdf_s, 'r*-', 1:N_s_list, cdf_ux, 'bs-',  'linewidth', 1.5); hold on;
+    xline(idx_picard_cross, 'm--', 'linewidth', 2);
+    xline(idx_picard_cross_trunc, 'k--', 'linewidth', 2);
+   
+    grid on; axis tight;
+    xlabel('Ascending Singular Value Index i', 'fontsize', fontsize);
+    ylabel('Magnitude', 'fontsize', fontsize);
+    title('Normalized Cumulative Distribution Function', 'fontsize', fontsize + 1);
+    set(gca, 'fontsize', fontsize - 1);
+    h_lg = legend('CDF($\sigma_i$)', 'CDF($|u_i^H x_i|$)', 'Picard Cross: $\tau = 1$',  ['Picard Cross: $\tau = ', num2str(trunc_frac), '$'], 'location' ,'best', 'interpreter', 'latex'); 
     set(h_lg, 'fontsize', fontsize - 1);
 
 end
