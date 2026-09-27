@@ -45,7 +45,7 @@ for i = 1:N_modes
 end
 
 % Non-regularized least squares
-C_ls = sh_fit_svd(X, theta, phi, max_odr, is_real, 0);
+[C_ls, ~, ~, h_ls]  = sh_fit_svd(X, theta, phi, max_odr, is_real, 0, 'max', true);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Fit after truncating smallest singular values
@@ -75,7 +75,6 @@ set(gca, 'fontsize', fontsize - 1);
 %Plot reference
 dB_lim = [-32, 24];
 h_ref = sh_plt(C_ref, 'mercator', is_real, 'dB_lim', dB_lim, 'title_name', 'Reference', 'disp_theta_phi', [theta, phi]);
-h_ls = sh_plt(C_ls, 'mercator', is_real, 'dB_lim', dB_lim, 'title_name', 'Non-Regularized Least Squares', 'disp_theta_phi', [theta, phi]);
 
 %Plot fits
 h_list = cell([N_modes, N_trunc]);
@@ -98,13 +97,14 @@ if ~isfolder(out_dir)
     mkdir(out_dir);
 end
 
-exportgraphics(h_err, fullfile(out_dir, 'svd_err.png'));
-exportgraphics(h_ref{1}, fullfile(out_dir, 'svd_ref.png'));
-exportgraphics(h_ls{1}, fullfile(out_dir, 'svd_ls.png'));
-
-for i = 1:N_modes
-    for j = 1:N_trunc
-        exportgraphics(h_list{i, j}, fullfile(out_dir, ['svd_fit_', num2str(i), '_', num2str(j), '.png']));
-    end
-end
-
+% exportgraphics(h_err, fullfile(out_dir, 'svd_err.png'));
+% exportgraphics(h_ref{1}, fullfile(out_dir, 'svd_ref.png'));
+% exportgraphics(h_ls{1}, fullfile(out_dir, 'svd_ls.png'));
+% exportgraphics(h_ls{2}, fullfile(out_dir, 'svd_picard.png'));
+% 
+% for i = 1:N_modes
+%     for j = 1:N_trunc
+%         exportgraphics(h_list{i, j}, fullfile(out_dir, ['svd_fit_', num2str(i), '_', num2str(j), '.png']));
+%     end
+% end
+% 

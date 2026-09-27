@@ -1,4 +1,4 @@
-function [C, err, trunc_percent] = sh_fit_svd(X, theta, phi, max_odr, is_real, trunc_frac, mode)
+function [C, err, trunc_percent, h_figs] = sh_fit_svd(X, theta, phi, max_odr, is_real, trunc_frac, mode, enable_disp)
 %Least-squares spherical harmonic basis fit min ||Y*C - X||^2 
 %via truncated singular value decomposition: inv_singular_values(mask) = 0
 
@@ -25,12 +25,14 @@ function [C, err, trunc_percent] = sh_fit_svd(X, theta, phi, max_odr, is_real, t
 
 %trunc_frac:    Fraction of largest singular values
 %mode:          String, truncation method {'max', 'totalvar', 'bottom'}
+%enable_disp:   Logical, if true, plot fit and Picard plot
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
 %C:                 [(max_odr + 1)^2 x M] SH coefficients
 %err:               Scalar, norm(Y*C - X);
 %trunc_percent:     Percentage of singular values truncated
+%h_figs:            Handle to figures
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Code generation
@@ -106,21 +108,23 @@ arguments
     trunc_frac (1,1) double {mustBeNonnegative, mustBeLessThanOrEqual(trunc_frac, 1)} = 0;
 
     mode (1,:) char {mustBeMember(mode, {'max', 'totalvar', 'bottom'})} = 'max';
+
+    enable_disp (1,1) logical = false;
 end
 
 %Compute SH bases
 Y = sh_val(max_odr, theta, phi, is_real);  %[N x (max_odr + 1)^2]
 
 %Compute singular value decomposition
-[U, S, V] = svd(Y);
+[U, S, V] = svd(Y, "econ");
 s_list = diag(S);   %List of singular values
 N_s_list = numel(s_list);
 
 %Compute pseudo-inverse singular values
 inv_s_list = 1 ./ s_list;
 
-%Truncate singular values <= frac_trunc * largest singular value 
-if strcmp(mode, 'max')
+%Compute trunc_mask for setting inv_singular_values(trunc_mask) = 0
+if strcmp(mode, 'max') 
 
     trunc_mask = s_list <= (max(s_list) * trunc_frac);
 
@@ -149,3 +153,31 @@ C = V * inv_S' * U' * X;
 
 %Compute error
 err = norm(Y * C - X);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Plotting
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+h_figs = [];
+if enable_disp && coder.target("MATLAB")
+
+    % Plot fit
+    h_figs = sh_plt(C, 'mercator', is_real, 'disp_theta_phi', [theta, phi], 'title_name', ['SVD Fit ', mode, ' \tau = ', num2str(trunc_frac)]);
+
+    % Plot Picard plot
+    [~, idx_descend] = sort(s_list, 'descend'); %Descending singular values
+    U_descend = U(:, idx_descend);
+    s_list_descend = s_list(idx_descend);
+    U_descend_X_mu = mean(abs(U_descend' * X), 2); %[N_s_list x 1]
+
+    fontsize = 16;
+    h_figs{end+1} = figure;
+    plot(1:N_s_list, s_list_descend, '*-', 1:N_s_list, U_descend_X_mu, 's-', 'linewidth', 1.5);
+    grid on; axis tight;
+    xlabel('Singular Value Index i', 'fontsize', fontsize);
+    ylabel('Magnitude', 'fontsize', fontsize);
+    title('Picard Plot', 'fontsize', fontsize + 1);
+    set(gca, 'fontsize', fontsize - 1);
+    h_lg = legend('$\sigma_i$', '$|u_i^H x_i|$', 'location' ,'best', 'interpreter', 'latex'); 
+    set(h_lg, 'fontsize', fontsize - 1);
+
+end
