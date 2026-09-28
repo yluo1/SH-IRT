@@ -1,4 +1,4 @@
-function [theta, phi] = sh_fib(N)
+function [theta, phi] = sh_grd_fib(N)
 %Generate Fibonacci sphere points (~uniform spaced on sphere)
 
 %Author: Yuancheng Luo, 2026
@@ -14,13 +14,13 @@ function [theta, phi] = sh_fib(N)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Code generation
-%codegen('sh_fib', '-o', 'sh/sh_fib_mex')
+%codegen('sh_grd_fib', '-o', 'sh/sh_grd_fib_mex')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: Generate and plot points
 
 %N = 1000;
-%[theta, phi] = sh_fib(N);
+%[theta, phi] = sh_grd_fib(N);
 %sc_plt(theta, phi, ones(size(theta)));
 
 arguments

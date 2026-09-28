@@ -27,7 +27,7 @@ function [options_cov, lmh] = gp_t60_optimize(obs, options)
 
 % rng(1278);
 % N_S = 20;
-% [theta, phi] = sh_fib(N_S);
+% [theta, phi] = sh_grd_fib(N_S);
 % omega = 2 * pi * (1000 * rand(N_S, 1) + 50);
 % T60 = rand(N_S, 1) * 0.1 + 0.5;
 % log_noise_std = ones(N_S ,1) * 0.01; %1 percent

@@ -1,4 +1,4 @@
-function [theta, phi, v] = sh_plat(name)
+function [theta, phi, v] = sh_grd_plat(name)
 %Get spherical coordinates of platonic solid vertices
 
 %Author: Yuancheng Luo, 2026
@@ -22,7 +22,7 @@ function [theta, phi, v] = sh_plat(name)
 % max_odr = 1;
 % name_list = {'tetrahedron', 'octohedron', 'cube', 'icosohedron', 'dodecahedron'};
 % for n = 1:numel(name_list)
-%     [theta, phi, v] = sh_plat(name_list{n});
+%     [theta, phi, v] = sh_grd_plat(name_list{n});
 %     Y_cpx = sh_val(max_odr, theta, phi, false); cond(Y_cpx)
 %     Y_real = sh_val(max_odr, theta, phi, true); cond(Y_real)
 % 

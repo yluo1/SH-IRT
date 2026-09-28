@@ -51,7 +51,7 @@ function [C, err, trunc_percent, h_figs] = sh_fit_svd(X, theta, phi, max_odr, is
 % is_real = false;
 % N_pts = (max_odr + 1)^2;
 % X = randn(N_pts, 1) + randn(N_pts, 1) * 1i;
-% [theta, phi] = sh_fib(N_pts);
+% [theta, phi] = sh_grd_fib(N_pts);
 
 % [C_trunc_0, err_trunc_0, trunc_percent_0] = sh_fit_svd(X, theta, phi, max_odr, is_real, 0); err_trunc_0
 % sh_plt(C_trunc_0); trunc_percent_0
@@ -74,7 +74,7 @@ function [C, err, trunc_percent, h_figs] = sh_fit_svd(X, theta, phi, max_odr, is
 % is_real = false;
 % N_pts = (max_odr + 1)^2;
 % X = randn(N_pts, 1) + randn(N_pts, 1) * 1i;
-% [theta, phi] = sh_fib(N_pts);
+% [theta, phi] = sh_grd_fib(N_pts);
 
 % [C_max_odr_9, err_max_odr_9] = sh_fit_svd(X, theta, phi, 9, is_real, 0); 
 % sh_plt(C_max_odr_9); err_max_odr_9
@@ -93,7 +93,7 @@ function [C, err, trunc_percent, h_figs] = sh_fit_svd(X, theta, phi, max_odr, is
 % is_real = false;
 % N_pts = (max_odr + 1)^2;
 % X = randn(N_pts, 1) + randn(N_pts, 1) * 1i;
-% [theta, phi] = sh_fib(N_pts);
+% [theta, phi] = sh_grd_fib(N_pts);
 
 % C_trunc_mat = sh_fit_svd(X, theta, phi, max_odr, is_real, 0.90); 
 % C_trunc_mex = sh_fit_svd_mex(X, theta, phi, max_odr, is_real, 0.90); 

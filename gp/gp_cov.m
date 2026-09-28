@@ -23,7 +23,7 @@ function [K, dK_mat_list, dK_name_list] = gp_cov(X, Y, options)
 % N_E = 20;     % Number of uniform spherical coordinates
 
 % omega         = 2 * pi * logspace(log10(20), log10(24000), N_B)';
-% [theta, phi]  = sh_fib(N_E);
+% [theta, phi]  = sh_grd_fib(N_E);
 % freq          = max(1, omega / (2 * pi)); %[N_B x 1]
 
 % freq_grid     = repmat(freq, [1, N_E]);

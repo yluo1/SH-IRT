@@ -43,7 +43,7 @@ function [log_T60, h_fig] = gp_t60_sample(omega, theta, phi, num_evals, obs, opt
 
 % freq          = logspace(log10(20), log10(24000), N_B)';
 % omega         = 2 * pi * freq;
-% [theta, phi]  = sh_fib(N_E);
+% [theta, phi]  = sh_grd_fib(N_E);
 
 % rng(21136);
 % num_evals = 5;

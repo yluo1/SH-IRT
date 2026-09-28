@@ -91,7 +91,7 @@ options_disp_gp = gp_disp_opts('disp_legend_samples', false, ...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 N_decs = (max_odr + max_odr_gp + 1)^2;
-[theta, phi] = sh_fib(N_decs);
+[theta, phi] = sh_grd_fib(N_decs);
 [theta_phi_deg] = rad2deg([theta, phi])
 
 f = real(sh_dec(E_mean_post, theta, phi, is_real));
@@ -110,7 +110,7 @@ options_plot_RIR = plot_RIR_opts('colormap', hot, 'disp_RIR', false, ...
 % end
 % 
 % %Plot for tetrahedron evaluation points
-% [theta_tetra, phi_tetra] = sh_plat('tetrahedron');
+% [theta_tetra, phi_tetra] = sh_grd_plat('tetrahedron');
 % f_tetra = real(sh_dec(E_mean_post, theta_tetra, phi_tetra, is_real));
 % for n = 1:4
 %     plot_RIR(f_tetra(n, 1:Fs)', options_plot_RIR);

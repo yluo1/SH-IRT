@@ -1,4 +1,4 @@
-function [theta, phi] = sh_rand_unis(N)
+function [theta, phi] = sh_grd_rand(N)
 %Sample uniform directions over unit sphere
 
 %Author: Yuancheng Luo, 2026

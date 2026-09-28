@@ -27,7 +27,7 @@ if strcmp(mode, 'two_pt')
     dB_lim = [-60, 0];
     disp_phase = false;
     
-    [theta, phi] = sh_fib(N);
+    [theta, phi] = sh_grd_fib(N);
     X = zeros(N, 1);  X(25) = 1; X(45) = 1;
    
 elseif strcmp(mode, 'rand')
@@ -40,7 +40,7 @@ elseif strcmp(mode, 'rand')
     dB_lim = [-60, 0];
     disp_phase = false;
     
-    [theta, phi] = sh_fib(N);
+    [theta, phi] = sh_grd_fib(N);
 
     C_pdf_ref = sh_nrm(sh_msq(sh_rand(floor(max_odr/2), 1, is_real), is_real), 'Sum');
     X = real(sh_dec(C_pdf_ref, theta, phi, is_real));  

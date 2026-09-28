@@ -35,7 +35,7 @@ function f = sh_int(C, mode)
 % M = 3;
 % P = 4;
 % C = sh_rand(P, M);
-% [theta, phi] = sh_fib(10000);
+% [theta, phi] = sh_grd_fib(10000);
 
 % f_sum_int = sh_int(C, 'Sum');
 % f_sum_num = mean(sh_dec(C, theta, phi), 1) * (4 * pi);
@@ -87,7 +87,7 @@ elseif strcmp(mode, 'Var')         %Compute variance
     f = sum( conj(C(2:end, :)) .* C(2:end, :), 1) / (4 * pi);
 
 elseif strcmp(mode, 'Entr')        %Approximate entropy
-    [theta, phi] = sh_fib(10000);
+    [theta, phi] = sh_grd_fib(10000);
     y = abs(sh_dec(C, theta, phi));
     f = -mean(y .* log(y), 1) * (4 * pi);
 

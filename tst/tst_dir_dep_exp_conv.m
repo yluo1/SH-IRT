@@ -42,7 +42,7 @@ max_odr_grid = 3 * max_odr;
 
 N_grid = (max_odr_grid + 1)^2; %Minimum number of points on grid
 
-[theta_grid, phi_grid] = sh_fib(N_grid); %Evaluation grid
+[theta_grid, phi_grid] = sh_grd_fib(N_grid); %Evaluation grid
 
 RT60_DC_grid = max_RT60_DC * srbf_val('SqExp', theta_RT60_DC, phi_RT60_DC, ell_RT60_DC, theta_grid, phi_grid); %[N_grid x 1]
 RT60_NQ_grid = max_RT60_NQ * srbf_val('SqExp', theta_RT60_NQ, phi_RT60_NQ, ell_RT60_NQ, theta_grid, phi_grid); %[N_grid x 1]

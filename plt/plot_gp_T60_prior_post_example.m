@@ -19,7 +19,7 @@ N_B = 128; % Number of angular frequencies
 N_E = 1;   % Number of spherical coordinates
 
 omega        = 2 * pi * logspace(log10(20), log10(Fs/2), N_B)';
-[theta, phi] = sh_fib(N_E);
+[theta, phi] = sh_grd_fib(N_E);
 
 % Sample 4 functions
 num_evals = 4;
@@ -67,7 +67,7 @@ num_evals = 1;
 N_B = 128;
 N_E = 1;
 omega        =  2 * pi * logspace(log10(20), log10(Fs/2), N_B)';
-[theta, phi] = sh_fib(N_E);
+[theta, phi] = sh_grd_fib(N_E);
 
 % Observations
 N_S = 3; %3 observations in frequency
@@ -102,7 +102,7 @@ num_evals = 4; %Sample 4 functions
 N_B = 128;
 N_E = 2;
 omega = 2 * pi * logspace(log10(20), log10(Fs/2), N_B)';
-[theta, phi] = sh_fib(N_E);
+[theta, phi] = sh_grd_fib(N_E);
 
 %Observations
 N_S = 3; %3 observations in frequency

@@ -98,7 +98,7 @@ N_B = 16;     % Number of log-uniform angular frequencies
 N_E = 20;     % Number of uniform spherical coordinates
 
 omega         = 2 * pi * logspace(log10(20), log10(24000), N_B)';
-[theta, phi]  = sh_fib(N_E);
+[theta, phi]  = sh_grd_fib(N_E);
 freq          = max(1, omega / (2 * pi)); %[N_B x 1]
 
 freq_grid     = repmat(freq, [1, N_E]);
@@ -133,7 +133,7 @@ We can sample T60 functions from either a GP prior or posterior distribution via
   N_E = 1;   % Number of spherical coordinates
   
   omega        = 2 * pi * logspace(log10(20), log10(Fs/2), N_B)';
-  [theta, phi] = sh_fib(N_E);
+  [theta, phi] = sh_grd_fib(N_E);
   
   % Sample 4 functions
   num_evals = 4;
@@ -177,7 +177,7 @@ We can sample T60 functions from either a GP prior or posterior distribution via
   N_B = 128;
   N_E = 1;
   omega        =  2 * pi * logspace(log10(20), log10(Fs/2), N_B)';
-  [theta, phi] = sh_fib(N_E);
+  [theta, phi] = sh_grd_fib(N_E);
   
   % Observations
   N_S = 3; %3 observations in frequency
@@ -264,7 +264,7 @@ Fs = 48000; %Sample rate
 N_B     = 16;
 N_E     = 24;
 omega   = 2 * pi * logspace(log10(20), log10(Fs/2), N_B)';
-[theta, phi] = sh_fib(N_E);
+[theta, phi] = sh_grd_fib(N_E);
 
 options_disp = gp_disp_opts('disp_ylim', [0, 0.6], 'disp_legend_loc', 'southoutside', ...
     'disp_legend_num_cols',  4, 'disp_legend_compact', true, ...
@@ -341,7 +341,7 @@ options_disp_fitted = gp_disp_opts('disp_ylim', [0, 0.6], 'disp_legend_loc', 'so
     'disp_marker_size', 4);
 
 omega_fitted = 2 * pi * logspace(log10(20), log10(Fs/2), 100)';
-[theta_fitted, phi_fitted] = sh_fib(2 * N_E);
+[theta_fitted, phi_fitted] = sh_grd_fib(2 * N_E);
 
 [log_T60_fitted, h_fig_post_grid] = gp_t60_sample(omega_fitted, theta_fitted, phi_fitted, num_evals, obs, ...
     'options_mu', options_mu, 'options_cov', options_cov_fit, ...

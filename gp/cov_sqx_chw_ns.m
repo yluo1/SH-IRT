@@ -50,7 +50,7 @@ function [K, dK_dsigma, dK_dell, dK_dgamma] = cov_sqx_chw_ns(X, Y, sigma, ell, g
 %Sample usage: Evaluate over uniform grid
 
 % N = 10;
-% [theta, phi] = sh_fib(N);
+% [theta, phi] = sh_grd_fib(N);
 % X = [2 * pi ./ (ones(N,1) * 10), theta, phi];
 % sigma = 1;
 % ell = 0.3;

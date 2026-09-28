@@ -43,7 +43,7 @@ if is_pdf
 end
 D_ref = sh_msq(C_ref, is_real);
 
-[theta, phi] = sh_fib(N);
+[theta, phi] = sh_grd_fib(N);
 X = real(sh_dec(D_ref, theta, phi, is_real));
 
 K = (max_odr_half + 1)^2;

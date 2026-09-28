@@ -17,8 +17,8 @@ N_pts = (max_odr + 1)^2;
 C_ref = sh_rand(max_odr, 1, is_real);
 
 %Sample at spherical coordinates
-%[theta, phi] = sh_fib(N_pts);       %Fibonnaci
-[theta, phi] = sh_rand_unis(N_pts);  %Random over sphere
+%[theta, phi] = sh_grd_fib(N_pts);       %Fibonnaci
+[theta, phi] = sh_grd_rand(N_pts);  %Random over sphere
 
 X = sh_dec(C_ref, theta, phi, is_real);
 %Add noise

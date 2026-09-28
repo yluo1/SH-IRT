@@ -85,7 +85,7 @@ if strcmp(mode, 'CGC')
 
 elseif strcmp(mode, 'SHT')
 
-    [theta, phi] = sh_fib(N_E);
+    [theta, phi] = sh_grd_fib(N_E);
     
     f = sh_dec(C, theta, phi, is_real) .* sh_dec(D, theta, phi, is_real);
 

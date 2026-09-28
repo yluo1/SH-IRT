@@ -98,13 +98,18 @@ and is vectorized in the same format as the complex case. In such instances, the
 |sh_cdf_inv_theta.m | Inverse sampling marginal cumulative distribution function over co-latitude|
 |sh_cdf_inv_phi_cond.m | Inverse sampling cumulative distribution function over azimuth given co-latitude|
 
+## Spherical Coordinate Grids
+| File | Description |
+| --- | --- | 
+|sh_grd_fib.m| Generate spherical Fibonacci points |
+|sh_grd_plat.m| Generate platonic solid vertex points |
+|sh_grd_rand.m | Generate uniform random spherical coordinates |
+|sh_grd_caps.m| Generate uniform points along co-latitude and azimuth |
+
 ## Miscellaneous
 | File | Description |
 | --- | --- | 
 |sh_plt.m| Plot SH expansion|
-|sh_fib.m| Generate spherical Fibonacci points |
-|sh_plat.m| Generate platonic solid vertex points |
-|sh_rand_unis.m | Uniform spherical coordinate sampling|
 |sh2ambx.m| SH to AmbiX format |
 |ambx2sh.m| AmbiX to SH format |
 

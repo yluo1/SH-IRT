@@ -133,7 +133,7 @@ if strcmp(mode, 'SlicedWasserstein2')
 
     rot_intrinsic = false;
 
-    [theta, phi] = sh_fib(N);
+    [theta, phi] = sh_grd_fib(N);
     psi = zeros(N, 1);
 
     %Iterate over projections
@@ -167,7 +167,7 @@ if strcmp(mode, 'SlicedWasserstein2')
 elseif strcmp(mode, 'KLDiv')
     
     N   = options.KLD_NC_fac * N_C; %Number of points on sphere
-    [theta, phi] = sh_fib(N);
+    [theta, phi] = sh_grd_fib(N);
 
     f_C = abs(sh_dec(C_pdf, theta, phi, is_real));
     f_D = abs(sh_dec(D_pdf, theta, phi, is_real));

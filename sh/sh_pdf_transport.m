@@ -153,7 +153,7 @@ if strcmp(mode, 'EarthMoverDist') %Earth-mover distance
     end
 
     %Generate uniform points over sphere
-    [theta, phi] = sh_fib(N);
+    [theta, phi] = sh_grd_fib(N);
     v = zeros([3, N]);
     [v(1,:), v(2,:), v(3,:)] = sph2cart(phi, pi/2 - theta, ones(N, 1));
     
@@ -269,7 +269,7 @@ elseif strcmp(mode, 'SlicedWass') %Sliced Wasserstein projections, real or compl
 
     rot_intrinsic = false;
 
-    [theta, phi] = sh_fib(N);
+    [theta, phi] = sh_grd_fib(N);
     %psi = rand(N, 1) * 2 * pi;
     %psi = linspace(0, 2 * pi * (N / N_C), N)';
     psi = zeros(N, 1);
@@ -344,7 +344,7 @@ elseif strcmp(mode, 'SlicedWass') %Sliced Wasserstein projections, real or compl
                    
             elseif strcmp(options.SW_fit_mode, 'LS_MSq') %Least-squares fit, and magnitude squared fit
               
-                [theta_fit, phi_fit] = sh_fib(N_C);
+                [theta_fit, phi_fit] = sh_grd_fib(N_C);
                 E_pdf_LS = wA_mat \ wCDF_u(:); 
                 E_pdf_LS = sh_nrm(E_pdf_LS, 'Sum'); %Normalize, ~ 1/(2*pi)
                 X = real(sh_dec(E_pdf_LS, theta_fit, phi_fit, is_real));
@@ -359,7 +359,7 @@ elseif strcmp(mode, 'SlicedWass') %Sliced Wasserstein projections, real or compl
 
             elseif strcmp(options.SW_fit_mode, 'NNLS') %NNLS estimated points on sphere
               
-                [theta_fit, phi_fit] = sh_fib(N_C);
+                [theta_fit, phi_fit] = sh_grd_fib(N_C);
                 Y_fit = sh_val(P, theta_fit, phi_fit, is_real);  %[N_C x N_C]        
                 A_inv_Y_fit = wA_mat / Y_fit;
                 if is_real
@@ -371,7 +371,7 @@ elseif strcmp(mode, 'SlicedWass') %Sliced Wasserstein projections, real or compl
     
             elseif strcmp(options.SW_fit_mode, 'NNLS_MSq') %NNLS estimated points on sphere, and magnitude squared fit
               
-                [theta_fit, phi_fit] = sh_fib(N_C);
+                [theta_fit, phi_fit] = sh_grd_fib(N_C);
                 Y_fit = sh_val(P, theta_fit, phi_fit, is_real);  %[N_C x N_C]        
                 A_inv_Y_fit = wA_mat / Y_fit;
                 if is_real
@@ -408,7 +408,7 @@ elseif strcmp(mode, 'LinearInterp')
 
 elseif strcmp(mode, 'GeometricInterp')
     
-    [theta, phi] = sh_fib(N_C);
+    [theta, phi] = sh_grd_fib(N_C);
     f_C = real(sh_dec(C_pdf, theta, phi, is_real));
     f_D = real(sh_dec(D_pdf, theta, phi, is_real));
     

@@ -61,7 +61,7 @@ function [E, h_fig_gp] = sh_exp_conv_gp(C, obs, is_real, options)
 %       'max_odr_gp', max_odr_gp, 'sample_method_gp', sample_method_gp, 'enable_disp', true);
 
 % %Decode
-% [theta, phi] = sh_plat('tetrahedron');
+% [theta, phi] = sh_grd_plat('tetrahedron');
 % f = real(sh_dec(E, theta, phi, is_real));
 % plot_RIR(f(1, 1:Fs)');
 % plot_RIR(f(2, 1:Fs)');
@@ -103,7 +103,7 @@ P_D = options.max_odr_gp;
 P_E = P_C + P_D;    %Combined max-order
 N_E = (P_E + 1)^2;  %Total number of bases and evaluation points
 
-[theta, phi] = sh_fib(N_E);
+[theta, phi] = sh_grd_fib(N_E);
 H = sh_dec(C, theta, phi, is_real); %[N_E x M]
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

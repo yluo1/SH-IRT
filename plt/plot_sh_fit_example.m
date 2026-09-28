@@ -14,9 +14,9 @@ function [err, h_ref, h_fit] = plot_sh_fit_example(mode, err_name, options)
 %options.max_odr_fit:       Maximum SH order for fitting
 
 %options.N_pts:             Number of sample spherical coordinates
-%options.sample_mode:       String, sampling method {'fib', 'unis'}
+%options.sample_mode:       String, sampling method {'fib', 'rand'}
 %                               'fib':  Fibonnaci spiral
-%                               'unis': Uniform random on sphere
+%                               'rand': Uniform random on sphere
 %options.noise_std:         Noise standard deviation added to samples
 %options.rseed:             Random seed
 
@@ -52,7 +52,7 @@ arguments
     options.max_odr_fit (1,1) double {mustBeNonnegative, mustBeInteger} = 6;
 
     options.N_pts (1,1) double {mustBePositive, mustBeInteger} = 20;
-    options.sample_mode (1,:) char {mustBeMember(options.sample_mode, {'fib', 'unis'} )} = 'unis';
+    options.sample_mode (1,:) char {mustBeMember(options.sample_mode, {'fib', 'rand'} )} = 'rand';
     options.noise_std (1,1) double {mustBeNonnegative} = 1e-1;
     options.rseed (1,1) double {mustBeNonnegative, mustBeInteger} = 4141;
     
@@ -78,9 +78,9 @@ C = sh_resize(C, options.max_odr_fit);
 
 % Sample spherical coordinates
 if strcmp(options.sample_mode, 'fib')
-    [theta, phi] = sh_fib(options.N_pts);
-elseif strcmp(options.sample_mode, 'unis')
-    [theta, phi] = sh_rand_unis(options.N_pts);
+    [theta, phi] = sh_grd_fib(options.N_pts);
+elseif strcmp(options.sample_mode, 'rand')
+    [theta, phi] = sh_grd_rand(options.N_pts);
 else
     error('Unsupported options.sample_mode');
 end

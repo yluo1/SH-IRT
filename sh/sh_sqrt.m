@@ -49,7 +49,7 @@ P = sqrt(P) - 1;
 assert(P - floor(P) == 0, 'Invalid size C');
 
 %Fit max-order 2*P
-[theta, phi] = sh_fib((2 * P + 1)^2);
+[theta, phi] = sh_grd_fib((2 * P + 1)^2);
 if strcmp(mode, 'sqrt')
     f = sqrt(sh_dec(C, theta, phi, is_real));
 elseif strcmp(mode, 'mag_sqrt')

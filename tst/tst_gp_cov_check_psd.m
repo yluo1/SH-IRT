@@ -29,7 +29,7 @@ if strcmp(mode, 'rand')
 %    N_S = 100;
 %    N_S = 200;
     
-    [theta, phi] = sh_fib(N_S);
+    [theta, phi] = sh_grd_fib(N_S);
     omega = 2 * pi * (1000 * rand(N_S, 1) + 50);
     
     
@@ -73,7 +73,7 @@ elseif strcmp(mode, 'rand_dup_dir')
 %    N_S = 100;
     %N_S = 200;
     
-    [theta, phi] = sh_fib(N_S);
+    [theta, phi] = sh_grd_fib(N_S);
     omega = 2 * pi * (1000 * rand(N_S, 1) + 50);
     
     %Setup input set {X, y}
