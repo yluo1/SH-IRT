@@ -13,7 +13,7 @@ function [C, err, trunc_percent, h_figs] = sh_fit_svd(X, theta, phi, max_odr, is
 
 %mode = 'picardcross' (recommend trunc_frac = 0.5) 
 %mask: singular values smaller than 
-%first ascending singular value CDF / observation projected on left singular value CDF >= trunc_frac
+%first ascending singular value normalized CDF / observation projected on left singular value normalized CDF >= trunc_frac
 
 %Author: Yuancheng Luo, 2026
 
@@ -203,7 +203,7 @@ if enable_disp && coder.target("MATLAB")
     ylabel('Magnitude', 'fontsize', fontsize);
     title('Picard Plot', 'fontsize', fontsize + 1);
     set(gca, 'fontsize', fontsize - 1);
-    h_lg = legend('$\sigma_i$', '$|u_i^H x_i|$', 'location' ,'best', 'interpreter', 'latex'); 
+    h_lg = legend('$\sigma_i$', '$|u_i^H x|$', 'location' ,'best', 'interpreter', 'latex'); 
     set(h_lg, 'fontsize', fontsize - 1);
 
     nexttile;
@@ -216,7 +216,7 @@ if enable_disp && coder.target("MATLAB")
     ylabel('Magnitude', 'fontsize', fontsize);
     title('Normalized Cumulative Distribution Function', 'fontsize', fontsize + 1);
     set(gca, 'fontsize', fontsize - 1);
-    h_lg = legend('CDF($\sigma_i$)', 'CDF($|u_i^H x_i|$)', 'Picard Cross: $\tau = 1$',  ['Picard Cross: $\tau = ', num2str(trunc_frac), '$'], 'location' ,'best', 'interpreter', 'latex'); 
+    h_lg = legend('CDF($\sigma_i$)', 'CDF($|u_i^H x|$)', 'Picard Cross: $\tau = 1$',  ['Picard Cross: $\tau = ', num2str(trunc_frac), '$'], 'location' ,'best', 'interpreter', 'latex'); 
     set(h_lg, 'fontsize', fontsize - 1);
 
 end
