@@ -29,8 +29,8 @@ function [E, h_fig_gp] = sh_exp_conv_gp(C, obs, is_real, options)
 %options.max_taps_g:        Number of filter taps to fit exponentiating filter per T60
 
 %options.SH_fit_mode:               String, fitting method {'svd_inv', 'svd_ls'}
-%                                       'svd_inv':      Truncated inverse
-%                                       'svd_ls'        Truncated leasts-squares
+%                                       'svd_inv':      Truncated inverse with (P + options.max_odr_gp) max-degree SH bases
+%                                       'svd_ls'        Truncated least squares with P max-degree SH bases
 %options.SH_fit_svd_trunc_frac:     SH fit truncates fraction of largest singular values
 
 %options.enable_disp:       Logical, if true, plot GP prior or posterior

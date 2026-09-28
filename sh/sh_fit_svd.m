@@ -1,6 +1,8 @@
-function [C, err, trunc_percent, h_figs] = sh_fit_svd(X, theta, phi, max_odr, is_real, trunc_frac, mode, enable_disp)
-%Least-squares spherical harmonic basis fit min ||Y*C - X||^2 
-%via truncated singular value decomposition: inv_singular_values(mask) = 0
+function [C, err, trunc_percent, h_figs] = sh_fit_svd(X, theta, phi, max_odr, is_real, trunc_frac, mode, options)
+%Truncated singular value decomposition least squares fit of spherical harmonic bases 
+%min_C ||Y(theta, phi) * C - X||^2 for SH bases Y evaluated at theta, phi, coefficients C
+
+%Different modes zero the inverse singular values: inv_singular_values(mask) = 0
 
 %mode = 'max' (recommend trunc_frac = 0.1)
 %mask: singular_values <= max(singular_values) * trunc_frac
@@ -29,7 +31,16 @@ function [C, err, trunc_percent, h_figs] = sh_fit_svd(X, theta, phi, max_odr, is
 
 %trunc_frac:    Fraction of largest singular values
 %mode:          String, truncation method {'max', 'totalvar', 'bottom', 'picardcross'}
-%enable_disp:   Logical, if true, plot fit and Picard plot
+
+%options:               struct
+%options.W:             [], [N x 1], or [N x N] weighting matrix for weighted least squares
+%                       [] uniform weighting
+%                       [N x 1] Positive weight vector
+%                           min_C ||diag(W.^(1/2)) * (Y(theta, phi) * C - X)||^2
+%                       [N x N] Positive definite weight matrix
+%                           min_C ||chol(W) * (Y(theta, phi) * C - X)||^2
+
+%options.enable_disp:   Logical, if true, plot fit and Picard plot
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
@@ -39,11 +50,7 @@ function [C, err, trunc_percent, h_figs] = sh_fit_svd(X, theta, phi, max_odr, is
 %h_figs:            Handle to figures
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Code generation
-%codegen('sh_fit_svd', '-o', 'sh/sh_fit_svd_mex')
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Sample usage: Least-squares SH fit to random function distributed along 
+%Sample usage: Least squares SH fit to random function distributed along 
 %spherical Fibonnaci points with varying truncation fractions
 
 % rng(441);
@@ -54,19 +61,19 @@ function [C, err, trunc_percent, h_figs] = sh_fit_svd(X, theta, phi, max_odr, is
 % [theta, phi] = sh_grd_fib(N_pts);
 
 % [C_trunc_0, err_trunc_0, trunc_percent_0] = sh_fit_svd(X, theta, phi, max_odr, is_real, 0); err_trunc_0
-% sh_plt(C_trunc_0); trunc_percent_0
+% sh_plt(C_trunc_0, 'mercator', is_real); trunc_percent_0
 
 % [C_trunc_01, err_trunc_01, trunc_percent_01] = sh_fit_svd(X, theta, phi, max_odr, is_real, 0.01); err_trunc_01
-% sh_plt(C_trunc_01); trunc_percent_01
+% sh_plt(C_trunc_01, 'mercator', is_real); trunc_percent_01
 
 % [C_trunc_50, err_trunc_50, trunc_percent_50] = sh_fit_svd(X, theta, phi, max_odr, is_real, 0.50); err_trunc_50
-% sh_plt(C_trunc_50); trunc_percent_50
+% sh_plt(C_trunc_50, 'mercator', is_real); trunc_percent_50
 
 % [C_trunc_90, err_trunc_90, trunc_percent_90] = sh_fit_svd(X, theta, phi, max_odr, is_real, 0.90); err_trunc_90
-% sh_plt(C_trunc_90); trunc_percent_90
+% sh_plt(C_trunc_90, 'mercator', is_real); trunc_percent_90
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Sample usage: Least-squares SH fit to radial basis function along 
+%Sample usage: Least squares SH fit to radial basis function along 
 %spherical Fibonnaci points with varying max_odr
 
 % rng(441);
@@ -79,25 +86,33 @@ function [C, err, trunc_percent, h_figs] = sh_fit_svd(X, theta, phi, max_odr, is
 % [C_max_odr_9, err_max_odr_9] = sh_fit_svd(X, theta, phi, 9, is_real, 0); 
 % sh_plt(C_max_odr_9); err_max_odr_9
 
-% sh_plt(sh_val(max_odr, theta, phi, is_real) \ X);
+% sh_plt(sh_val(max_odr, theta, phi, is_real) \ X, 'mercator', is_real);
 
 % [C_max_odr_11, err_max_odr_11] = sh_fit_svd(X, theta, phi, 11, is_real, 0); 
-% sh_plt(C_max_odr_11); err_max_odr_11
-
+% sh_plt(C_max_odr_11, 'mercator', is_real); err_max_odr_11
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Sample usage: Compare Matlab versus Mex
+%Sample usage: Weighted least squares SH fit
 
 % rng(441);
-% max_odr = 10;
+% max_odr = 4;
 % is_real = false;
+% C_ref = sh_rand(max_odr, 1, is_real);
 % N_pts = (max_odr + 1)^2;
-% X = randn(N_pts, 1) + randn(N_pts, 1) * 1i;
-% [theta, phi] = sh_grd_fib(N_pts);
+% [theta, phi] = sh_grd_rand(N_pts);
+% X = sh_dec(C_ref, theta, phi, is_real);
+% % X = X + (randn(N_pts, 1) + randn(N_pts, 1) * 1i) * 1e-1;
 
-% C_trunc_mat = sh_fit_svd(X, theta, phi, max_odr, is_real, 0.90); 
-% C_trunc_mex = sh_fit_svd_mex(X, theta, phi, max_odr, is_real, 0.90); 
-% err = norm(C_trunc_mat - C_trunc_mex)
+% tau = 0.1;
+%C_ls = sh_fit_svd(X, theta, phi, max_odr, is_real, tau, 'max');
+%C_diag_W = sh_fit_svd(X, theta, phi, max_odr, is_real, tau, 'max', 'W', rand(N_pts, 1));
+%W_psd = rand(N_pts, N_pts); W_psd = W_psd * W_psd';
+%C_psd_W = sh_fit_svd(X, theta, phi, max_odr, is_real, tau, 'max', 'W', W_psd);
+
+%sh_plt(C_ref, 'mercator', is_real, 'title_name', 'Reference', 'disp_theta_phi', [theta, phi]);
+%sh_plt(C_ls, 'mercator', is_real, 'title_name', 'Uniform Weighting');
+%sh_plt(C_diag_W, 'mercator', is_real, 'title_name', 'Diagonal Weighting');
+%sh_plt(C_psd_W, 'mercator', is_real, 'title_name', 'PSD Weighting');
 
 arguments
     X (:,:) double {coder.mustBeComplex} = complex(0);
@@ -113,11 +128,34 @@ arguments
 
     mode (1,:) char {mustBeMember(mode, {'max', 'totalvar', 'bottom', 'picardcross'})} = 'max';
 
-    enable_disp (1,1) logical = false;
+    options.W (:, :) double = [];
+    options.enable_disp (1,1) logical = false;
 end
 
 %Compute SH bases
 Y = sh_val(max_odr, theta, phi, is_real);  %[N x (max_odr + 1)^2]
+N = size(Y, 1);
+
+%Apply optional weighting matrix
+if ~isempty(options.W)
+    if numel(options.W) == N
+
+        assert(all(options.W(:) > 0), 'options.W must be positive');
+        W_sqrt = sqrt(options.W(:));
+        Y = bsxfun(@times, Y, W_sqrt);
+        X = bsxfun(@times, X, W_sqrt);
+
+    elseif isequal(size(options.W),  [N, N])        
+
+        [W_sqrt, flag] = chol(options.W);
+        assert(flag == 0, 'options.W is not positive definite');
+        Y = W_sqrt * Y;
+        X = W_sqrt * X;
+
+    else
+        error('options.W size unsupported');
+    end
+end
 
 %Compute singular value decomposition
 [U, S, V] = svd(Y, "econ");
@@ -176,7 +214,7 @@ err = norm(Y * C - X);
 %Plotting
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 h_figs = [];
-if enable_disp && coder.target("MATLAB")
+if options.enable_disp && coder.target("MATLAB")
 
     % Plot fit
     h_figs = sh_plt(C, 'mercator', is_real, 'disp_theta_phi', [theta, phi], 'title_name', ['SVD Fit ', mode, ' \tau = ', num2str(trunc_frac)]);

@@ -45,11 +45,11 @@ for i = 1:N_modes
 end
 
 % Non-regularized least squares
-[C_ls]  = sh_fit_svd(X, theta, phi, max_odr, is_real, 0, 'max', true);
+[C_ls]  = sh_fit_svd(X, theta, phi, max_odr, is_real, 0, 'max', 'enable_disp', true);
 
 %Picard cross criterion
 trunc_frac_pc = 0.5;
-[C_pc, ~, ~, h_pc]  = sh_fit_svd(X, theta, phi, max_odr, is_real, trunc_frac_pc, 'picardcross', true);
+[C_pc, ~, ~, h_pc]  = sh_fit_svd(X, theta, phi, max_odr, is_real, trunc_frac_pc, 'picardcross', 'enable_disp', true);
 h_picard = h_pc{2};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
