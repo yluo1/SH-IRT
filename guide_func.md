@@ -61,9 +61,10 @@ and is vectorized in the same format as the complex case. In such instances, the
 ## Empirical Fitting
 | File | Description |
 | --- | --- | 
-|sh_fit_svd.m | Truncated singular value decomposition least-squares |
-|sh_fit_msq.m | Magnitude squared least-squares: Magnitude squared, sum-of-magnitude squared, mix-of-magnitude squared, mixture power|
+|sh_fit_svd.m | Truncated singular value decomposition least squares |
+|sh_fit_tr.m | Tikhonov regularized least squares |
 |sh_fit_rbf.m | Radial basis function fitting: Squared exponential, Matérn, exponential |
+|sh_fit_msq.m | Magnitude squared least-squares: Magnitude squared, sum-of-magnitude squared, mix-of-magnitude squared, mixture power|
 
 
 ## Filtering
