@@ -158,8 +158,9 @@ if any(strcmp(mode, {'identity', 'quad', 'quadlin'}))
 
 elseif strcmp(mode, 'picard')
 
-    [U, S, V] = svd(Y, 'econ'); % Descending singular values
-    s_list_ascend = flipud(diag(S));
+    [U, S, V] = svd(Y, 'econ'); % Descending singular values    
+    s_list = diag(S);
+    s_list_ascend = flipud(s_list);
     U_ascend = fliplr(U);        
     V_ascend = fliplr(V);
      
@@ -202,11 +203,16 @@ elseif strcmp(mode, 'picard')
             % Solve
             [d_PC, fval, exitflag] = linprog(ones(N_PC, 1), A, b, [], [], zeros(N_PC, 1), inf(N_PC, 1));
     
-            d = zeros(N_C, 1);
+            d = zeros(size(V, 2), 1);
             d(1:N_PC) = d_PC;
             Q = V_ascend * diag(d) * V_ascend';
             
-            % Check eigenvalues
+            if N_C > N % Augment with smallest eigenvalue paired with null-space
+                V_null = null(V');
+                Q = Q + V_null * min(s_list_ascend.^2 + d) * V_null'; 
+            end
+
+            % Check eigenvalues if N_C <= N
             % [V_tmp, D_tmp] = eig(Y'*Y + Q);
             % norm(sort(diag(D_tmp), 'descend') - sort(s_list_ascend.^2 + d, 'descend'))
             ;

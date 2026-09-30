@@ -1,11 +1,11 @@
 function [err, h_ref, h_fit] = plot_sh_fit_example(mode, err_name, options)
-%Plot examples and compute errors of spherical harmonic fitting methods
+%Plot sh_fit_* modes
 
 %Author: Yuancheng Luo, 2026
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
-%mode:          String, fitting method {'TSVD', 'SqExp', 'Mat52', 'Mat32', 'Exp'}
+%mode:          String, fitting method {'TSVD', 'TR', 'SqExp', 'Mat52', 'Mat32', 'Exp'}
 %err_name:      String, error function {'norm', 'SHMSQ', 'NSHMSQ'}
 
 %options:       struct
@@ -20,10 +20,16 @@ function [err, h_ref, h_fit] = plot_sh_fit_example(mode, err_name, options)
 %options.noise_std:         Noise standard deviation added to samples
 %options.rseed:             Random seed
 
+%options.svd_mode:          String, SVD regularization mode {'max', 'totalvar', 'bottom', 'picard'} (see sh_fit_svd.m)
 %options.svd_trunc_frac:    Fraction of largest singular values to truncate in 'TSVD' mode
+
+%options.tr_mode:           String, Tikhonov regularization mode {'identity', 'quad', 'quadlin', 'picard'} (see sh_fit_tr.m)
+%options.tr_trunc_frac:     Regularization parameter in 'tr' mode
 
 %options.rbf_max_iter:      Maximum number of hyper parameter optimization iterations for RBF modes
 %options.rbf_objective:     String, hyper parameter optimization objective  {'NLMH', 'MSE'} (See sh_fit_rbf.m)
+%options.rbf_ell:           Scalar, spatial bandwidth hyper-parameter       
+%options.rbf_lambda:        Scalar, noise variance
 
 %options.enable_disp:       Logical, if true, plot reference and target fields
 %options.disp_dB_lim:       [1 x 2] Display dB range [min, max]
@@ -37,16 +43,25 @@ function [err, h_ref, h_fit] = plot_sh_fit_example(mode, err_name, options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage:  Evaluate and plot sample fits
 
-%[~, ~, err_svd]    = plot_sh_fit_example('TSVD', 'SHMSQ')
-%[~, ~, err_SqExp]  = plot_sh_fit_example('SqExp', 'SHMSQ')
+%[err_svd]      = plot_sh_fit_example('TSVD', 'NSHMSQ', 'svd_trunc_frac', 0.1)
+%[err_SqExp0]   = plot_sh_fit_example('SqExp', 'NSHMSQ', 'rbf_max_iter', 0)
 
-%varargin = {'max_odr', 5, 'max_odr_fit', 10, 'N_pts', 100};
-%[~, ~, err_svd]    = plot_sh_fit_example('TSVD', 'SHMSQ', varargin{:})
-%[~, ~, err_SqExp]  = plot_sh_fit_example('Mat32', 'SHMSQ', varargin{:})
+%[err_SqExp]    = plot_sh_fit_example('SqExp', 'NSHMSQ')
+%[err_Exp]      = plot_sh_fit_example('Exp', 'NSHMSQ')
+
+%varargin       = {'max_odr', 5, 'max_odr_fit', 10, 'N_pts', 100};
+%[err_svd]      = plot_sh_fit_example('TSVD', 'NSHMSQ', varargin{:}, 'svd_mode', 'picard', 'svd_trunc_frac', 0.5)
+
+%[err_tr]       = plot_sh_fit_example('TRegu', 'NSHMSQ', varargin{:}, 'tr_mode', 'picard', 'tr_lambda', 0.5)
+
+%[err_SqExp]    = plot_sh_fit_example('SqExp', 'NSHMSQ', varargin{:})
+%[err_Mat52]    = plot_sh_fit_example('Mat52', 'NSHMSQ', varargin{:})
+%[err_Mat32]    = plot_sh_fit_example('Mat32', 'NSHMSQ', varargin{:})
+%[err_Exp]      = plot_sh_fit_example('Exp', 'NSHMSQ', varargin{:})
 
 arguments
-    mode (1,:) char {mustBeMember(mode, {'TSVD', 'SqExp', 'Mat52', 'Mat32', 'Exp' })} = 'TSVD';
-    err_name (1,:) char {mustBeMember(err_name, {'norm', 'SHMSQ', 'NSHMSQ' })} = 'SHMSQ';
+    mode (1,:) char {mustBeMember(mode, {'TSVD', 'TRegu', 'SqExp', 'Mat52', 'Mat32', 'Exp'} )} = 'TSVD';
+    err_name (1,:) char {mustBeMember(err_name, {'norm', 'SHMSQ', 'NSHMSQ' })} = 'NSHMSQ';
 
     options.max_odr (1,1) double {mustBeNonnegative, mustBeInteger} = 3;
     options.max_odr_fit (1,1) double {mustBeNonnegative, mustBeInteger} = 6;
@@ -55,11 +70,17 @@ arguments
     options.sample_mode (1,:) char {mustBeMember(options.sample_mode, {'fib', 'rand'} )} = 'rand';
     options.noise_std (1,1) double {mustBeNonnegative} = 1e-1;
     options.rseed (1,1) double {mustBeNonnegative, mustBeInteger} = 4141;
-    
+
+    options.svd_mode (1,:) char {mustBeMember(options.svd_mode, {'max', 'totalvar', 'bottom', 'picard'} )} = 'max';
     options.svd_trunc_frac (1,1) double {mustBeNonnegative} = 0;
+
+    options.tr_mode (1,:) char {mustBeMember(options.tr_mode, {'identity', 'quad', 'quadlin', 'picard'} )} = 'identity';
+    options.tr_lambda (1,1) double {mustBeNonnegative} = 0;
 
     options.rbf_max_iter (1,1) double {mustBeNonnegative, mustBeInteger} = 100;
     options.rbf_objective (1,:) char {mustBeMember(options.rbf_objective, {'NLMH', 'MSE'})} = 'NLMH';
+    options.rbf_ell (1,1) double {mustBeNonnegative} = 0.5;
+    options.rbf_lambda (1,1) double {mustBeNonnegative} = 0;
 
     options.enable_disp (1,1) logical = true;
     options.disp_dB_lim (1,2) double =  [-40, 20];
@@ -93,15 +114,16 @@ X = X + (randn(size(X)) + randn(size(X)) * 1i) * options.noise_std; % Add noise
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if strcmp(mode, 'TSVD')
 
-    C_fit = sh_fit_svd(X, theta, phi, options.max_odr_fit, is_real, options.svd_trunc_frac); 
+    C_fit = sh_fit_svd(X, theta, phi, options.max_odr_fit, is_real, options.svd_trunc_frac, options.svd_mode); 
 
-elseif strcmp(mode, 'SqExp') || strcmp(mode, 'Mat52') || strcmp(mode, 'Mat32') || strcmp(mode, 'Exp')
+elseif strcmp(mode, 'TRegu')
 
-    ell = 0.5;
-    lambda = 0;    
+    C_fit = sh_fit_tr(X, theta, phi, options.max_odr_fit, is_real, options.tr_lambda, options.tr_mode);     
+
+elseif any(strcmp(mode, {'SqExp', 'Mat52', 'Mat32', 'Exp'}))
+
     varargin = {'max_iter', options.rbf_max_iter, 'ub', [inf, 0], 'objective', options.rbf_objective};
-
-    C_fit = sh_fit_rbf(X, theta, phi, options.max_odr_fit, is_real, mode, ell, lambda, varargin{:}); 
+    C_fit = sh_fit_rbf(X, theta, phi, options.max_odr_fit, is_real, mode, options.rbf_ell, options.rbf_lambda, varargin{:}); 
 
 else
     error('Unsupported mode');
