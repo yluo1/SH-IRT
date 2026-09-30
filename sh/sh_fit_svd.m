@@ -4,16 +4,16 @@ function [C, err, trunc_percent, h_figs] = sh_fit_svd(X, theta, phi, max_odr, is
 
 %Different modes zero the inverse singular values: inv_singular_values(mask) = 0
 
-%mode = 'max' (recommend trunc_frac = 0.1)
+%mode = 'max' (recommend trunc_frac = 0.1) truncate singular values below fraction of largest singular value
 %mask: singular_values <= max(singular_values) * trunc_frac
 
-%mode = 'totalvar' (recommend trunc_frac =  0.01)
+%mode = 'totalvar' (recommend trunc_frac =  0.01) truncate singular values below faction of total variance
 %mask: cumsum(descending_eigenvalues) / sum(descending_eigenvalues) > 1 - trunc_frac
 
-%mode = 'bottom' (recommend trunc_frac =  0.1)
+%mode = 'bottom' (recommend trunc_frac =  0.1) truncate bottom fraction of singular values
 %mask: smallest ranked 100 * trunc_frac percent of singular values
 
-%mode = 'picardcross' (recommend trunc_frac = 0.5) 
+%mode = 'picard' (recommend trunc_frac = 0.5) truncate tail singular values when the discrete Picard condition cannot be met
 %mask: singular values smaller than 
 %first ascending singular value normalized CDF / observation projected on left singular value normalized CDF >= trunc_frac
 
@@ -30,7 +30,7 @@ function [C, err, trunc_percent, h_figs] = sh_fit_svd(X, theta, phi, max_odr, is
 %is_real:       Logical, if true, evaluate real SH
 
 %trunc_frac:    Fraction of largest singular values
-%mode:          String, truncation method {'max', 'totalvar', 'bottom', 'picardcross'}
+%mode:          String, truncation method {'max', 'totalvar', 'bottom', 'picard'}
 
 %options:               struct
 %options.W:             [], [N x 1], or [N x N] weighting matrix for weighted least squares
@@ -41,6 +41,7 @@ function [C, err, trunc_percent, h_figs] = sh_fit_svd(X, theta, phi, max_odr, is
 %                           min_C ||chol(W) * (Y(theta, phi) * C - X)||^2
 
 %options.enable_disp:   Logical, if true, plot fit and Picard plot
+%options.disp_dB_lim:   [1 x 2] dB range [min, max]
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
@@ -126,15 +127,17 @@ arguments
 
     trunc_frac (1,1) double {mustBeNonnegative, mustBeLessThanOrEqual(trunc_frac, 1)} = 0;
 
-    mode (1,:) char {mustBeMember(mode, {'max', 'totalvar', 'bottom', 'picardcross'})} = 'max';
+    mode (1,:) char {mustBeMember(mode, {'max', 'totalvar', 'bottom', 'picard'})} = 'max';
 
     options.W (:, :) double = [];
     options.enable_disp (1,1) logical = false;
+    options.disp_dB_lim (1,2) double = [-inf inf];    
 end
 
 %Compute SH bases
 Y = sh_val(max_odr, theta, phi, is_real);  %[N x (max_odr + 1)^2]
 N = size(Y, 1);
+M = size(X, 2);
 
 %Apply optional weighting matrix
 if ~isempty(options.W)
@@ -166,46 +169,65 @@ N_s_list = numel(s_list);
 inv_s_list = 1 ./ s_list;
 
 %Compute trunc_mask for setting inv_singular_values(trunc_mask) = 0
-if strcmp(mode, 'max') 
+if any(strcmp(mode, {'max', 'totalvar', 'bottom'}))
 
-    trunc_mask = s_list <= (max(s_list) * trunc_frac);
+    if strcmp(mode, 'max') 
+    
+        trunc_mask = s_list <= (max(s_list) * trunc_frac);
+    
+    elseif strcmp(mode, 'totalvar')
+    
+        [eig_list_descend, idx] = sort(s_list.^2, 'descend');
+        trunc_mask = false([N_s_list, 1]);
+        trunc_mask(idx(cumsum(eig_list_descend) / sum(eig_list_descend) > 1 - trunc_frac)) = true;
+    
+    elseif strcmp(mode, 'bottom')
+    
+        [s_list_ascend, idx] = sort(s_list, 'ascend');
+        trunc_mask = false([N_s_list, 1]);   
+        trunc_mask(idx(1:ceil(N_s_list * trunc_frac))) = true;
 
-elseif strcmp(mode, 'totalvar')
+    else
+        error('Unsupported mode');
+    end
 
-    [eig_list_descend, idx] = sort(s_list.^2, 'descend');
-    trunc_mask = false([N_s_list, 1]);
-    trunc_mask(idx(cumsum(eig_list_descend) / sum(eig_list_descend) > 1 - trunc_frac)) = true;
+    inv_s_list(trunc_mask) = 0;
+    trunc_percent = sum(trunc_mask) / N_s_list * 100;
+    
+    inv_S = S;
+    inv_S(1:N_s_list, 1:N_s_list) = diag(inv_s_list);
+    C = V * inv_S' * U' * X;
 
-elseif strcmp(mode, 'bottom')
-
+elseif strcmp(mode, 'picard')
+    
     [s_list_ascend, idx] = sort(s_list, 'ascend');
-    trunc_mask = false([N_s_list, 1]);   
-    trunc_mask(idx(1:ceil(N_s_list * trunc_frac))) = true;
-
-elseif strcmp(mode, 'picardcross')
-
-    [s_list_ascend, idx] = sort(s_list, 'ascend');
-    U_ascend = U(:, idx);
-    U_ascend_X_mu = mean(abs(U_ascend' * X), 2); %[N_s_list x 1]
-     
+    U_ascend = U(:, idx);     
     cdf_s = cumsum(s_list_ascend) / sum(s_list_ascend);
-    cdf_ux = cumsum(U_ascend_X_mu) / sum(U_ascend_X_mu);
 
-    idx_picard_cross = find((cdf_s ./ cdf_ux) >= trunc_frac, 1, 'first');
-    trunc_mask = false([N_s_list, 1]);  
-    trunc_mask(1:(idx_picard_cross-1)) = true;
-    trunc_mask = flipud(trunc_mask);
+    C = zeros([(max_odr + 1)^2, M]);
+    trunc_percent_list = zeros(1, M);
+    for m = 1:M
+        U_ascend_X_m = abs(U_ascend' * X(:, m)); %[N_s_list x 1]
+    
+        cdf_ux = cumsum(U_ascend_X_m) / sum(U_ascend_X_m);
+    
+        idx_picard_cross = find((cdf_s ./ cdf_ux) >= trunc_frac, 1, 'first');
+        trunc_mask = false([N_s_list, 1]);  
+        trunc_mask(1:(idx_picard_cross-1)) = true;
+        trunc_mask = flipud(trunc_mask);
+    
+        inv_s_list(trunc_mask) = 0;
+        trunc_percent_list(m) = sum(trunc_mask) / N_s_list * 100;
+        
+        inv_S = S;
+        inv_S(1:N_s_list, 1:N_s_list) = diag(inv_s_list);
+        C(:, m) = V * inv_S' * U' * X(:, m);
+    end
+    trunc_percent = mean(trunc_percent_list);
 
 else
     error('Unsupported mode');
 end
-
-inv_s_list(trunc_mask) = 0;
-trunc_percent = sum(trunc_mask) / N_s_list * 100;
-
-inv_S = S;
-inv_S(1:N_s_list, 1:N_s_list) = diag(inv_s_list);
-C = V * inv_S' * U' * X;
 
 %Compute error
 err = norm(Y * C - X);
@@ -217,9 +239,9 @@ h_figs = [];
 if options.enable_disp && coder.target("MATLAB")
 
     % Plot fit
-    h_figs = sh_plt(C, 'mercator', is_real, 'disp_theta_phi', [theta, phi], 'title_name', ['SVD Fit ', mode, ' \tau = ', num2str(trunc_frac)]);
+    h_figs = sh_plt(C, 'mercator', is_real, 'disp_theta_phi', [theta, phi], 'title_name', ['SVD Fit ', mode, ' \tau = ', num2str(trunc_frac)], 'dB_lim', options.disp_dB_lim);
 
-    % Plot Picard plot
+    % Picard plot
     [~, idx_descend] = sort(s_list, 'descend'); %Descending singular values
     U_descend = U(:, idx_descend);
     s_list_descend = s_list(idx_descend);
@@ -235,13 +257,18 @@ if options.enable_disp && coder.target("MATLAB")
     h_figs{end+1} = figure;
     tiledlayout(2, 1);
     nexttile;
-    semilogy(1:N_s_list, s_list_descend, 'r*-', 1:N_s_list, U_descend_X_mu, 'bs-', 'linewidth', 1.5);
+    semilogy(1:N_s_list, s_list_descend, 'r*-', 1:N_s_list, U_descend_X_mu, 'bs-', ...
+        1:N_s_list, U_descend_X_mu ./ s_list_descend, 'o-', 'linewidth', 1.5);
     grid on; axis tight;
     xlabel('Descending Singular Value Index i', 'fontsize', fontsize);
     ylabel('Magnitude', 'fontsize', fontsize);
     title('Picard Plot', 'fontsize', fontsize + 1);
     set(gca, 'fontsize', fontsize - 1);
-    h_lg = legend('$\sigma_i$', '$|u_i^H x|$', 'location' ,'best', 'interpreter', 'latex'); 
+    if M == 1
+        h_lg = legend('$\sigma_i$', '$|u_i^H x|$',       '$|u_i^H x| / \sigma_i$',          'location' ,'best', 'interpreter', 'latex'); 
+    else
+        h_lg = legend('$\sigma_i$', 'mean($|u_i^H x|$)', 'mean($|u_i^H x|$) $ / \sigma_i$', 'location' ,'best', 'interpreter', 'latex'); 
+    end
     set(h_lg, 'fontsize', fontsize - 1);
 
     nexttile;
@@ -254,7 +281,11 @@ if options.enable_disp && coder.target("MATLAB")
     ylabel('Magnitude', 'fontsize', fontsize);
     title('Normalized Cumulative Distribution Function', 'fontsize', fontsize + 1);
     set(gca, 'fontsize', fontsize - 1);
-    h_lg = legend('CDF($\sigma_i$)', 'CDF($|u_i^H x|$)', 'Picard Cross: $\tau = 1$',  ['Picard Cross: $\tau = ', num2str(trunc_frac), '$'], 'location' ,'best', 'interpreter', 'latex'); 
+    if M == 1
+        h_lg = legend('CDF($\sigma_i$)', 'CDF($|u_i^H x|$)',       'Picard Cross: $\tau = 1$',  ['Picard Cross: $\tau = ', num2str(trunc_frac), '$'], 'location' ,'best', 'interpreter', 'latex'); 
+    else
+        h_lg = legend('CDF($\sigma_i$)', 'CDF(mean($|u_i^H x|$))', 'Picard Cross: $\tau = 1$',  ['Picard Cross: $\tau = ', num2str(trunc_frac), '$'], 'location' ,'best', 'interpreter', 'latex'); 
+    end
     set(h_lg, 'fontsize', fontsize - 1);
 
 end

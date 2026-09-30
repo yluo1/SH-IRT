@@ -1,15 +1,20 @@
 function [C, err, h_figs] = sh_fit_tr(X, theta, phi, max_odr, is_real, lambda, mode, options)
-%Tikhonov regularization least squares: min_C ||Y(theta, phi) * C - X||^2 + lambda * C'*Q*C
-%C = (Y'Y + lambda * Q)^(-1) * Y' * X
+%Tikhonov regularization least squares: min_C ||Y(theta, phi) * C - X||^2 + C'*Q*C
+%C = (Y'Y + Q)^(-1) * Y' * X
 
-%mode = 'identity'  unity w.r.t. SH degree
-%Q = I
+%mode = 'identity'  unity Q, penalize squared Euclidean norm of C
+%Q = lambda * I
 
-%mode = 'quad'   diagonal regularization with quadratic weighting w.r.t. SH degree
-%Q = diag(q),   q = [0, ..., l^2, ...] for SH degree l
+%mode = 'quad'   diagonal regularization with quadratic weighted penalty of cofficients in C w.r.t. SH degree
+%Q = lambda * diag(q),   q = [0, ..., l^2, ...] for SH degree l
 
-%mode = 'quadlin'   diagonal regularization with quadratic + linear weighting w.r.t. SH degree
-%Q = diag(q),   q = [0, ..., l*(l+1), ...] for SH degree l
+%mode = 'quadlin'   diagonal regularization with quadratic + linear weighted penalty of cofficients in C w.r.t. SH degree
+%Q = lambda * diag(q),   q = [0, ..., l*(l+1), ...] for SH degree l
+
+%mode = 'picard'    minimum regularization of ascending singular values below the Picard crossover index given by
+%first ascending singular value normalized CDF / observation projected on left singular value normalized CDF >= lambda
+%Q = V * diag(d) * V',   d = [d_*; zeros(N_C - k_*, 1)], where d_* is a minimum norm non-negative solution with linear constraints
+%to ensure ascending Picard ratios and regularized singular value sequences.
 
 %Author: Yuancheng Luo, 2026
 
@@ -24,7 +29,7 @@ function [C, err, h_figs] = sh_fit_tr(X, theta, phi, max_odr, is_real, lambda, m
 %is_real:       Logical, if true, evaluate real SH
 
 %trunc_frac:    Fraction of largest singular values
-%mode:          String, regularization method {'quad', 'quadlin'}
+%mode:          String, regularization method {'identity', 'quad', 'quadlin', 'picard'}
 
 %options:               struct
 %options.W:             [], [N x 1], or [N x N] weighting matrix for weighted least squares
@@ -87,7 +92,7 @@ arguments
     
     lambda (1,1) double {mustBeNonnegative} = 0;
 
-    mode (1,:) char {mustBeMember(mode, {'identity', 'quad', 'quadlin'})} = 'identity';
+    mode (1,:) char {mustBeMember(mode, {'identity', 'quad', 'quadlin', 'picard'})} = 'identity';
 
     options.W (:, :) double = [];
     options.enable_disp (1,1) logical = false;
@@ -96,6 +101,7 @@ end
 % Compute SH bases
 Y = sh_val(max_odr, theta, phi, is_real);  %[N x (max_odr + 1)^2]
 [N, N_C] = size(Y);
+M = size(X, 2);
 
 % Apply optional weighting matrix
 if ~isempty(options.W)
@@ -119,34 +125,103 @@ if ~isempty(options.W)
 end
 
 % Compute regularization matrix
-if strcmp(mode, 'identity')
+if any(strcmp(mode, {'identity', 'quad', 'quadlin'}))
 
-    Q = eye(N_C);
+    if strcmp(mode, 'identity')
     
-elseif strcmp(mode, 'quad')
-
-    q = zeros(N_C, 1);
-    for l = 0:max_odr
-        idx = (l + 1)^2 - l;
-        q(idx) = l^2;
-    end
-    Q = diag(q);
+        Q = lambda * eye(N_C);
+        
+    elseif strcmp(mode, 'quad')
     
-elseif strcmp(mode, 'quadlin')
+        q = zeros(N_C, 1);
+        for l = 0:max_odr
+            idx = (l + 1)^2 - l;
+            q(idx) = l^2;
+        end
+        Q = lambda * diag(q);
+        
+    elseif strcmp(mode, 'quadlin')
+    
+        q = zeros(N_C, 1);
+        for l = 0:max_odr
+            idx = (l + 1)^2 - l;
+            q(idx) = l * (l + 1);
+        end
+        Q = lambda * diag(q);
 
-    q = zeros(N_C, 1);
-    for l = 0:max_odr
-        idx = (l + 1)^2 - l;
-        q(idx) = l * (l + 1);
+    else
+        error('Unsupported mode');
     end
-    Q = diag(q);
+
+    % Compute least squares solution
+    C = (Y'*Y + Q) \ (Y' * X);
+
+elseif strcmp(mode, 'picard')
+
+    [U, S, V] = svd(Y, 'econ'); % Descending singular values
+    s_list_ascend = flipud(diag(S));
+    U_ascend = fliplr(U);        
+    V_ascend = fliplr(V);
+     
+    cdf_s = cumsum(s_list_ascend) / sum(s_list_ascend);
+
+    C = zeros([(max_odr + 1)^2, M]);
+    for m = 1:M
+        U_ascend_X_m = abs(U_ascend' * X(:, m)); %[N_s_list x 1]
+    
+        cdf_ux = cumsum(U_ascend_X_m) / sum(U_ascend_X_m);
+    
+        idx_picard_cross = find((cdf_s ./ cdf_ux) >= lambda, 1, 'first');
+        
+        N_PC = idx_picard_cross - 1;    
+        if N_PC > 0 % Setup inequality constraints
+            A = zeros(2 * N_PC, N_PC);
+            b = zeros(2 * N_PC, 1);
+            for n = 1:N_PC
+                A_m1 = zeros(1, N_PC); % Monotonic increasing regularized singular values
+                A_m2 = zeros(1, N_PC); % Monotonic increasing Picard ratio
+                if n < N_PC
+                    A_m1([n, n+1]) = [-s_list_ascend(n+1), s_list_ascend(n)];
+                    b_m1 = s_list_ascend(n+1) * s_list_ascend(n)^2 - s_list_ascend(n) * s_list_ascend(n+1)^2;
+        
+                    A_m2([n, n+1]) = [-U_ascend_X_m(n+1) * s_list_ascend(n+1), U_ascend_X_m(n) * s_list_ascend(n)];
+                    b_m2 = U_ascend_X_m(n+1) * s_list_ascend(n+1) * s_list_ascend(n)^2 - U_ascend_X_m(n) * s_list_ascend(n) * s_list_ascend(n+1)^2;
+                else % End points
+                    A_m1([n]) = [-s_list_ascend(n+1)];
+                    b_m1 = s_list_ascend(n+1) * s_list_ascend(n)^2 - s_list_ascend(n) * s_list_ascend(n+1)^2;
+        
+                    A_m2([n]) = [-U_ascend_X_m(n+1) * s_list_ascend(n+1)];
+                    b_m2 = U_ascend_X_m(n+1) * s_list_ascend(n+1) * s_list_ascend(n)^2 - U_ascend_X_m(n) * s_list_ascend(n) * s_list_ascend(n+1)^2;                
+                end
+    
+                A(2*n-1, :) = A_m1;
+                A(2*n, :)   = A_m2;
+                b(2*n-1)    = b_m1;
+                b(2*n)      = b_m2;
+            end
+            % Solve
+            [d_PC, fval, exitflag] = linprog(ones(N_PC, 1), A, b, [], [], zeros(N_PC, 1), inf(N_PC, 1));
+    
+            d = zeros(N_C, 1);
+            d(1:N_PC) = d_PC;
+            Q = V_ascend * diag(d) * V_ascend';
+            
+            % Check eigenvalues
+            % [V_tmp, D_tmp] = eig(Y'*Y + Q);
+            % norm(sort(diag(D_tmp), 'descend') - sort(s_list_ascend.^2 + d, 'descend'))
+            ;
+    
+        else
+            Q = zeros(N_C);
+        end
+    
+        % Compute least squares solution
+        C(:, m) = (Y'*Y + Q) \ ( Y' * X(:, m) );
+    end
 
 else
     error('Unknown mode');
 end
-
-% Compute least squares solution
-C = (Y'*Y + lambda * Q) \ (Y' * X);
 
 % Compute error
 err = norm(Y * C - X);
@@ -155,5 +230,65 @@ h_figs = [];
 if options.enable_disp && coder.target("MATLAB")
     % Plot fit
     h_figs = sh_plt(C, 'mercator', is_real, 'disp_theta_phi', [theta, phi], 'title_name', ['TR Fit ', mode, ' \lambda = ', num2str(lambda)]);
+
+    if strcmp(mode, 'picard')
+
+        % Picard plot 
+        [U, S, V] = svd(Y, 'econ'); % Descending singular values
+        s_list = diag(S);
+        N_s_list = numel(s_list);
+
+        [~, idx_descend] = sort(s_list, 'descend'); %Descending singular values
+        U_descend = U(:, idx_descend);
+        s_list_descend = s_list(idx_descend);
+        U_descend_X_mu = mean(abs(U_descend' * X), 2); %[N_s_list x 1]
+        U_ascend_X_mu  = flipud(U_descend_X_mu);    
+
+        cdf_s = cumsum(s_list_ascend) / sum(s_list_ascend);
+        cdf_ux = cumsum(U_ascend_X_mu) / sum(U_ascend_X_mu);
+
+        s_list_ascend_regu = (s_list_ascend.^2 + d) ./ s_list_ascend; 
+        cdf_sr = cumsum(s_list_ascend_regu) / sum(s_list_ascend_regu);
+
+        idx_picard_cross = find( cdf_s>= cdf_ux, 1, 'first');
+        idx_picard_cross_trunc = find((cdf_s ./ cdf_ux) >= lambda, 1, 'first');
+    
+        fontsize = 16;    
+        h_figs{end+1} = figure;
+        tiledlayout(2, 1);
+        nexttile;
+        semilogy(1:N_s_list, s_list_descend, 'r*-', 1:N_s_list, U_descend_X_mu, 'bs-', ...
+            1:N_s_list, U_descend_X_mu ./ s_list_descend, 'o-', ...
+            1:N_s_list, flipud(s_list_ascend_regu), 'md-', 'linewidth', 1.5);
+        grid on; axis tight;
+        xlabel('Descending Singular Value Index i', 'fontsize', fontsize);
+        ylabel('Magnitude', 'fontsize', fontsize);
+        title('Picard Plot', 'fontsize', fontsize + 1);
+        set(gca, 'fontsize', fontsize - 1);
+        if M == 1
+            h_lg = legend('$\sigma_i$', '$|u_i^H x|$',      '$|u_i^H x| / \sigma_i$',           '$(\sigma_i^2 + d_i) / \sigma_i$', 'location' ,'best', 'interpreter', 'latex'); 
+        else
+            h_lg = legend('$\sigma_i$', 'mean($|u_i^H x|$)', 'mean($|u_i^H x|$) $ / \sigma_i$', '$(\sigma_i^2 + d_i) / \sigma_i$', 'location' ,'best', 'interpreter', 'latex'); 
+        end
+        set(h_lg, 'fontsize', fontsize - 1);
+    
+        nexttile;
+        semilogy(1:N_s_list, cdf_s, 'r*-', 1:N_s_list, cdf_ux, 'bs-',  ...
+            1:N_s_list, cdf_sr, 'md-', 'linewidth', 1.5); hold on;
+        xline(idx_picard_cross, 'm--', 'linewidth', 2);
+        xline(idx_picard_cross_trunc, 'k--', 'linewidth', 2);
+       
+        grid on; axis tight;
+        xlabel('Ascending Singular Value Index i', 'fontsize', fontsize);
+        ylabel('Magnitude', 'fontsize', fontsize);
+        title('Normalized Cumulative Distribution Function', 'fontsize', fontsize + 1);
+        set(gca, 'fontsize', fontsize - 1);
+        if M == 1
+            h_lg = legend('CDF($\sigma_i$)', 'CDF($|u_i^H x|$)',        'CDF($(\sigma_i^2 + d_i) / \sigma_i$)', 'Picard Cross: $\lambda = 1$',  ['Picard Cross: $\lambda = ', num2str(lambda), '$'], 'location' ,'best', 'interpreter', 'latex'); 
+        else
+            h_lg = legend('CDF($\sigma_i$)', 'CDF(mean($|u_i^H x|$))',  'CDF($(\sigma_i^2 + d_i) / \sigma_i$)', 'Picard Cross: $\lambda = 1$',  ['Picard Cross: $\lambda = ', num2str(lambda), '$'], 'location' ,'best', 'interpreter', 'latex'); 
+        end
+        set(h_lg, 'fontsize', fontsize - 1);
+    end
 
 end
