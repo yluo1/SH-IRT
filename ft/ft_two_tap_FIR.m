@@ -1,5 +1,5 @@
 function [h] = ft_two_tap_FIR(dB_DC, dB_NQ, enable_disp)
-%Two-tap min-phase FIR with DC and Nyquist gain specifications
+%Design two-tap min-phase FIR with DC and Nyquist gain specifications
 
 %Author: Yuancheng Luo, 2026
 

@@ -155,7 +155,7 @@ N = min(options.max_taps_g, 2 * (options.N_freq_uni_fit-1) ); %Num filter taps o
 g_mat = zeros([N, N_E]);
 options_coneprog = optimoptions("coneprog", MaxIterations=300, ConstraintTolerance=1e-8, OptimalityTolerance=1e-6);
 for n = 1:N_E
-    g_mat(:, n) = ft_bnd_minphase(X_mag(:, n), N, 'options_coneprog', options_coneprog, ...
+    g_mat(:, n) = ft_fit_bnd_minphase(X_mag(:, n), N, 'options_coneprog', options_coneprog, ...
         'mode', 'least_squares', 'enable_disp', false);
     ;
 end

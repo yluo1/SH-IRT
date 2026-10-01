@@ -25,11 +25,11 @@ H_tgt_abs_DC_NQ = db2mag(H_tgt_dB_DC_NQ);   % Target magnitude modulus
 
 X_mag = [H_tgt_abs_DC_NQ, fliplr(H_tgt_abs_DC_NQ(2:end-1))];
 
-[g_tap_8, g_minphase, err, lambda]  = ft_bnd_minphase(X_mag(:), 8, 'ub', 1 - tol0, 'enable_disp', false);
-[g_tap_6]                           = ft_bnd_minphase(X_mag(:), 6, 'ub', 1 - tol0, 'enable_disp', false);
-[g_tap_4]                           = ft_bnd_minphase(X_mag(:), 4, 'ub', 1 - tol0, 'enable_disp', false);
-[g_tap_3]                           = ft_bnd_minphase(X_mag(:), 3, 'ub', 1 - tol0, 'enable_disp', false);
-[g_tap_2]                           = ft_bnd_minphase(X_mag(:), 2, 'ub', 1 - tol0, 'enable_disp', false);
+[g_tap_8, g_minphase, err, lambda]  = ft_fit_bnd_minphase(X_mag(:), 8, 'ub', 1 - tol0, 'enable_disp', false);
+[g_tap_6]                           = ft_fit_bnd_minphase(X_mag(:), 6, 'ub', 1 - tol0, 'enable_disp', false);
+[g_tap_4]                           = ft_fit_bnd_minphase(X_mag(:), 4, 'ub', 1 - tol0, 'enable_disp', false);
+[g_tap_3]                           = ft_fit_bnd_minphase(X_mag(:), 3, 'ub', 1 - tol0, 'enable_disp', false);
+[g_tap_2]                           = ft_fit_bnd_minphase(X_mag(:), 2, 'ub', 1 - tol0, 'enable_disp', false);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Plotting

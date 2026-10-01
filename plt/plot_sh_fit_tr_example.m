@@ -89,9 +89,9 @@ if ~isfolder(out_dir)
     mkdir(out_dir);
 end
 
-exportgraphics(h_ref{1}, fullfile(out_dir, 'tr_ref.png'));
-exportgraphics(h_tr_pc{1}, fullfile(out_dir, 'tr_pc.png'));
-exportgraphics(h_tr_pc_list{end}, fullfile(out_dir, 'tr_picard.png'));
-exportgraphics(h_pc_frac, fullfile(out_dir, 'tr_tsvd_picard.png'));
-
+% exportgraphics(h_ref{1}, fullfile(out_dir, 'tr_ref.png'));
+% exportgraphics(h_tr_pc{1}, fullfile(out_dir, 'tr_pc.png'));
+% exportgraphics(h_tr_pc_list{end}, fullfile(out_dir, 'tr_picard.png'));
+% exportgraphics(h_pc_frac, fullfile(out_dir, 'tr_tsvd_picard.png'));
+% 
 

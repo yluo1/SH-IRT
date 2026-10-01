@@ -360,7 +360,7 @@ where $\mathcal{H}$ is the Hilbert transform, and can be found via the real-ceps
 
 $$ \min_{\bf{g}} \int \left \lVert \mathcal{F} \lbrace g[n] \rbrace (\omega) - G(\omega) \right \rVert_2^2 d \omega,  \quad  \left \lVert \mathcal{F} \lbrace g[n] \rbrace (\omega)   \right \rVert_2^2 < 0, $$
 
-which can be expressed as a cone-program after discretizing the Fourier transform $\mathcal{F}$ along uniform spaced angular frequencies between DC and Nyquist. This is implemented in our function `ft_bnd_minphase.m` and `ft_exp_design.m`. As an example, let us specify a simple T60 target over uniform frequencies and fit a 9-tap exponentiating FIR filter with magnitude response bounded below $1-10^{-6}$ as follows:
+which can be expressed as a cone-program after discretizing the Fourier transform $\mathcal{F}$ along uniform spaced angular frequencies between DC and Nyquist. This is implemented in our function `ft_fit_bnd_minphase.m` and `ft_exp_design.m`. As an example, let us specify a simple T60 target over uniform frequencies and fit a 9-tap exponentiating FIR filter with magnitude response bounded below $1-10^{-6}$ as follows:
 
 ```
 Fs = 48000;

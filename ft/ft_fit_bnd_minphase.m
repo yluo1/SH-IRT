@@ -1,4 +1,4 @@
-function [y, y_minphase, err, lambda] = ft_bnd_minphase(X_mag, num_taps, options)
+function [y, y_minphase, err, lambda] = ft_fit_bnd_minphase(X_mag, num_taps, options)
 %Fit FIR filter that minimizes the weighted least-squares error to the
 %target minimum phase response of real-cepstrum
 %subject to upper bound constraints on the frequency response's magnitude (unity)
@@ -39,34 +39,35 @@ function [y, y_minphase, err, lambda] = ft_bnd_minphase(X_mag, num_taps, options
 %X_mag_oneside = db2mag([0, -3, -0.1, -12])';
 %X_mag = [X_mag_oneside; conj(flipud(X_mag_oneside(2:end-1)))];
 
-%[y_ls, y_minphase]  = ft_bnd_minphase(X_mag, numel(X_mag), 'mode', 'least_squares', 'enable_disp', true);
-%[y_ls]              = ft_bnd_minphase(X_mag, numel(X_mag)-1, 'mode', 'least_squares', 'enable_disp', true); %1 fewer tap
-%[y_ls]              = ft_bnd_minphase(X_mag, numel(X_mag)-2, 'mode', 'least_squares', 'enable_disp', true); %2 fewer taps
+%[y_ls, y_minphase]  = ft_fit_bnd_minphase(X_mag, numel(X_mag), 'mode', 'least_squares', 'enable_disp', true);
+%[y_ls]              = ft_fit_bnd_minphase(X_mag, numel(X_mag)-1, 'mode', 'least_squares', 'enable_disp', true); %1 fewer tap
+%[y_ls]              = ft_fit_bnd_minphase(X_mag, numel(X_mag)-2, 'mode', 'least_squares', 'enable_disp', true); %2 fewer taps
 
-%[y_minimax, y_minphase]     = ft_bnd_minphase(X_mag, numel(X_mag), 'mode', 'minimax',  'enable_disp', true);
-%[y_minimax]                 = ft_bnd_minphase(X_mag, numel(X_mag)-1, 'mode', 'minimax',  'enable_disp', true); %1 fewer tap
-%[y_minimax]                 = ft_bnd_minphase(X_mag, numel(X_mag)-2, 'mode', 'minimax',  'enable_disp', true); %2 fewer taps
+%[y_minimax, y_minphase]     = ft_fit_bnd_minphase(X_mag, numel(X_mag), 'mode', 'minimax',  'enable_disp', true);
+%[y_minimax]                 = ft_fit_bnd_minphase(X_mag, numel(X_mag)-1, 'mode', 'minimax',  'enable_disp', true); %1 fewer tap
+%[y_minimax]                 = ft_fit_bnd_minphase(X_mag, numel(X_mag)-2, 'mode', 'minimax',  'enable_disp', true); %2 fewer taps
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: Filter fit of varying frequency weighting
-% 
+
 % Fs = 48000;
 % N_half = 64;
 % rng(12);
 % X_mag_oneside = db2mag(-rand(N_half, 1) * 20);
 % X_mag = [X_mag_oneside; conj(flipud(X_mag_oneside(2:end-1)))];
 % 
+% N = numel(X_mag);
 % hz = 0:(Fs / N):Fs; hz = hz(1:end-1)';
 % wt_logQuad = ft_freq_wt(hz, 'logQuad');
 % wt_logSqCov = ft_freq_wt(hz, 'logSqCov');
 % wt_oct = ft_freq_wt(hz, 'octave', 'oct_freq', 100);
 % wt_oct = wt_oct.^(0.25);
 % 
-% [y_ls, y_minphase]  = ft_bnd_minphase(X_mag, 64, 'mode', 'least_squares', 'enable_disp', true);
-% [y_wls_oct]         = ft_bnd_minphase(X_mag, 64, 'mode', 'least_squares', 'wt', wt_oct, 'enable_disp', true);
-
-% [y_minimax]         = ft_bnd_minphase(X_mag, 64, 'mode', 'minimax', 'enable_disp', true); 
-% [y_minimax_oct]     = ft_bnd_minphase(X_mag, 64, 'mode', 'minimax', 'wt', wt_oct, 'enable_disp', true); 
+% [y_ls, y_minphase]  = ft_fit_bnd_minphase(X_mag, 64, 'mode', 'least_squares', 'enable_disp', true);
+% [y_wls_oct]         = ft_fit_bnd_minphase(X_mag, 64, 'mode', 'least_squares', 'wt', wt_oct, 'enable_disp', true);
+% 
+% [y_minimax]         = ft_fit_bnd_minphase(X_mag, 64, 'mode', 'minimax', 'enable_disp', true); 
+% [y_minimax_oct]     = ft_fit_bnd_minphase(X_mag, 64, 'mode', 'minimax', 'wt', wt_oct, 'enable_disp', true); 
 
 arguments
     X_mag (:,1) double {mustBePositive} = [1];

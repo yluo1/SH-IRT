@@ -6,7 +6,7 @@ function D = sh_filter_freq(C, w, varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
 %C:         [(P + 1)^2 x M] SH coefficients
-%w:         [1 x M] Angular frequency (radians / sample)
+%w:         [1 x M] Angular frequency (radians / sample) [0 to 2 * pi]
 
 %varargin:  Filter coefficients
 

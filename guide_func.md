@@ -1,6 +1,23 @@
-# Spherical Harmonic (SH) Functions
+# Functions Guide
 
-In this library, we default to the complex spherical harmonic basis functions given by
+Table of contents:
+* [Spherical Harmonics](#spherical-harmonic-functions)
+  * [Operators](#sh-operators)
+  * [Evaluation](#sh-evaluations)
+  * [SRIR Generation](#sh-spatial-room-impulse-response-generation)
+  * [Basis Fitting](#sh-basis-fitting)
+  * [Encodings](#sh-function-encodings)
+  * [Density Function](#sh-probability-density-functions)
+  * [Grid Generation](#sh-spherical-coordinate-grids)
+  * [Miscellaneous](#sh-miscellaneous)
+* [Filter Toolbox](#filter-toolbox)
+  * [Exponentiating Filtering](#ft-time-varying-exponentiation)
+  * [Filter Fitting](#ft-filter-fitting)
+* [Gaussian Process](#gaussian-processes)
+
+# Spherical Harmonic Functions
+
+In this library, we default to the complex spherical harmonic (SH) basis functions given by
 
 $$Y_l^m (\theta, \phi) = \sqrt{\frac{(2l + 1)}{4 \pi} \frac{(l-m)!}{(l+m)!} } P_l^m(\cos \theta ) e^{j m \phi},$$
 
@@ -29,7 +46,7 @@ $$f_C(\theta, \phi) = \sum_{l=0}^{L_C} \sum_{m=-l}^l Y_{lm} (\theta, \phi) C_l^m
 and is vectorized in the same format as the complex case. In such instances, the library function has an `is_real` input argument which can be set to `true` for the real case, and `false` for the complex case.
 
 
-## Operators
+## SH Operators
 | File | Description |
 | --- | --- | 
 | sh_rot.m | Rotation | 
@@ -45,20 +62,20 @@ and is vectorized in the same format as the complex case. In such instances, the
 | sh_re2cpx.m | Real to complex form | 
 | sh_resize.m | Truncation and zero-padding | 
 
-## Evaluations
+## SH Evaluations
 | File | Description |
 | --- | --- | 
 |sh_val.m| Evaluate SH bases |
 |sh_dec.m| Evaluate SH expansions |
 
-## Spatial Room Impulse Response Generation
+## SH Spatial Room Impulse Response Generation
 | File | Description |
 | --- | --- | 
 |sh_ism.m| Image-source model |
 |sh_rand.m| Random field |
 |sh_rand_pp.m| Poisson process |
 
-## Empirical Fitting
+## SH Basis Fitting
 | File | Description |
 | --- | --- | 
 |sh_fit_svd.m | Truncated singular value decomposition least squares |
@@ -67,7 +84,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 |sh_fit_msq.m | Magnitude squared least-squares: Magnitude squared, sum-of-magnitude squared, mix-of-magnitude squared, mixture power|
 
 
-## Filtering
+## SH Filtering
 | File | Description |
 | --- | --- | 
 |sh_filter.m | Filter time domain SH expansion |
@@ -78,7 +95,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 |sh_exp_conv_gp.m | Direction dependent T60 time-varying exponentiating convolution |
 |sh_rec_conv.m | Time-varying recursive convolution |
 
-## Function Encodings
+## SH Function Encodings
 | File | Description |
 | --- | --- | 
 |sh_enc_proj.m | Dirac-delta projection into spherical harmonics |
@@ -87,7 +104,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 |sh_enc_rbf.m | Radial basis functions: Squared exponential, Matérn, exponential, sinc |
 |sh_enc_pist_sphere.m | External piston on sphere frequency responses|
 
-## Probability Density Functions
+## SH Probability Density Functions
 | File | Description |
 | --- | --- | 
 |sh_pdf_fit.m | Density function fitting|
@@ -99,7 +116,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 |sh_cdf_inv_theta.m | Inverse sampling marginal cumulative distribution function over co-latitude|
 |sh_cdf_inv_phi_cond.m | Inverse sampling cumulative distribution function over azimuth given co-latitude|
 
-## Spherical Coordinate Grids
+## SH Spherical Coordinate Grids
 | File | Description |
 | --- | --- | 
 |sh_grd_fib.m| Generate spherical Fibonacci points |
@@ -107,10 +124,42 @@ and is vectorized in the same format as the complex case. In such instances, the
 |sh_grd_rand.m | Generate uniform random spherical coordinates |
 |sh_grd_caps.m| Generate uniform points along co-latitude and azimuth |
 
-## Miscellaneous
+## SH Miscellaneous
 | File | Description |
 | --- | --- | 
 |sh_plt.m| Plot SH expansion|
 |sh2ambx.m| SH to AmbiX format |
 |ambx2sh.m| AmbiX to SH format |
 
+
+# Filter Toolbox
+
+## FT Time-varying Exponentiation
+| File | Description |
+| --- | --- | 
+|ft_exp_conv_opt.m| Exponentiated convolution optimized |
+|ft_exp_conv_direct.m| Exponentiated convolution direct |
+|ft_exp_design.m| Exponentiating FIR filter design |
+|ft_two_tap_FIR.m| Two-tap FIR filter design |
+|ft_rec_conv_opt.m| Recursive convolution optimized |
+|ft_rec_conv_direct.m| Recursive convolution direct |
+
+## FT Filter Fitting
+| File | Description |
+| --- | --- | 
+|ft_fit_bnd_minphase.m| Magnitude bounded minimum phase FIR fit to magnitude targets|
+|ft_freq_wt.m | Frequency weighting functions|
+
+# Gaussian Processes
+
+| File | Description |
+| --- | --- | 
+|gp_mu.m| Prior mean function selector|
+|gp_cov.m| Covariance function selector |
+|gp_t60_optimize.m | Hyper-parameter optimization of T60 model|
+|gp_t60_sample.m | T60 function sampling from GP prior or posterior|
+|gp_plt.m| Plotting |
+|mu_pow.m| Power-law prior mean function |
+|mu_lpf.m| Low-pass prior mean function |
+|cov_sqx_chw_ns.m| Squared exponential chordal x non-stationary frequency covariance function |
+|cov_sqx_chw_sqx.m| Squared exponential chordal x squared exponential frequency covariance function |

@@ -25,10 +25,10 @@ startup
 
 | Folder | Description |
 | --- | --- | 
-| sh | Spherical harmonics functions |
-| ft | Time-varying filtering|
-| gp | Spherical x frequency Gaussian processes |
-| err | Error functions|
+| sh | Spherical harmonics |
+| ft | Filtering|
+| gp |  Gaussian processes |
+| err | Error metrics|
 | plt | Plotting examples |
 |tst| Unit testing |
 

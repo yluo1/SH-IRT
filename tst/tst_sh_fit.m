@@ -1,5 +1,5 @@
-function [err, h_ref, h_fit] = plot_sh_fit_example(mode, err_name, options)
-%Plot sh_fit_* modes
+function [err, h_ref, h_fit] = tst_sh_fit(mode, err_name, options)
+%Test sh_fit_* modes
 
 %Author: Yuancheng Luo, 2026
 
@@ -43,21 +43,21 @@ function [err, h_ref, h_fit] = plot_sh_fit_example(mode, err_name, options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage:  Evaluate and plot sample fits
 
-%[err_svd]      = plot_sh_fit_example('TSVD', 'NSHMSQ', 'svd_trunc_frac', 0.1)
-%[err_SqExp0]   = plot_sh_fit_example('SqExp', 'NSHMSQ', 'rbf_max_iter', 0)
+%[err_svd]      = tst_sh_fit('TSVD', 'NSHMSQ', 'svd_trunc_frac', 0.1)
+%[err_SqExp0]   = tst_sh_fit('SqExp', 'NSHMSQ', 'rbf_max_iter', 0)
 
-%[err_SqExp]    = plot_sh_fit_example('SqExp', 'NSHMSQ')
-%[err_Exp]      = plot_sh_fit_example('Exp', 'NSHMSQ')
+%[err_SqExp]    = tst_sh_fit('SqExp', 'NSHMSQ')
+%[err_Exp]      = tst_sh_fit('Exp', 'NSHMSQ')
 
 %varargin       = {'max_odr', 5, 'max_odr_fit', 10, 'N_pts', 100};
-%[err_svd]      = plot_sh_fit_example('TSVD', 'NSHMSQ', varargin{:}, 'svd_mode', 'picard', 'svd_trunc_frac', 0.5)
+%[err_svd]      = tst_sh_fit('TSVD', 'NSHMSQ', varargin{:}, 'svd_mode', 'picard', 'svd_trunc_frac', 0.5)
 
-%[err_tr]       = plot_sh_fit_example('TRegu', 'NSHMSQ', varargin{:}, 'tr_mode', 'picard', 'tr_lambda', 0.5)
+%[err_tr]       = tst_sh_fit('TRegu', 'NSHMSQ', varargin{:}, 'tr_mode', 'picard', 'tr_lambda', 0.5)
 
-%[err_SqExp]    = plot_sh_fit_example('SqExp', 'NSHMSQ', varargin{:})
-%[err_Mat52]    = plot_sh_fit_example('Mat52', 'NSHMSQ', varargin{:})
-%[err_Mat32]    = plot_sh_fit_example('Mat32', 'NSHMSQ', varargin{:})
-%[err_Exp]      = plot_sh_fit_example('Exp', 'NSHMSQ', varargin{:})
+%[err_SqExp]    = tst_sh_fit('SqExp', 'NSHMSQ', varargin{:})
+%[err_Mat52]    = tst_sh_fit('Mat52', 'NSHMSQ', varargin{:})
+%[err_Mat32]    = tst_sh_fit('Mat32', 'NSHMSQ', varargin{:})
+%[err_Exp]      = tst_sh_fit('Exp', 'NSHMSQ', varargin{:})
 
 arguments
     mode (1,:) char {mustBeMember(mode, {'TSVD', 'TRegu', 'SqExp', 'Mat52', 'Mat32', 'Exp'} )} = 'TSVD';
@@ -154,8 +154,8 @@ end
 h_ref = [];
 h_fit = [];
 if options.enable_disp
-    h_ref = sh_plt(C, 'mercator', is_real, 'dB_lim', options.disp_dB_lim, 'title_name', 'Reference', 'disp_theta_phi', [theta, phi]);
-    h_fit = sh_plt(C_fit, 'mercator', is_real, 'dB_lim', options.disp_dB_lim, 'title_name', mode, 'disp_theta_phi', [theta, phi]); 
+    h_ref = sh_plt(C, 'mercator', is_real, 'dB_lim', options.disp_dB_lim, 'title_name', 'Reference', 'disp_theta_phi', [theta, phi], 'disp_theta_phi_markersize', 8);
+    h_fit = sh_plt(C_fit, 'mercator', is_real, 'dB_lim', options.disp_dB_lim, 'title_name', mode); 
 
     h_ref = h_ref{1};
     h_fit = h_fit{1};

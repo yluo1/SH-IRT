@@ -1,15 +1,15 @@
 function D = sh_freqz(C, w)
-%Frequency response of spherical harmonic expansion
+%Compute frequency response of spherical harmonic expansions over time samples
 
 %Author: Yuancheng Luo, 2026
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
-%C:         [(P + 1)^2 x M] SH coefficients
-%w:         [1 x M_w] Angular frequency (radians / sample)
+%C:         [(P + 1)^2 x M] SH coefficients over M time samples
+%w:         [1 x M_w] Angular frequency (radians / sample) [0 to 2 * pi]
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
-%D:          [(P + 1)^2 x M] SH coefficients
+%D:         [(P + 1)^2 x M_w] SH coefficients at angular frequencies
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage:  Get frequency response of SH random field

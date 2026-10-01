@@ -67,16 +67,11 @@ function C = sh_enc_rbf(mode, max_odr, theta, phi, ell, is_real, enable_disp)
 % enable_disp = true;
 % 
 % C_SqExp = sh_enc_rbf('SqExp', max_odr, theta, phi, ell, is_real, enable_disp);
-% C_SqExpNonneg = sh_enc_rbf('SqExpNonneg', max_odr, theta, phi, ell, is_real, enable_disp);
 % 
 % C_Mat52 = sh_enc_rbf('Mat52', max_odr, theta, phi, ell, is_real, enable_disp);
 % C_Mat32 = sh_enc_rbf('Mat32', max_odr, theta, phi, ell, is_real, enable_disp);
 % 
 % C_Exp = sh_enc_rbf('Exp', max_odr, theta, phi, ell, is_real, enable_disp);
-% C_ExpNonneg = sh_enc_rbf('ExpNonneg', max_odr, theta, phi, ell, is_real, enable_disp);
-% 
-% C_Sinc = sh_enc_rbf('Sinc', max_odr, theta, phi, ell / 2, is_real, enable_disp);
-% C_SincNum = sh_enc_rbf('SincNum', max_odr, theta, phi, ell / 2, is_real, enable_disp);
 % 
 % rng(543);
 % N_eval = 1000;

@@ -1,4 +1,4 @@
-function [C, err] = sh_fit_rbf(X, theta, phi, max_odr, is_real, mode, ell, lambda, options)
+function [C, err, out] = sh_fit_rbf(X, theta, phi, max_odr, is_real, mode, ell, lambda, options)
 %Radial basis function (RBF) kernel expansion:
 %C = K_exp *  (K + lambda * I)^(-1) * (X - mean(X, 1));
 
@@ -40,8 +40,13 @@ function [C, err] = sh_fit_rbf(X, theta, phi, max_odr, is_real, mode, ell, lambd
 %C:                 [(max_odr + 1)^2 x M] SH coefficients
 %err:               Scalar, norm(Y*C - X);
 
+%out:               struct, hyper parameters and objective
+%out.ell:           Spatial bandwidth
+%out.lambda:        Noise variance
+%out.fval:          Objective function eval
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Sample usage: See plot_sh_fit_example.m
+%Sample usage: See plot_sh_fit_rbf_example.m
 
 arguments
     X (:,:) double {coder.mustBeComplex} = complex(0);
@@ -76,39 +81,46 @@ X_centered = bsxfun(@minus, X, X_mean); % Center observations about mean
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Maximize log marginal likelihood
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if options.max_iter > 0
+if strcmp(options.objective, 'NLMH')
 
-    param_list_0 = [ell, lambda]';
-    if strcmp(options.objective, 'NLMH')
+    options_fmincon = optimoptions("fmincon", SpecifyObjectiveGradient=true, Display="final", checkGradients=false, ...
+        ScaleProblem=true, ...
+        FunctionTolerance=1e-8, ConstraintTolerance=1e-8, OptimalityTolerance=1e-10, StepTolerance=1e-8, ...
+        MaxIterations=options.max_iter, MaxFunctionEvaluations=10000);
 
-        options_fmincon = optimoptions("fmincon", SpecifyObjectiveGradient=true, Display="final", checkGradients=false, ...
-            ScaleProblem=true, ...
-            FunctionTolerance=1e-8, ConstraintTolerance=1e-8, OptimalityTolerance=1e-10, StepTolerance=1e-8, ...
-            MaxIterations=options.max_iter, MaxFunctionEvaluations=10000);
+    func_obj = @(x) neg_log_marginal_likelihood(x, mode, D, X_centered);
 
-        func_obj = @(x) neg_log_marginal_likelihood(x, mode, D, X_centered);
+elseif strcmp(options.objective, 'MSE')
 
-    elseif strcmp(options.objective, 'MSE')
+    options_fmincon = optimoptions("fmincon", SpecifyObjectiveGradient=false, Display="iter", checkGradients=false, ...
+        ScaleProblem=true, ...
+        FunctionTolerance=1e-8, ConstraintTolerance=1e-8, OptimalityTolerance=1e-10, StepTolerance=1e-8, ...
+        MaxIterations=options.max_iter, MaxFunctionEvaluations=10000);
 
-        options_fmincon = optimoptions("fmincon", SpecifyObjectiveGradient=false, Display="iter", checkGradients=false, ...
-            ScaleProblem=true, ...
-            FunctionTolerance=1e-8, ConstraintTolerance=1e-8, OptimalityTolerance=1e-10, StepTolerance=1e-8, ...
-            MaxIterations=options.max_iter, MaxFunctionEvaluations=10000);
+    func_obj = @(x) mean_squared_error(x, theta, phi, max_odr, is_real, mode, ...
+        D, X_centered, sh_val(max_odr, theta, phi, is_real));
 
-        func_obj = @(x) mean_squared_error(x, theta, phi, max_odr, is_real, mode, ...
-            D, X_centered, sh_val(max_odr, theta, phi, is_real));
+else
+    error('Unsupported options.objective')
+end
 
-    else
-        error('Unsupported options.objective')
-    end
+param_list_0 = [ell, lambda]';
+if options.max_iter > 0 % Optimize hyper parameters
+
     [param_list, fval, exitflag] = fmincon(func_obj, ... 
         param_list_0, [], [], [], [], options.lb, options.ub, [], options_fmincon);
     
-    ell     = param_list(1)
-    lambda  = param_list(2)
+    ell     = param_list(1);
+    lambda  = param_list(2);
+
+else
+
+    fval = func_obj(param_list_0);
 
 end
+fprintf("Objective %s: %.3f, ell %.6f, lambda %.6f\n",  options.objective, fval, ell, lambda);    
 
+% Compute SH expansion
 K = rbf_val(mode, D, ell);
 K_inv_X = (K + lambda * eye(N)) \ X_centered;
 
@@ -119,6 +131,11 @@ C(1, :) = C(1, :) + X_mean * 2 * sqrt(pi); % Add mean
 if nargout > 1
     Y   = sh_val(max_odr, theta, phi, is_real);
     err = norm(Y * C - X);
+end
+
+% Fill output struct
+if nargout > 2
+    out = struct('ell', ell, 'lambda', lambda, 'fval', fval);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -35,9 +35,9 @@ function [C, err, h_figs] = sh_fit_tr(X, theta, phi, max_odr, is_real, lambda, m
 %options.W:             [], [N x 1], or [N x N] weighting matrix for weighted least squares
 %                       [] uniform weighting
 %                       [N x 1] Positive weight vector
-%                           min_C ||diag(W.^(1/2)) * (Y(theta, phi) * C - X)||^2 + lambda * C'*Q*C
+%                           min_C ||diag(W.^(1/2)) * (Y(theta, phi) * C - X)||^2 + C'*Q*C
 %                       [N x N] Positive definite weight matrix
-%                           min_C ||chol(W) * (Y(theta, phi) * C - X)||^2 + lambda * C'*Q*C
+%                           min_C ||chol(W) * (Y(theta, phi) * C - X)||^2 + C'*Q*C
 
 %options.enable_disp:   Logical, if true, plot fit and Picard plot
 

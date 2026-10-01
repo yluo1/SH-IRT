@@ -108,13 +108,13 @@ if contains(options.fit_method, 'constr_min_phase')
     X_mag = [H_tgt_abs_DC_NQ, fliplr(H_tgt_abs_DC_NQ(2:end-1))];
 
     if strcmp(options.fit_method, 'constr_min_phase_ls')
-        mode_ft_bnd_minphase = 'least_squares';
+        mode_ft_fit_bnd_minphase = 'least_squares';
     elseif strcmp(options.fit_method, 'constr_min_phase_minimax')
-        mode_ft_bnd_minphase = 'minimax';
+        mode_ft_fit_bnd_minphase = 'minimax';
     else
         error('Unsupported mode');
     end
-    [g, g_minphase, err, lambda] = ft_bnd_minphase(X_mag(:), min(numel(X_mag), num_taps), 'ub', 1 - options.tol0, 'mode', mode_ft_bnd_minphase);
+    [g, g_minphase, err, lambda] = ft_fit_bnd_minphase(X_mag(:), min(numel(X_mag), num_taps), 'ub', 1 - options.tol0, 'mode', mode_ft_fit_bnd_minphase);
 
     g = g(:)';
     g = [g, zeros(1, num_taps - numel(g))];
