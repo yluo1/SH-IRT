@@ -1,6 +1,10 @@
 function [C, err, trunc_percent, h_figs] = sh_fit_svd(X, theta, phi, max_odr, is_real, trunc_frac, mode, options)
-%Truncated singular value decomposition least squares fit of spherical harmonic bases 
-%min_C ||Y(theta, phi) * C - X||^2 for SH bases Y evaluated at theta, phi, coefficients C
+%Truncated singular value decomposition least squares fit of spherical harmonic bases: 
+%min_C ||Y(theta, phi) * C - X||^2 
+%C is unknown complex spherical harmonic coefficients,
+%Y is spherical harmonic basis evaluations,
+%X is complex observation vector or matrix,
+%Solution:  C = V * inv_S' * U' * X for truncated inverse singular values S, singular vectors U, V
 
 %Different modes zero the inverse singular values: inv_singular_values(mask) = 0
 

@@ -79,7 +79,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 | File | Description |
 | --- | --- | 
 |sh_fit_svd.m | Truncated singular value decomposition least squares |
-|sh_fit_tr.m | Tikhonov regularized least squares |
+|sh_fit_tr.m | Tikhonov regularized least squares: l2 norm, quadratic degree penalty, discrete Picard criterion |
 |sh_fit_rbf.m | Radial basis function fitting: Squared exponential, Matérn, exponential |
 |sh_fit_msq.m | Magnitude squared least-squares: Magnitude squared, sum-of-magnitude squared, mix-of-magnitude squared, mixture power|
 
@@ -148,7 +148,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 | File | Description |
 | --- | --- | 
 |ft_fit_bnd_minphase.m| Magnitude bounded minimum phase FIR fit to magnitude targets|
-|ft_fit_tr.m | Tiknonov regularized least squares|
+|ft_fit_tr.m | Tiknonov regularized least squares: l2 norm, Gauss and circular Gauss window, discrete Picard criterion |
 |ft_freq_wt.m | Frequency weighting functions|
 
 # Gaussian Processes

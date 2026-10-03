@@ -1,6 +1,11 @@
 function [C, err, h_figs] = sh_fit_tr(X, theta, phi, max_odr, is_real, lambda, mode, options)
-%Tikhonov regularization least squares: min_C ||Y(theta, phi) * C - X||^2 + C'*Q*C
-%C = (Y'Y + Q)^(-1) * Y' * X
+%Tikhonov regularization least squares:
+%min_C ||Y(theta, phi) * C - X||^2 + C'*Q*C
+%C is unknown complex spherical harmonic coefficients,
+%Y is spherical harmonic basis evaluations, 
+%X is complex observation vector or matrix,
+%Q is regularization matrix
+%Solution: C = (Y'Y + Q) \ (Y' * X)
 
 %mode = 'identity'  unity Q, penalize squared Euclidean norm of C
 %Q = lambda * I

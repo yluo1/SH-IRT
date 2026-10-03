@@ -1,14 +1,19 @@
 function [h, err, h_figs] = ft_fit_tr(X, w, num_taps, lambda, mode, options)
-%Regularized least squares fit of FIR filters h to frequency response matrix X
-%min_h ||F(w) * h - X||^2 + h'*Q*h,   h is real, F is Fourier transform matrix at w
+%Regularized least squares fit of FIR filters h to frequency response matrix X:
+%min_h ||F(w) * h - X||^2 + h'*Q*h,
+%h is real unknowns,
+%F is Fourier transform matrix at angular frequency w, 
+%X is complex observation vector or matrix,
+%Q is regularization matrix
+%Solution: h = real(F' * F + Q) \ real(F' * X)
 
 %mode = 'identity'  unity Q, penalize squared Euclidean norm of h
 %Q = lambda * I
 
-%mode == 'gauss'    Complementary Gaussian shaped weights for regularization of h 
+%mode == 'gauss'    Complementary Gaussian shaped window for regularization of h 
 %Q = lambda * diag(q),     q(n) = 1 - exp( - ( (n-1) - gauss_mu )^2 / (2 * gauss_std^2) )
 
-%mode == 'gauss'    Complementary circular Gaussian shaped weights for regularization of h 
+%mode == 'gauss'    Complementary circular Gaussian shaped window for regularization of h 
 %Q = lambda * diag(q),     q(n) = c - sum_k exp( - ( (n-1) - gauss_mu + k * num_taps )^2 / (2 * gauss_std^2) ), k = -inf to inf, c = max(exp_sum)
 
 %mode = 'picard'    minimum regularization of ascending singular values below the Picard crossover index given by
