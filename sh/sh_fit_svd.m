@@ -46,7 +46,7 @@ function [C, err, trunc_percent, h_figs] = sh_fit_svd(X, theta, phi, max_odr, is
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
 %C:                 [(max_odr + 1)^2 x M] SH coefficients
-%err:               Scalar, norm(Y*C - X);
+%err:               Scalar, norm( W^(1/2) * (Y * C - X) )
 %trunc_percent:     Percentage of singular values truncated
 %h_figs:            Handle to figures
 

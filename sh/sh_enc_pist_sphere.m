@@ -23,7 +23,8 @@ function [C, h_fig] = sh_enc_pist_sphere(max_odr, theta_center, phi_center, radi
 %options.c:                 Speed of sound (meters / second)
 %options.po:                Air density (kg / meter^3)
 %options.u0:                Initial velocity (meters / second)
-%options.normalize_onaxis:  Logical, if true, normalize to piston's center axis to unity
+
+%options.normalize_piston_axis:  Logical, if true, normalize to piston's center axis to unity
 
 %options.enable_disp:       Logical, if true, plot frequency responses on horizontal plane
 

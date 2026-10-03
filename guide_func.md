@@ -148,6 +148,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 | File | Description |
 | --- | --- | 
 |ft_fit_bnd_minphase.m| Magnitude bounded minimum phase FIR fit to magnitude targets|
+|ft_fit_tr.m | Tiknonov regularized least squares|
 |ft_freq_wt.m | Frequency weighting functions|
 
 # Gaussian Processes

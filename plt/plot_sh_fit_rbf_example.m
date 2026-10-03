@@ -59,6 +59,7 @@ varargin = {'max_odr', 5, 'max_odr_fit', 10, 'N_pts', 100};
 [err_Mat32, ~, h_Mat32]     = tst_sh_fit('Mat32', 'NSHMSQ', varargin{:});
 [err_Exp, ~, h_Exp]         = tst_sh_fit('Exp', 'NSHMSQ', varargin{:});
 
+err_svd
 err_tr
 err_SqExp
 err_Mat52
