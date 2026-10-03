@@ -65,8 +65,8 @@ function [h, err, h_figs] = ft_fit_tr(X, w, num_taps, lambda, mode, options)
 % w  = hz / Fs * (2 * pi);
 % r = 3; % Evaluation distance
 % radius = 0.25; % Spherical baffle radius
-% C_ff = sh_enc_pist_sphere(40, pi/2, 0, radius, deg2rad(20), hz, r, 'enable_disp', true);
-% X = sh_dec(C_ff, pi/2, deg2rad(15), false).';
+% C = sh_enc_pist_sphere(40, pi/2, 0, radius, deg2rad(20), hz, r, 'enable_disp', true);
+% X = sh_dec(C, pi/2, deg2rad(15), false).';
 
 % N_taps = 1024;
 % [h_gauss, err_gauss] = ft_fit_tr(X, w, N_taps, 1e-3, 'gauss', 'gauss_mu', (r - radius) /343 * Fs, 'gauss_std', 200, 'enable_disp', true); err_gauss
@@ -81,8 +81,8 @@ function [h, err, h_figs] = ft_fit_tr(X, w, num_taps, lambda, mode, options)
 % w  = hz / Fs * (2 * pi);
 % r = 3; % Evaluation distance
 % radius = 0.25; % Spherical baffle radius
-% C_ff = sh_enc_pist_sphere(40, pi/2, 0, radius, deg2rad(20), hz, r, 'normalize_piston_axis', true, 'enable_disp', true);
-% X = sh_dec(C_ff, pi/2, deg2rad(15), false).';
+% C = sh_enc_pist_sphere(40, pi/2, 0, radius, deg2rad(20), hz, r, 'normalize_piston_axis', true, 'enable_disp', true);
+% X = sh_dec(C, pi/2, deg2rad(15), false).';
 
 % N_taps = 64;
 % [h_picard_log, err_picard_log] = ft_fit_tr(X, w, N_taps, 0.5, 'picard', 'picard_log_transform', true, 'enable_disp', true); err_picard_log

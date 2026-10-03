@@ -1,5 +1,5 @@
 function plot_sh_fit_svd_example
-%Plot sh_fit_svd modes
+%Plot sh_fit_svd.m modes
 
 %Author: Yuancheng Luo, 2026
 
