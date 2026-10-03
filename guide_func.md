@@ -48,7 +48,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 
 ## SH Operators
 | File | Description |
-| --- | --- | 
+| :--- | :--- | 
 | sh_rot.m | Rotation | 
 | sh_refl.m | Reflection | 
 | sh_mul.m | Multiplication | 
@@ -64,21 +64,21 @@ and is vectorized in the same format as the complex case. In such instances, the
 
 ## SH Evaluations
 | File | Description |
-| --- | --- | 
+| :--- | :--- | 
 |sh_val.m| Evaluate SH bases |
 |sh_dec.m| Evaluate SH expansions |
 
 ## SH Spatial Room Impulse Response Generation
 | File | Description |
-| --- | --- | 
+| :--- | :--- | 
 |sh_ism.m| Image-source model |
 |sh_rand.m| Random field |
 |sh_rand_pp.m| Poisson process |
 
 ## SH Basis Fitting
 | File | Description |
-| --- | --- | 
-|sh_fit_svd.m | Truncated singular value decomposition least squares |
+| :--- | :--- | 
+|sh_fit_svd.m | Truncated singular value decomposition least squares: Maximum singular value fraction, total variance fraction, bottom fraction, discrete Picard criterion |
 |sh_fit_tr.m | Tikhonov regularized least squares: l2 norm, quadratic degree penalty, discrete Picard criterion |
 |sh_fit_rbf.m | Radial basis function fitting: Squared exponential, Matérn, exponential |
 |sh_fit_msq.m | Magnitude squared least-squares: Magnitude squared, sum-of-magnitude squared, mix-of-magnitude squared, mixture power|
@@ -86,7 +86,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 
 ## SH Filtering
 | File | Description |
-| --- | --- | 
+| :--- | :--- | 
 |sh_filter.m | Filter time domain SH expansion |
 |sh_filter_freq.m | Filter frequency domain SH expansion |
 |sh_filter_dir.m | Directional filtering |
@@ -97,7 +97,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 
 ## SH Function Encodings
 | File | Description |
-| --- | --- | 
+| :--- | :--- | 
 |sh_enc_proj.m | Dirac-delta projection into spherical harmonics |
 |sh_enc_proj_msq.m | Dirac-delta projection magnitude square into spherical harmonics |
 |sh_enc_uni.m | Constant function |
@@ -106,7 +106,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 
 ## SH Probability Density Functions
 | File | Description |
-| --- | --- | 
+| :--- | :--- | 
 |sh_pdf_fit.m | Density function fitting|
 |sh_pdf_dist.m | Density function distances: Spherical sliced Wasserstein, Kullback-Lieber divergence|
 |sh_pdf_sample.m | Sampling spherical coordinates from density|
@@ -118,15 +118,15 @@ and is vectorized in the same format as the complex case. In such instances, the
 
 ## SH Spherical Coordinate Grids
 | File | Description |
-| --- | --- | 
-|sh_grd_fib.m| Generate spherical Fibonacci points |
-|sh_grd_plat.m| Generate platonic solid vertex points |
-|sh_grd_rand.m | Generate uniform random spherical coordinates |
-|sh_grd_caps.m| Generate uniform points along co-latitude and azimuth |
+| :--- | :--- | 
+|sh_grd_fib.m| Spherical Fibonacci points |
+|sh_grd_plat.m| Platonic solid vertex points |
+|sh_grd_caps.m| Uniform points along co-latitude and azimuth (polar concentrated)|
+|sh_grd_rand.m | Uniform random spherical coordinates |
 
 ## SH Miscellaneous
 | File | Description |
-| --- | --- | 
+| :--- | :--- | 
 |sh_plt.m| Plot SH expansion|
 |sh2ambx.m| SH to AmbiX format |
 |ambx2sh.m| AmbiX to SH format |
@@ -136,7 +136,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 
 ## FT Time-varying Exponentiation
 | File | Description |
-| --- | --- | 
+| :--- | :--- | 
 |ft_exp_conv_opt.m| Exponentiated convolution optimized |
 |ft_exp_conv_direct.m| Exponentiated convolution direct |
 |ft_exp_design.m| Exponentiating FIR filter design |
@@ -146,7 +146,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 
 ## FT Filter Fitting
 | File | Description |
-| --- | --- | 
+| :--- | :--- | 
 |ft_fit_bnd_minphase.m| Magnitude bounded minimum phase FIR fit to magnitude targets|
 |ft_fit_tr.m | Tiknonov regularized least squares: l2 norm, Gauss and circular Gauss window, discrete Picard criterion |
 |ft_freq_wt.m | Frequency weighting functions|
@@ -154,7 +154,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 # Gaussian Processes
 
 | File | Description |
-| --- | --- | 
+| :--- | :--- | 
 |gp_mu.m| Prior mean function selector|
 |gp_cov.m| Covariance function selector |
 |gp_t60_optimize.m | Hyper-parameter optimization of T60 model|
