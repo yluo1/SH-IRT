@@ -187,14 +187,17 @@ if any( strcmp(mode, {'identity', 'exp', 'circularexp', 'lognorm'} ) )
         u = roots([1, -1, 0, 0, -options.lognorm_std^2 / options.lognorm_mode^2]);
         u_real_roots = u(abs(imag(u)) <= 1e-8 );
         u_pos_real = u_real_roots(u_real_roots > 0);
-        u_pos_real = u_pos_real(1);
 
         if ~isempty(u_pos_real)
+
+            u_pos_real = u_pos_real(1);
+
             log_var = log(u_pos_real);
             log_mu  = log(options.lognorm_mode) + log_var;
 
             q = 1 - exp( - (log(ndx) - log_mu).^2 / (2 * log_var) );
             Q = lambda * diag(q);
+            
         else
             error('Invalid lognorm_mode or lognorm_std');
         end
