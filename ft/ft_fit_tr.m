@@ -44,8 +44,11 @@ function [h, err, h_figs] = ft_fit_tr(X, w, num_taps, lambda, mode, options)
 %                       [N x N] Positive definite weight matrix
 %                           min_h ||chol(W) * (F(w) * h - X)||^2 + h'*Q*h
 
-%options.exp_mu:      Mean delay regularization weights for mode is 'exp', 'circularexp', 'lognorm'
+%options.exp_mu:      Mean delay regularization weights for mode = 'exp', 'circularexp', 'lognorm'
 %options.exp_std:     Standard deviation delay regularization weights for mode = 'exp', 'circularexp', 'lognorm'
+
+%options.lognorm_mu:      Mode delay regularization weights for mode = 'lognorm'
+%options.lognorm_std:     Standard deviation delay regularization weights for mode ='lognorm'
 
 %options.picard_log_transform:  Logical, if true, solve log-transform of linear program (numerically stable for small singular values),
 %                               minimizes sum_i log_gamma_i where sigma_i^2 gamma_i = sigma_i^2 + d_i
@@ -73,7 +76,7 @@ function [h, err, h_figs] = ft_fit_tr(X, w, num_taps, lambda, mode, options)
 
 % N_taps = 1024;
 % [h_exp, err_exp] = ft_fit_tr(X, w, N_taps, 1e-3, 'exp', 'exp_mu', (r - radius) /343 * Fs, 'exp_std', 200, 'enable_disp', true); err_exp
-% [h_lognorm, err_lognorm] = ft_fit_tr(X, w, N_taps, 1e-3, 'lognorm', 'exp_mu', (r - radius) /343 * Fs, 'exp_std', 200, 'enable_disp', true); err_lognorm
+% [h_lognorm, err_lognorm] = ft_fit_tr(X, w, N_taps, 1e-3, 'lognorm', 'lognorm_mode', (r - radius) /343 * Fs, 'lognorm_std', 50, 'enable_disp', true); err_lognorm
 
 % [h_id, err_id] = ft_fit_tr(X, w, N_taps, 1e-1, 'identity', 'enable_disp', true); err_id
 % [h_picard, err_picard] = ft_fit_tr(X, w, N_taps, 0.5, 'picard', 'enable_disp', true); err_picard
@@ -96,7 +99,7 @@ function [h, err, h_figs] = ft_fit_tr(X, w, num_taps, lambda, mode, options)
 % [h_id, err_id] = ft_fit_tr(X, w, N_taps, 1e-1, 'identity', 'enable_disp', true); err_id
 % [h_exp, err_exp] = ft_fit_tr(X, w, N_taps, 1e-1, 'exp', 'exp_std', 20, 'enable_disp', true); err_exp
 % [h_cexp, err_cexp] = ft_fit_tr(X, w, N_taps, 1e-1, 'circularexp', 'exp_std', 20, 'enable_disp', true); err_cexp
-% [h_lognorm, err_lognorm] = ft_fit_tr(X, w, N_taps, 1e-1, 'lognorm', 'exp_std', 20, 'enable_disp', true); err_lognorm
+% [h_lognorm, err_lognorm] = ft_fit_tr(X, w, N_taps, 1e-1, 'lognorm', 'lognorm_std', 20, 'enable_disp', true); err_lognorm
 
 arguments
     X (:,:) double = 1;
@@ -112,6 +115,9 @@ arguments
 
     options.exp_mu (1,1) double = 0;
     options.exp_std (1,1) double {mustBePositive} = 100;
+
+    options.lognorm_mode (1,1) double {mustBeNonnegative} = 1;
+    options.lognorm_std (1,1) double {mustBePositive} = 50;
 
     options.picard_log_transform (1,1) logical = true;
 
@@ -177,10 +183,21 @@ if any( strcmp(mode, {'identity', 'exp', 'circularexp', 'lognorm'} ) )
 
     elseif strcmp(mode, 'lognorm')
     
-        log_mu = log( options.exp_mu^2 / sqrt( options.exp_mu^2 + options.exp_std.^2 ) );
-        log_var = log( 1 + (options.exp_std.^2) / (options.exp_mu^2) );
-        q = 1 - exp( - (log(ndx) - log_mu).^2 / (2 * log_var) );
-        Q = lambda * diag(q);
+        %(u - 1) * u^3 - var_x^2 / mode_x^2 = 0, where u = exp(var)
+        u = roots([1, -1, 0, 0, -options.lognorm_std^2 / options.lognorm_mode^2]);
+        u_real_roots = u(abs(imag(u)) <= 1e-8 );
+        u_pos_real = u_real_roots(u_real_roots > 0);
+        u_pos_real = u_pos_real(1);
+
+        if ~isempty(u_pos_real)
+            log_var = log(u_pos_real);
+            log_mu  = log(options.lognorm_mode) + log_var;
+
+            q = 1 - exp( - (log(ndx) - log_mu).^2 / (2 * log_var) );
+            Q = lambda * diag(q);
+        else
+            error('Invalid lognorm_mode or lognorm_std');
+        end
 
     else
         error('Unsupported mode');

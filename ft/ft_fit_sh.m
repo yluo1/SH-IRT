@@ -17,7 +17,8 @@ function [h, err, h_figs] = ft_fit_sh(C, w, is_real, num_taps, mode, options)
 %Q = lambda * diag(q),     q(n) = c - sum_k exp( - ( (n-1) - exp_mu + k * num_taps )^2 / (2 * exp_std^2) ), k = -inf to inf, c = max(exp_sum)
 
 %mode == 'lognorm'    Complementary log-normal shaped window for regularization of h 
-%Q = lambda * diag(q),     q(n) = 1 - exp( - ( log(n-1) - log_mu )^2 / (2 * log_std^2) )
+%Q = lambda * diag(q),     q(n) = 1 - exp( - ( log(n-1) - log_mu )^2 / (2 * log_var) )
+%where log_mu, log_var are designed from density function's mode and var
 
 %Author: Yuancheng Luo, 2026
 
@@ -30,8 +31,13 @@ function [h, err, h_figs] = ft_fit_sh(C, w, is_real, num_taps, mode, options)
 
 %options:               Struct
 
-%options.exp_mu:      Mean delay regularization weights for mode is 'exp', 'circularexp', 'lognorm'
-%options.exp_std:     Standard deviation delay regularization weights for mode = 'exp', 'circularexp', 'lognorm'
+%options.exp_lambda:  Scalar regularization weights for mode = 'exp', 'circularexp'
+%options.exp_mu:      Mean delay regularization weights for mode = 'exp', 'circularexp'
+%options.exp_std:     Standard deviation delay regularization weights for mode = 'exp', 'circularexp'
+
+%options.lognorm_lambda:  Scalar regularization term weights for mode = 'lognorm'
+%options.lognorm_mode:    Mode delay regularization weights for mode = 'lognorm'
+%options.lognorm_std:     Standard deviation delay regularization weights for mode ='lognorm'
 
 %options.enable_disp:       Logical, if true, plot filter and fitting error
 %options.disp_M_log:        Number of log-frequency sampling points for display
@@ -58,7 +64,7 @@ function [h, err, h_figs] = ft_fit_sh(C, w, is_real, num_taps, mode, options)
 % is_real = false;
 % h_fit_exp = ft_fit_sh(C, w, is_real, num_taps, 'exp', 'exp_mu', (r - radius) / 343 * Fs, 'exp_std', 100, ...
 %                   'enable_disp', true, 'disp_dB_lim', [-20, 60], 'disp_err_dB_lim', [-80, 10]);
-% h_fit_lognorm = ft_fit_sh(C, w, is_real, num_taps, 'lognorm', 'exp_mu', (r - radius + 0.1) / 343 * Fs, 'exp_std', 100, ...
+% h_fit_lognorm = ft_fit_sh(C, w, is_real, num_taps, 'lognorm', 'lognorm_mode', (r - radius) / 343 * Fs, 'lognorm_std', 100, ...
 %                   'enable_disp', true, 'disp_dB_lim', [-20, 60], 'disp_err_dB_lim', [-80, 10]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -88,6 +94,10 @@ arguments
     options.exp_lambda (1,1) double {mustBeNonnegative} = 1;
     options.exp_mu (1,1) double = 0;
     options.exp_std (1,1) double {mustBePositive} = 100;
+
+    options.lognorm_lambda (1,1) double {mustBeNonnegative} = 1;
+    options.lognorm_mode (1,1)  double  {mustBeNonnegative} = 1;
+    options.lognorm_std (1,1) double {mustBePositive} = 50;
 
     options.enable_disp (1,1) logical = false;
     options.disp_M_log (1,1) {mustBePositive, mustBeInteger} = 2048;
@@ -128,10 +138,21 @@ if any( strcmp(mode, {'identity', 'exp', 'circularexp', 'lognorm'} ) )
 
     elseif strcmp(mode, 'lognorm')
     
-        log_mu = log( options.exp_mu^2 / sqrt( options.exp_mu^2 + options.exp_std.^2 ) );
-        log_var = log( 1 + (options.exp_std.^2) / (options.exp_mu^2) );
-        q = 1 - exp( - (log(ndx) - log_mu).^2 / (2 * log_var) );
-        Q = options.exp_lambda * diag(q);
+        %(u - 1) * u^3 - var_x^2 / mode_x^2 = 0, where u = exp(var)
+        u = roots([1, -1, 0, 0, -options.lognorm_std^2 / options.lognorm_mode^2]);
+        u_real_roots = u(abs(imag(u)) <= 1e-8 );
+        u_pos_real = u_real_roots(u_real_roots > 0);
+        u_pos_real = u_pos_real(1);
+
+        if ~isempty(u_pos_real)
+            log_var = log(u_pos_real);
+            log_mu  = log(options.lognorm_mode) + log_var;
+
+            q = 1 - exp( - (log(ndx) - log_mu).^2 / (2 * log_var) );
+            Q = options.lognorm_lambda * diag(q);
+        else
+            error('Invalid lognorm_mode or lognorm_std');
+        end
 
     else
         error('Unsupported mode');
