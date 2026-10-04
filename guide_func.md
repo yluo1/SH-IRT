@@ -55,7 +55,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 | sh_conv.m | Convolution | 
 | sh_nrm.m | Normalizations | 
 | sh_int.m | Integration | 
-| sh_msq.m | Squared magnitude | 
+| sh_msq.m | Magnitude squared| 
 | sh_sqrt.m | Square root magnitude approximation | 
 | sh_conj.m | Conjugation | 
 | sh_cpx2re.m | Complex to real form | 
@@ -148,7 +148,8 @@ and is vectorized in the same format as the complex case. In such instances, the
 | File | Description |
 | :--- | :--- | 
 |ft_fit_bnd_minphase.m| Magnitude bounded minimum phase FIR fit to magnitude targets|
-|ft_fit_tr.m | Tiknonov regularized least squares: l2 norm, Gauss and circular Gauss window, discrete Picard criterion |
+|ft_fit_tr.m | Tiknonov regularized least squares FIR fit to complex targets: l2 norm, exponential and circular exponential window, discrete Picard criterion |
+|ft_fit_sh.m| Tiknonov regularized least squares FIR fit to SH coefficients: l2 norm, exponential and circular exponential window|
 |ft_freq_wt.m | Frequency weighting functions|
 
 # Gaussian Processes

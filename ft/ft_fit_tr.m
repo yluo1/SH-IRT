@@ -10,11 +10,11 @@ function [h, err, h_figs] = ft_fit_tr(X, w, num_taps, lambda, mode, options)
 %mode = 'identity'  unity Q, penalize squared Euclidean norm of h
 %Q = lambda * I
 
-%mode == 'gauss'    Complementary Gaussian shaped window for regularization of h 
-%Q = lambda * diag(q),     q(n) = 1 - exp( - ( (n-1) - gauss_mu )^2 / (2 * gauss_std^2) )
+%mode == 'exp'    Complementary Gaussian shaped window for regularization of h 
+%Q = lambda * diag(q),     q(n) = 1 - exp( - ( (n-1) - exp_mu )^2 / (2 * exp_std^2) )
 
-%mode == 'gauss'    Complementary circular Gaussian shaped window for regularization of h 
-%Q = lambda * diag(q),     q(n) = c - sum_k exp( - ( (n-1) - gauss_mu + k * num_taps )^2 / (2 * gauss_std^2) ), k = -inf to inf, c = max(exp_sum)
+%mode == 'circularexp'    Complementary circular Gaussian shaped window for regularization of h 
+%Q = lambda * diag(q),     q(n) = c - sum_k exp( - ( (n-1) - exp_mu + k * num_taps )^2 / (2 * exp_std^2) ), k = -inf to inf, c = max(exp_sum)
 
 %mode = 'picard'    minimum regularization of ascending singular values below the Picard crossover index given by
 %first ascending singular value normalized CDF / observation projected on left singular value normalized CDF >= lambda
@@ -30,7 +30,7 @@ function [h, err, h_figs] = ft_fit_tr(X, w, num_taps, lambda, mode, options)
 
 %num_taps:      Number of fitted FIR taps
 %lambda:        Scalar regularization term
-%mode:          String, regularization method {'identity', 'gauss', 'circulargauss', 'picard'}
+%mode:          String, regularization method {'identity', 'exp', 'circularexp', 'lognorm', 'picard'}
 
 %options:               Struct
 
@@ -41,8 +41,8 @@ function [h, err, h_figs] = ft_fit_tr(X, w, num_taps, lambda, mode, options)
 %                       [N x N] Positive definite weight matrix
 %                           min_h ||chol(W) * (F(w) * h - X)||^2 + h'*Q*h
 
-%options.gauss_mu:      Mean delay regularization weights for mode is 'gauss', 'circulargauss'
-%options.gauss_std:     Standard deviation delay regularization weights for mode = 'gauss', 'circulargauss'
+%options.exp_mu:      Mean delay regularization weights for mode is 'exp', 'circularexp'
+%options.exp_std:     Standard deviation delay regularization weights for mode = 'exp', 'circularexp'
 
 %options.picard_log_transform:  Logical, if true, solve log-transform of linear program (numerically stable for small singular values),
 %                               minimizes sum_i log_gamma_i where sigma_i^2 gamma_i = sigma_i^2 + d_i
@@ -69,7 +69,7 @@ function [h, err, h_figs] = ft_fit_tr(X, w, num_taps, lambda, mode, options)
 % X = sh_dec(C, pi/2, deg2rad(15), false).';
 
 % N_taps = 1024;
-% [h_gauss, err_gauss] = ft_fit_tr(X, w, N_taps, 1e-3, 'gauss', 'gauss_mu', (r - radius) /343 * Fs, 'gauss_std', 200, 'enable_disp', true); err_gauss
+% [h_exp, err_exp] = ft_fit_tr(X, w, N_taps, 1e-3, 'exp', 'exp_mu', (r - radius) /343 * Fs, 'exp_std', 200, 'enable_disp', true); err_exp
 % [h_id, err_id] = ft_fit_tr(X, w, N_taps, 1e-1, 'identity', 'enable_disp', true); err_id
 % [h_picard, err_picard] = ft_fit_tr(X, w, N_taps, 0.5, 'picard', 'enable_disp', true); err_picard
 
@@ -89,8 +89,8 @@ function [h, err, h_figs] = ft_fit_tr(X, w, num_taps, lambda, mode, options)
 % [h_picard_lin, err_picard_lin] = ft_fit_tr(X, w, N_taps, 0.5, 'picard', 'picard_log_transform', false, 'enable_disp', true); err_picard_lin
 
 % [h_id, err_id] = ft_fit_tr(X, w, N_taps, 1e-1, 'identity', 'enable_disp', true); err_id
-% [h_gauss, err_gauss] = ft_fit_tr(X, w, N_taps, 1e-1, 'gauss', 'gauss_std', 20, 'enable_disp', true); err_gauss
-% [h_cgauss, err_cgauss] = ft_fit_tr(X, w, N_taps, 1e-1, 'circulargauss', 'gauss_std', 20, 'enable_disp', true); err_cgauss
+% [h_exp, err_exp] = ft_fit_tr(X, w, N_taps, 1e-1, 'exp', 'exp_std', 20, 'enable_disp', true); err_exp
+% [h_cexp, err_cexp] = ft_fit_tr(X, w, N_taps, 1e-1, 'circularexp', 'exp_std', 20, 'enable_disp', true); err_cexp
 
 arguments
     X (:,:) double = 1;
@@ -100,12 +100,12 @@ arguments
     
     lambda (1,1) double {mustBeNonnegative} = 0;
 
-    mode (1,:) char {mustBeMember(mode, {'identity', 'gauss', 'circulargauss', 'picard'} )} = 'identity';
+    mode (1,:) char {mustBeMember(mode, {'identity', 'exp', 'circularexp', 'picard'} )} = 'identity';
 
     options.W (:, :) double = [];
 
-    options.gauss_mu (1,1) double = 0;
-    options.gauss_std (1,1) double {mustBePositive} = 100;
+    options.exp_mu (1,1) double = 0;
+    options.exp_std (1,1) double {mustBePositive} = 100;
 
     options.picard_log_transform (1,1) logical = true;
 
@@ -147,24 +147,24 @@ if ~isempty(options.W)
 end
 
 % Compute regularization matrix Q
-if any( strcmp(mode, {'identity', 'gauss', 'circulargauss'} ) )
+if any( strcmp(mode, {'identity', 'exp', 'circularexp', 'lognorm'} ) )
 
     if strcmp(mode, 'identity')
     
         q = ones(1, num_taps);
         Q = lambda * diag(q);
     
-    elseif strcmp(mode, 'gauss')
+    elseif strcmp(mode, 'exp')
     
-        q = 1 - exp( - (ndx - options.gauss_mu).^2 / (2 * options.gauss_std.^2) );
+        q = 1 - exp( - (ndx - options.exp_mu).^2 / (2 * options.exp_std.^2) );
         Q = lambda * diag(q);
 
-    elseif strcmp(mode, 'circulargauss')
+    elseif strcmp(mode, 'circularexp')
    
         exp_sum = zeros(1, num_taps);
-        z_std3 = ceil(3 * options.gauss_std / num_taps); % 3 standard deviations
+        z_std3 = ceil(3 * options.exp_std / num_taps); % 3 standard deviations
         for i = -z_std3:z_std3
-            exp_sum = exp_sum + exp( - (ndx - options.gauss_mu + i * num_taps).^2 / (2 * options.gauss_std.^2) );
+            exp_sum = exp_sum + exp( - (ndx - options.exp_mu + i * num_taps).^2 / (2 * options.exp_std.^2) );
         end
         q = max(exp_sum) - exp_sum;
         Q = lambda * diag(q);

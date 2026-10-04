@@ -2,14 +2,14 @@
 
 This open-source library provides tools for modifying, generating, and analyzing spatial room impulse responses (SRIRs) in the spherical harmonics (SH) domain. SH-IRT supports the following features:
 
-* **Operators**:  Rotation, reflection, convolution, multiplication, conjugation, square magnitude, integration, complex-real conversion
+* **Operators**:  Rotation, reflection, convolution, multiplication, conjugation, magnitude square, convolution, integration, complex-real conversion
 * **Fitting**: Least squares (truncated singular value decomposition, Tiknonov regularization, magnitude squared, sum-of-magnitude squared, mix-of-magnitude squared, mixture power), radial basis functions
-* **Filtering**: Time / frequency domain LTI convolution, time-varying exponentiating and recursive convolution
+* **Filtering**: Time / frequency domain LTI convolution, time-varying exponentiating and recursive convolution, Tiknonov least squares FIR
 * **Density Modeling**: Maximum likelihood fitting, inverse sampling, scattering transport, spherical sliced Wasserstein optimal transport
 * **Encoding**: Projections, radial basis functions, spherical piston
 * **Generating**: Cross-directivity SH image-source model (ISM) expansion, spherical Poisson-process
 * **T60 Modeling**: Spherical frequency decay time Gaussian process (GP) regression and sampling
-* **Misc**: Projection plotting, SH-AmbiX conversion, uniform spherical Fibonacci and Platonic-solid point sampling
+* **Misc**: Projection plotting, SH-AmbiX conversion, spherical coordinate grid generation (uniform spherical Fibonacci, Platonic-solid vertices, polar sampling)
 
 ## Content
 
@@ -24,9 +24,10 @@ startup
 ```
 
 | Folder | Description |
-| --- | --- | 
+| :--- | :--- | 
 | sh | Spherical harmonics |
 | ft | Filtering|
+| figs | Figures | 
 | gp |  Gaussian processes |
 | err | Error metrics|
 | plt | Plotting examples |
@@ -43,7 +44,7 @@ startup
   Statistics and Machine Learning Toolbox (Version: 24.2)
   Global Optimization Toolbox (Version: 24.2)
   ```
-*  Semi-definite programs require the [convex optimization library](https://cvxr.com/cvx/). If you’re installing on Apple silicon, you can use the pre-built binaries following the [instructions](https://ask.cvxr.com/t/announcement-cvx-for-apple-silicon/12280/).
+*  Semi-definite programs require the [convex optimization library](https://cvxr.com/cvx/). If you’re installing on Apple silicon, you can install the pre-built binaries following the [instructions](https://ask.cvxr.com/t/announcement-cvx-for-apple-silicon/12280/).
 
 ## Guides and Tutorials
 
