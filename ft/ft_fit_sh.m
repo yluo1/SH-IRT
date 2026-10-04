@@ -26,7 +26,7 @@ function [h, err, h_figs] = ft_fit_sh(C, w, is_real, num_taps, mode, options)
 %C:         [(P + 1)^2 x M] SH coefficients over M frequencies
 %w:         [1 x M] Angular frequency (radians / sample) [0 to 2 * pi]
 %is_real:   Logical, if true, evaluate real SH
-%mode:      String, regularization method {'identity', 'exp', 'circularexp'}
+%mode:      String, regularization method {'identity', 'exp', 'circularexp', 'lognorm'}
 
 %options:               Struct
 
@@ -56,9 +56,9 @@ function [h, err, h_figs] = ft_fit_sh(C, w, is_real, num_taps, mode, options)
 
 % num_taps = 1024;
 % is_real = false;
-% C_fit_exp = ft_fit_sh(C, w, is_real, num_taps, 'exp', 'exp_mu', (r - radius) / 343 * Fs, 'exp_std', 100, ...
+% h_fit_exp = ft_fit_sh(C, w, is_real, num_taps, 'exp', 'exp_mu', (r - radius) / 343 * Fs, 'exp_std', 100, ...
 %                   'enable_disp', true, 'disp_dB_lim', [-20, 60], 'disp_err_dB_lim', [-80, 10]);
-% C_fit_lognorm = ft_fit_sh(C, w, is_real, num_taps, 'lognorm', 'exp_mu', (r - radius) / 343 * Fs, 'exp_std', 100, ...
+% h_fit_lognorm = ft_fit_sh(C, w, is_real, num_taps, 'lognorm', 'exp_mu', (r - radius + 0.1) / 343 * Fs, 'exp_std', 100, ...
 %                   'enable_disp', true, 'disp_dB_lim', [-20, 60], 'disp_err_dB_lim', [-80, 10]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
