@@ -16,6 +16,9 @@ function [h, err, h_figs] = ft_fit_sh(C, w, is_real, num_taps, mode, options)
 %mode == 'circularexp'    Complementary circular Gaussian shaped window for regularization of h 
 %Q = lambda * diag(q),     q(n) = c - sum_k exp( - ( (n-1) - exp_mu + k * num_taps )^2 / (2 * exp_std^2) ), k = -inf to inf, c = max(exp_sum)
 
+%mode == 'lognorm'    Complementary log-normal shaped window for regularization of h 
+%Q = lambda * diag(q),     q(n) = 1 - exp( - ( log(n-1) - log_mu )^2 / (2 * log_std^2) )
+
 %Author: Yuancheng Luo, 2026
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -27,8 +30,8 @@ function [h, err, h_figs] = ft_fit_sh(C, w, is_real, num_taps, mode, options)
 
 %options:               Struct
 
-%options.exp_mu:      Mean delay regularization weights for mode is 'exp', 'circularexp'
-%options.exp_std:     Standard deviation delay regularization weights for mode = 'exp', 'circularexp'
+%options.exp_mu:      Mean delay regularization weights for mode is 'exp', 'circularexp', 'lognorm'
+%options.exp_std:     Standard deviation delay regularization weights for mode = 'exp', 'circularexp', 'lognorm'
 
 %options.enable_disp:       Logical, if true, plot filter and fitting error
 %options.disp_M_log:        Number of log-frequency sampling points for display
@@ -53,7 +56,9 @@ function [h, err, h_figs] = ft_fit_sh(C, w, is_real, num_taps, mode, options)
 
 % num_taps = 1024;
 % is_real = false;
-% C_fit = ft_fit_sh(C, w, is_real, num_taps, 'exp', 'exp_mu', (r - radius) / 343 * Fs, ...
+% C_fit_exp = ft_fit_sh(C, w, is_real, num_taps, 'exp', 'exp_mu', (r - radius) / 343 * Fs, 'exp_std', 100, ...
+%                   'enable_disp', true, 'disp_dB_lim', [-20, 60], 'disp_err_dB_lim', [-80, 10]);
+% C_fit_lognorm = ft_fit_sh(C, w, is_real, num_taps, 'lognorm', 'exp_mu', (r - radius) / 343 * Fs, 'exp_std', 100, ...
 %                   'enable_disp', true, 'disp_dB_lim', [-20, 60], 'disp_err_dB_lim', [-80, 10]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -78,9 +83,9 @@ arguments
     w (1,:) double = 0;
     is_real (1,1) logical = false;
     num_taps (1,1) double {mustBePositive} = 1;
-    mode (1,:) char {mustBeMember(mode, {'identity', 'exp', 'circularexp'})} = 'exp';
+    mode (1,:) char {mustBeMember(mode, {'identity', 'exp', 'circularexp', 'lognorm'})} = 'exp';
 
-    options.gauss_lambda (1,1) double {mustBeNonnegative} = 1;
+    options.exp_lambda (1,1) double {mustBeNonnegative} = 1;
     options.exp_mu (1,1) double = 0;
     options.exp_std (1,1) double {mustBePositive} = 100;
 
@@ -99,17 +104,17 @@ ndx = 0:(num_taps - 1);
 F = exp( -1i * (w(:) * ndx) ); %[M x num_taps]
 
 % Compute regularization matrix Q
-if any( strcmp(mode, {'identity', 'exp', 'circularexp'} ) )
+if any( strcmp(mode, {'identity', 'exp', 'circularexp', 'lognorm'} ) )
 
     if strcmp(mode, 'identity')
     
         q = ones(1, num_taps);
-        Q = options.gauss_lambda * diag(q);
+        Q = options.exp_lambda * diag(q);
     
     elseif strcmp(mode, 'exp')
     
         q = 1 - exp( - (ndx - options.exp_mu).^2 / (2 * options.exp_std.^2) );
-        Q = options.gauss_lambda * diag(q);
+        Q = options.exp_lambda * diag(q);
 
     elseif strcmp(mode, 'circularexp')
    
@@ -119,7 +124,14 @@ if any( strcmp(mode, {'identity', 'exp', 'circularexp'} ) )
             exp_sum = exp_sum + exp( - (ndx - options.exp_mu + i * num_taps).^2 / (2 * options.exp_std.^2) );
         end
         q = max(exp_sum) - exp_sum;
-        Q = options.gauss_lambda * diag(q);
+        Q = options.exp_lambda * diag(q);
+
+    elseif strcmp(mode, 'lognorm')
+    
+        log_mu = log( options.exp_mu^2 / sqrt( options.exp_mu^2 + options.exp_std.^2 ) );
+        log_var = log( 1 + (options.exp_std.^2) / (options.exp_mu^2) );
+        q = 1 - exp( - (log(ndx) - log_mu).^2 / (2 * log_var) );
+        Q = options.exp_lambda * diag(q);
 
     else
         error('Unsupported mode');
@@ -160,7 +172,7 @@ if options.enable_disp && coder.target("MATLAB")
     ylabel('Filter Taps', 'fontsize', fontsize);
     yyaxis right;
     plot(ndx(:), diag(Q), 'linewidth', 1.5);
-    ylabel('Regularization Variance', 'fontsize', fontsize);
+    ylabel('Regu. Var.', 'fontsize', fontsize);
     xlabel('Time samples', 'fontsize', fontsize);
     title('Fitted Filters', 'fontsize', fontsize + 1);
     grid on; axis tight;

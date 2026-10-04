@@ -16,6 +16,9 @@ function [h, err, h_figs] = ft_fit_tr(X, w, num_taps, lambda, mode, options)
 %mode == 'circularexp'    Complementary circular Gaussian shaped window for regularization of h 
 %Q = lambda * diag(q),     q(n) = c - sum_k exp( - ( (n-1) - exp_mu + k * num_taps )^2 / (2 * exp_std^2) ), k = -inf to inf, c = max(exp_sum)
 
+%mode == 'lognorm'    Complementary log-normal shaped window for regularization of h 
+%Q = lambda * diag(q),     q(n) = 1 - exp( - ( log(n-1) - log_mu )^2 / (2 * log_std^2) )
+
 %mode = 'picard'    minimum regularization of ascending singular values below the Picard crossover index given by
 %first ascending singular value normalized CDF / observation projected on left singular value normalized CDF >= lambda
 %Q = V * diag(d) * V',   d = [d_*; zeros(N_C - k_*, 1)], where d_* is a minimum norm non-negative solution with linear constraints
@@ -41,8 +44,8 @@ function [h, err, h_figs] = ft_fit_tr(X, w, num_taps, lambda, mode, options)
 %                       [N x N] Positive definite weight matrix
 %                           min_h ||chol(W) * (F(w) * h - X)||^2 + h'*Q*h
 
-%options.exp_mu:      Mean delay regularization weights for mode is 'exp', 'circularexp'
-%options.exp_std:     Standard deviation delay regularization weights for mode = 'exp', 'circularexp'
+%options.exp_mu:      Mean delay regularization weights for mode is 'exp', 'circularexp', 'lognorm'
+%options.exp_std:     Standard deviation delay regularization weights for mode = 'exp', 'circularexp', 'lognorm'
 
 %options.picard_log_transform:  Logical, if true, solve log-transform of linear program (numerically stable for small singular values),
 %                               minimizes sum_i log_gamma_i where sigma_i^2 gamma_i = sigma_i^2 + d_i
@@ -70,6 +73,8 @@ function [h, err, h_figs] = ft_fit_tr(X, w, num_taps, lambda, mode, options)
 
 % N_taps = 1024;
 % [h_exp, err_exp] = ft_fit_tr(X, w, N_taps, 1e-3, 'exp', 'exp_mu', (r - radius) /343 * Fs, 'exp_std', 200, 'enable_disp', true); err_exp
+% [h_lognorm, err_lognorm] = ft_fit_tr(X, w, N_taps, 1e-3, 'lognorm', 'exp_mu', (r - radius) /343 * Fs, 'exp_std', 200, 'enable_disp', true); err_lognorm
+
 % [h_id, err_id] = ft_fit_tr(X, w, N_taps, 1e-1, 'identity', 'enable_disp', true); err_id
 % [h_picard, err_picard] = ft_fit_tr(X, w, N_taps, 0.5, 'picard', 'enable_disp', true); err_picard
 
@@ -91,6 +96,7 @@ function [h, err, h_figs] = ft_fit_tr(X, w, num_taps, lambda, mode, options)
 % [h_id, err_id] = ft_fit_tr(X, w, N_taps, 1e-1, 'identity', 'enable_disp', true); err_id
 % [h_exp, err_exp] = ft_fit_tr(X, w, N_taps, 1e-1, 'exp', 'exp_std', 20, 'enable_disp', true); err_exp
 % [h_cexp, err_cexp] = ft_fit_tr(X, w, N_taps, 1e-1, 'circularexp', 'exp_std', 20, 'enable_disp', true); err_cexp
+% [h_lognorm, err_lognorm] = ft_fit_tr(X, w, N_taps, 1e-1, 'lognorm', 'exp_std', 20, 'enable_disp', true); err_lognorm
 
 arguments
     X (:,:) double = 1;
@@ -100,7 +106,7 @@ arguments
     
     lambda (1,1) double {mustBeNonnegative} = 0;
 
-    mode (1,:) char {mustBeMember(mode, {'identity', 'exp', 'circularexp', 'picard'} )} = 'identity';
+    mode (1,:) char {mustBeMember(mode, {'identity', 'exp', 'circularexp', 'lognorm', 'picard'} )} = 'identity';
 
     options.W (:, :) double = [];
 
@@ -167,6 +173,13 @@ if any( strcmp(mode, {'identity', 'exp', 'circularexp', 'lognorm'} ) )
             exp_sum = exp_sum + exp( - (ndx - options.exp_mu + i * num_taps).^2 / (2 * options.exp_std.^2) );
         end
         q = max(exp_sum) - exp_sum;
+        Q = lambda * diag(q);
+
+    elseif strcmp(mode, 'lognorm')
+    
+        log_mu = log( options.exp_mu^2 / sqrt( options.exp_mu^2 + options.exp_std.^2 ) );
+        log_var = log( 1 + (options.exp_std.^2) / (options.exp_mu^2) );
+        q = 1 - exp( - (log(ndx) - log_mu).^2 / (2 * log_var) );
         Q = lambda * diag(q);
 
     else
@@ -354,7 +367,7 @@ if options.enable_disp && coder.target("MATLAB")
     yyaxis right;
     plot(ndx, real(diag(Q)), '-', 'linewidth', 1.5);    
     xlabel('Time Samples', 'fontsize', fontsize);
-    ylabel('Regularization Variance', 'fontsize', fontsize);
+    ylabel('Regu. Var.', 'fontsize', fontsize);
     title('Time Domain Response', 'fontsize', fontsize + 1);
     set(gca, 'fontsize', fontsize - 1);
     grid on; axis tight;
