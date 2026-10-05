@@ -89,8 +89,9 @@ and is vectorized in the same format as the complex case. In such instances, the
 | :--- | :--- | 
 |sh_filter.m | Filter time domain SH expansion |
 |sh_filter_freq.m | Filter frequency domain SH expansion |
+|sh_filter_delay.m | Add sample delay to SH expansion at angular frequencies |
 |sh_filter_dir.m | Directional filtering |
-|sh_filter_val.m | Evaluate FIR fitted SH expansions at angular frequency for resampling SH expansion |
+|sh_filter_val.m | Evaluate FIR fitted SH expansions at angular frequencies for resampling SH expansions |
 |sh_freqz.m | Frequency response of SH expansion |
 |sh_exp_conv.m | Direction independent time-varying exponentiating convolution|
 |sh_exp_conv_gp.m | Direction dependent T60 time-varying exponentiating convolution |

@@ -30,6 +30,7 @@ function D = sh_freqz(C, w)
 % dB_lim = [-10, 70];
 % sh_plt(C_freqz, 'horizontal', is_real, 'hz', freq, 'title_name', 'Real Random Field', 'dB_lim', dB_lim);
 
+
 arguments
     C (:,:) double = 0;
     w (1,:) double = 0;
