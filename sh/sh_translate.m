@@ -19,23 +19,24 @@ function [D, h_figs] = sh_translate(C, omega, is_real, v, options)
 %options.R:     Radius of scatterer or geometry
 
 %options.oversample: Oversample factor (1 = none)
+%options.max_odr_fit:   Maximum order SH fit
 
 %options.enable_disp:   Logical, if true, display fields
 %options.disp_dB_lim:   [1 x 2] Display dB range [min, max]
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
-%D:        [(P_E + 1)^2 x M] SH coefficients where P_E = max(P, floor(max(kappa) * (options.R + norm(v))) )
+%D:        [(P_E + 1)^2 x M] SH coefficients where P_E = min( options.max_odr_fit, max(P, floor(max(kappa) * (options.R + norm(v))) ) )
 %                            for wavenumber kappa = omega / options.c
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: Generate SH spherical piston normalized on-axis and translate the expansion
 
+% Fs = 8000;
 % is_real = false;
 % N_taps = 128;
 % w = linspace(0, 2 * pi, N_taps + 1); w = w(1:end-1);
 % t = (0:(N_taps-1))/Fs;
-% Fs = 8000;
 % omega = w * Fs;
 % freq = omega / (2 * pi);
 
@@ -58,7 +59,8 @@ arguments
 
     options.c (1,1) double {mustBePositive} = 343;  % Sound in air under normative temp and humidity
     options.R (1,1) double {mustBePositive} = 0.01; % Radius of bounding sphere
-    options.oversample (1,1) double {mustBeInteger, mustBePositive} = 4; 
+    options.oversample (1,1) double {mustBeInteger, mustBePositive} = 4;
+    options.max_odr_fit (1,1) double {mustBeInteger, mustBeNonnegative} = 60;
 
     options.enable_disp (1,1) logical = false;
     options.disp_dB_lim (1,2) double = [-inf, inf];
@@ -70,7 +72,7 @@ assert(max_odr - floor(max_odr) == 0, 'Invalid size C');
 
 kappa = omega / options.c; % Wavenumber
 P_max = floor(max(kappa) * (options.R + norm(v))); % Theoretical maximum expansion order
-P_E = max(P_max, max_odr);
+P_E = min( options.max_odr_fit, max(P_max, max_odr) );
 
 [theta, phi, U] = sh_grd_fib( options.oversample * (P_E + 1)^2 ); %Over-sample
 
