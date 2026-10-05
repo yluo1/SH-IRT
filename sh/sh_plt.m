@@ -8,8 +8,12 @@ function h = sh_plt(C, mode, is_real, options)
 %C:                 [(P + 1)^2 x M] SH coefficients (max order P of M number of functions)
 
 %mode:              String, display mode
-%                   'mercator'          
-%                   'horizontal'
+%                   'mercator'      Mercator projection for each of M functions,
+%                                   figure handle h is [1 x M] cell
+%                   'horizontal'    Horizontal projection of all M functions (yaxis Azimuth, xaxis options.t or options.hz),
+%                                   figure handle h is [1 x 1] cell
+%                   'cardinal'      SH evaluated along cardinal directions over time options.t or frequency options.hz
+%                                   figure handle h is [1 x 1] cell
 
 %is_real:           Logical, if true, evaluate real SH
 
@@ -69,7 +73,7 @@ function h = sh_plt(C, mode, is_real, options)
 
 arguments
     C (:,:) double {coder.mustBeComplex} = complex(0);
-    mode (1,:) char {mustBeMember(mode, {'mercator', 'horizontal'})} = 'mercator';
+    mode (1,:) char {mustBeMember(mode, {'mercator', 'horizontal', 'cardinal'})} = 'mercator';
     is_real (1,1) logical = false;
 
     options.hz (1,:) double = [];
@@ -432,6 +436,133 @@ elseif strcmp(mode, 'horizontal') %Plot horizontal plane
             colormap(gca, hsv);
 
         end
+
+elseif strcmp(mode, 'cardinal')
+
+    if ~isempty(options.hz)
+        
+        f_theta_0_phi_0 = sh_dec(C, 0, 0, is_real);
+        f_theta_90_phi_0 = sh_dec(C, pi/2, 0, is_real);
+        f_theta_90_phi_90 = sh_dec(C, pi/2, pi/2, is_real);
+        f_theta_90_phi_180 = sh_dec(C, pi/2, pi, is_real);
+        f_theta_90_phi_270 = sh_dec(C, pi/2, 3*pi/2, is_real);
+        f_theta_180_phi_0 = sh_dec(C, pi, 0, is_real);
+
+        h_fig = figure;
+        h_fig.Position = [options.fig_pos, [options.fig_size(1) options.fig_size(2) * 2]];
+
+        h{1} = h_fig;
+        tiledlayout(2, 1);
+
+        % Magnitude
+        nexttile;
+        semilogx(options.hz, mag2db(abs([f_theta_0_phi_0; f_theta_90_phi_0; f_theta_90_phi_90])), '-', ...
+                 options.hz, mag2db(abs([f_theta_90_phi_180; f_theta_90_phi_270; f_theta_180_phi_0])), '--', ...
+                 'linewidth', 1.5);
+
+        h_lg = legend(  '(0, 0)', '(90, 0)', '(90, 90)', ...
+                        '(90, 180)', '(90, 270)', '(180, 0)', ...
+                        'location', 'best', 'NumColumns', 2); 
+        h_lg.Title.String = '(\theta, \phi)';
+        set(h_lg, 'fontsize', options.fontsize - 1);
+        
+        grid on; axis tight; ylim(options.dB_lim);
+        xlabel('Frequency (Hz)', 'fontsize', options.fontsize);
+        ylabel('Magnitude (dB)', 'fontsize', options.fontsize);
+            
+        title_str = 'Cardinal Direction Magnitude Response';
+        if ~isempty(options.title_name)
+            title_str = [options.title_name, ' ', title_str];
+        end
+        if options.disp_title
+            if isempty(options.title_name_override)
+                title(title_str, 'fontsize', options.fontsize + 1);  
+            else
+                title(options.title_name_override, 'fontsize', options.fontsize + 1);
+            end  
+        end
+        title(title_str, 'fontsize', options.fontsize + 1);
+
+        set(gca, 'fontsize', options.fontsize - 1);
+
+        % Phase
+        nexttile;
+        semilogx(options.hz, rad2deg(angle([f_theta_0_phi_0; f_theta_90_phi_0; f_theta_90_phi_90])), '-', ...
+                 options.hz, rad2deg(angle([f_theta_90_phi_180; f_theta_90_phi_270; f_theta_180_phi_0])), '--', ...
+                 'linewidth', 1.5);
+
+        h_lg = legend(  '(0, 0)', '(90, 0)', '(90, 90)', ...
+                        '(90, 180)', '(90, 270)', '(180, 0)', ...
+                        'location', 'best', 'NumColumns', 2); 
+        h_lg.Title.String = '(\theta, \phi)';
+        set(h_lg, 'fontsize', options.fontsize - 1);
+        
+        grid on; axis tight;  ylim(options.deg_lim);
+        xlabel('Frequency (Hz)', 'fontsize', options.fontsize);
+        ylabel('Magnitude (dB)', 'fontsize', options.fontsize);
+
+        title_str = 'Cardinal Direction Phase Response';
+        if ~isempty(options.title_name)
+            title_str = [options.title_name, ' ', title_str];
+        end
+        if options.disp_title
+            if isempty(options.title_name_override)
+                title(title_str, 'fontsize', options.fontsize + 1);  
+            else
+                title(options.title_name_override, 'fontsize', options.fontsize + 1);
+            end  
+        end
+        title(title_str, 'fontsize', options.fontsize + 1);
+
+        set(gca, 'fontsize', options.fontsize - 1);
+        
+
+    elseif ~isempty(options.t)
+
+        f_theta_0_phi_0 = sh_dec(C, 0, 0, is_real);
+        f_theta_90_phi_0 = sh_dec(C, pi/2, 0, is_real);
+        f_theta_90_phi_90 = sh_dec(C, pi/2, pi/2, is_real);
+        f_theta_90_phi_180 = sh_dec(C, pi/2, pi, is_real);
+        f_theta_90_phi_270 = sh_dec(C, pi/2, 3*pi/2, is_real);
+        f_theta_180_phi_0 = sh_dec(C, pi, 0, is_real);
+
+        h_fig = figure;
+        h_fig.Position = [options.fig_pos, options.fig_size];
+
+        h{1} = h_fig;
+
+        plot(options.t, real([f_theta_0_phi_0; f_theta_90_phi_0; f_theta_90_phi_90]), '-', ...
+             options.t, real([f_theta_90_phi_180; f_theta_90_phi_270; f_theta_180_phi_0]), '--', ...
+                 'linewidth', 1.5);
+
+        h_lg = legend(  '(0, 0)', '(90, 0)', '(90, 90)', ...
+                        '(90, 180)', '(90, 270)', '(180, 0)', ...
+                        'location', 'best', 'NumColumns', 1); 
+        h_lg.Title.String = '(\theta, \phi)';
+        set(h_lg, 'fontsize', options.fontsize - 1);
+        
+        grid on; axis tight; ylim(options.dB_lim);
+        xlabel('Time (Seconds)', 'fontsize', options.fontsize);
+        ylabel('Amplitude', 'fontsize', options.fontsize);
+
+        title_str = 'Cardinal Direction Response';
+        if ~isempty(options.title_name)
+            title_str = [options.title_name, ' ', title_str];
+        end
+        if options.disp_title
+            if isempty(options.title_name_override)
+                title(title_str, 'fontsize', options.fontsize + 1);  
+            else
+                title(options.title_name_override, 'fontsize', options.fontsize + 1);
+            end  
+        end
+        title(title_str, 'fontsize', options.fontsize + 1);
+
+        set(gca, 'fontsize', options.fontsize - 1);
+        
+    else
+        error('options.hz or options.t must be non-empty');
+    end
 
 else
     error('Unsupported mode');

@@ -61,6 +61,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 | sh_cpx2re.m | Complex to real form | 
 | sh_re2cpx.m | Real to complex form | 
 | sh_resize.m | Truncation and zero-padding | 
+| sh_translation.m | Translate origin coordinate | 
 
 ## SH Evaluations
 | File | Description |
@@ -129,7 +130,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 ## SH Miscellaneous
 | File | Description |
 | :--- | :--- | 
-|sh_plt.m| Plot SH expansion|
+|sh_plt.m| Plot SH expansion: Mercator, horizontal, cardinal direction projections|
 |sh2ambx.m| SH to AmbiX format |
 |ambx2sh.m| AmbiX to SH format |
 

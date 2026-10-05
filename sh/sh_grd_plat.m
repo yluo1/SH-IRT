@@ -13,7 +13,7 @@ function [theta, phi, v] = sh_grd_plat(name)
 %theta:         [N x 1]  Co-latitude [0, pi]
 %phi:           [N x 1]  Azimuth [0, 2 * pi)
 
-%v:             [N x 3]  Cartesian coordinates, unit length
+%v:             [N x 3]  Cartesian coordinates, unit norm
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: Generate platonic vertex coordinates,

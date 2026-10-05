@@ -1,4 +1,4 @@
-function [theta, phi] = sh_grd_caps(N_theta, N_phi, options)
+function [theta, phi, v] = sh_grd_caps(N_theta, N_phi, options)
 %Generate spherical coordinate grid over uniform co-latitude and azimuth
 
 %Author: Yuancheng Luo, 2026
@@ -17,6 +17,8 @@ function [theta, phi] = sh_grd_caps(N_theta, N_phi, options)
 %Output
 %theta:         [N  x 1]  Co-latitude [0, pi]
 %phi:           [N  x 1]  Azimuth [0, 2 * pi)
+
+%v:             [N x 3]  Cartesian coordinates, unit norm
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: Generate and plot points
@@ -70,8 +72,14 @@ if ~strcmp(options.axis, 'z')
     theta = pi/2 - elev;
 
 end
+N = numel(theta);
+
+if nargout > 2
+    v = zeros(N, 3);
+    [v(:, 1), v(:, 2), v(:, 3)] = sph2cart(phi, pi/2 - theta, ones(N, 1));
+end
 
 % Plotting
 if options.enable_disp
-    sc_plt(theta, phi, ones(size(theta)));
+    sc_plt(theta, phi, ones(N, 1));
 end

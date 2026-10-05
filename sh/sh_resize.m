@@ -20,21 +20,20 @@ function D = sh_resize(C, max_odr)
 % M = 1;
 % is_real = false;
 % C = sh_rand(P, M, is_real);
-% D_2 = sh_resize(C, 2);
-% D_6 = sh_resize(C, 6);
+% D_2 = sh_resize(C, 2); % Truncated 
+% D_6 = sh_resize(C, 6); % Zero-padded
 
 % sh_plt(C, 'mercator', is_real);
 % sh_plt(D_2, 'mercator', is_real);
-% sh_plt(D_6, 'mercator', is_real);
-
+% sh_plt(D_6, 'mercator', is_real); % Match C
 
 arguments
     C (:,:) double {coder.mustBeComplex} = complex(0);
     max_odr (1,1) double {mustBeNonnegative, mustBeInteger} = 3;
 end
 
-[P, M] = size(C);
-P = sqrt(P) - 1;
+[N_C, M] = size(C);
+P = sqrt(N_C) - 1;
 assert(P - floor(P) == 0, 'Invalid size C');
 
 D = [ C(1:(min(P, max_odr) + 1)^2, :); zeros([(max_odr+1)^2 - (P+1)^2, M]) ];

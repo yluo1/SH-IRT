@@ -2,6 +2,7 @@ function plot_sh_fit_msq_example(max_odr_half, num_func, options)
 %Plot sh_fit_msq.m modes
 
 %Author: Yuancheng Luo, 2026
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
 %max_odr_half:      Component max-order expansion in reference field  

@@ -19,15 +19,21 @@ function D = sh_filter_delay(C, w, d)
 % is_real = false;
 % N_taps = 128;
 % w = linspace(0, 2 * pi, N_taps + 1); w = w(1:end-1);
+% t = (0:(N_taps-1))/Fs;
+% Fs = 8000;
+% omega = w * Fs;
+% freq = omega / (2 * pi);
+
 % C = sh_freqz(sh_enc_proj(3, pi/2, 0), w); % Frequency response of delay-less SH projection
-% H = sh_dec(C, pi/2, 0, is_real);
-% h = real(ifft(H));
-% D = sh_filter_delay(C, w, 100);
-% H_del = sh_dec(D, pi/2, 0, is_real);
-% h_del = real(ifft(H_del));
-% 
-% figure; plot(1:N_taps, h, 'ro-', 1:N_taps, h_del, 'b*-'); 
-% legend('Original', 'Delayed'); grid on; axis tight;
+% D = sh_filter_delay(C, w, 10/1000 * Fs); % 10 ms
+
+% sh_plt(C, 'cardinal', is_real, 'hz', freq, 'title_name', 'Original');
+% sh_plt(D, 'cardinal', is_real, 'hz', freq, 'title_name', 'Delayed');
+
+% C_td = ifft(C, [], 2, 'symmetric');
+% sh_plt(C_td, 'cardinal', is_real, 't', t, 'title_name', 'Original');
+% D_td = ifft(D, [], 2, 'symmetric');
+% sh_plt(D_td, 'cardinal', is_real, 't', t, 'title_name', 'Delayed');
 
 arguments
     C (:,:) double {coder.mustBeComplex} = complex(0);
