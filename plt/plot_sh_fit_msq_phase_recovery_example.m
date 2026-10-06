@@ -66,10 +66,10 @@ h_fit = sh_plt(C_fit_best, 'mercator', is_real, 'title_name', ['Fit NMSQE ', num
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Export figures
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-out_dir = 'figs/figs_sh/fit';
-if ~isfolder(out_dir)
-    mkdir(out_dir);
-end
-
-exportgraphics(h_ref{1}, fullfile(out_dir,  ['msq_ms_phaserecover_ref_', num2str(max_odr), '.png'] ));
-exportgraphics(h_fit{1}, fullfile(out_dir, ['msq_ms_phaserecover_fit_', num2str(max_odr), '.png'] ));
+% out_dir = 'figs/figs_sh/fit';
+% if ~isfolder(out_dir)
+%     mkdir(out_dir);
+% end
+% 
+% exportgraphics(h_ref{1}, fullfile(out_dir,  ['msq_ms_phaserecover_ref_', num2str(max_odr), '.png'] ));
+% exportgraphics(h_fit{1}, fullfile(out_dir, ['msq_ms_phaserecover_fit_', num2str(max_odr), '.png'] ));

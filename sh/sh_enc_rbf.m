@@ -186,24 +186,27 @@ if enable_disp && coder.target('MATLAB')
     d = 2 * sin(abs(x)/2);
 
     y_ref = rbf_val(mode, d, ell);
- 
-    theta_x = theta + x;
-    phi_x   = phi * ones(size(x));
 
-    y = real(sh_dec(C, theta_x(:), phi_x(:), is_real))';
+    for n = 1:N
+     
+        theta_x = theta(n) + x;
+        phi_x   = phi(n) * ones(size(x));
+    
+        y = real(sh_dec(C(:, n), theta_x(:), phi_x(:), is_real))';
+    
+        %Compare with reference function
+        fontsize = 14;
+        figure;
+        plot(x, y_ref, 'r-', x, y, 'b-', 'linewidth', 1.5);
+        xlabel('Distance d', 'fontsize', fontsize);    
+        ylabel('RBF f(d)', 'fontsize', fontsize);
+        title(mode, 'fontsize', fontsize + 1);
+        grid on; axis tight;
+        set(gca, 'fontsize', fontsize - 1);
+        h_lg = legend('Reference', 'Expansion', 'location', 'best');
+        set(h_lg, 'fontsize', fontsize - 1);
 
-    %Compare with reference function
-    fontsize = 14;
-    figure;
-    plot(x, y_ref, 'r-', x, y, 'b-', 'linewidth', 1.5);
-    xlabel('Distance d', 'fontsize', fontsize);    
-    ylabel('RBF f(d)', 'fontsize', fontsize);
-    title(mode, 'fontsize', fontsize + 1);
-    grid on; axis tight;
-    set(gca, 'fontsize', fontsize - 1);
-    h_lg = legend('Reference', 'Expansion', 'location', 'best');
-    set(h_lg, 'fontsize', fontsize - 1);
-
+    end
     %Mercator plot
     sh_plt(C, 'mercator', is_real);
 

@@ -1,5 +1,5 @@
 function D = sh_resize(C, max_odr)
-%Resize max-odr of spherical harmonic expansions
+%Resize max-odr of spherical harmonic expansions via truncation or zero-padding
 
 %Author: Yuancheng Luo, 2026
 

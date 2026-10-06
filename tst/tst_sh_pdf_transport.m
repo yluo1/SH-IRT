@@ -208,7 +208,7 @@ fig_pos(1) = fig_pos(1) + fig_size(1);
 
 %Export figs
 if options.enable_export
-    out_dir = 'figs_sh';
+    out_dir = 'figs/figs_sh/pdf';
     mkdir(out_dir);
     for n = 1:numel(h_fig_list)
         export_name = [preset_0_dir_name, preset_0_func_name, '_', preset_1_dir_name, preset_1_func_name, '_' num2str(n)];        

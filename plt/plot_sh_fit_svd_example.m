@@ -103,11 +103,11 @@ err_list
 % Export figures
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-out_dir = 'figs/figs_sh/fit';
-if ~isfolder(out_dir)
-    mkdir(out_dir);
-end
-
+% out_dir = 'figs/figs_sh/fit';
+% if ~isfolder(out_dir)
+%     mkdir(out_dir);
+% end
+% 
 % exportgraphics(h_err, fullfile(out_dir, 'svd_err.png'));
 % exportgraphics(h_ref{1}, fullfile(out_dir, 'svd_ref.png'));
 % exportgraphics(h_ls{1}, fullfile(out_dir, 'svd_ls.png'));

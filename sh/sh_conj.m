@@ -1,5 +1,5 @@
 function D = sh_conj(C)
-%Conjugate spherical harmonic expansion of function f(theta, phi):
+%Conjugate spherical harmonic expansion evaluations of function f(theta, phi):
 
 %f(theta, phi)          = C.' * Y(theta, phi)
 %conj(F(theta, phi))    = D.' * Y(theta, phi)

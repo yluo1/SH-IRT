@@ -1,5 +1,5 @@
 function D = sh_nrm(C, mode)
-%N3D Spherical harmonic expansion normalizations
+%N3D Spherical harmonic expansion normalizations of integral sum or power
 
 %Author: Yuancheng Luo, 2026
 

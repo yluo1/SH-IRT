@@ -1,5 +1,6 @@
 function D = sh_filter(C, varargin)
-%Time-domain filtering of spherical harmonic expansion coefficients
+%Time-domain filtering of spherical harmonic expansion coefficients by 
+%numerator/denominator coefficients or second-order-sections
 
 %Author: Yuancheng Luo, 2026
 

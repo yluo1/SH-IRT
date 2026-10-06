@@ -233,14 +233,14 @@ if strcmp(mode, 'mercator') %Plot mercator layout per function
             end           
          
             if ~isempty(options.hz) %Index at frequency                
-                title_str = ['Magnitude Response: ', num2str(options.hz(m)), ' Hz'];
+                title_str = ['Phase Response: ', num2str(options.hz(m)), ' Hz'];
             elseif ~isempty(options.t) %Index at time
-                title_str = ['Magnitude Response: ', num2str(options.t(m)), ' Second'];
+                title_str = ['Phase Response: ', num2str(options.t(m)), ' Second'];
             else
                 if M == 1
-                    title_str = ['Magnitude Response'];
+                    title_str = ['Phase Response'];
                 else
-                    title_str = ['Magnitude Response: m = ', num2str(m)];
+                    title_str = ['Phase Response: m = ', num2str(m)];
                 end                
             end
             if ~isempty(options.title_name)

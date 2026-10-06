@@ -1,5 +1,5 @@
 function [D, h_figs] = sh_translate(C, omega, is_real, v, options)
-% Translate SH expansion C's origin to coordinate v. Refit to higher-order expansion D.
+% Translate SH expansion C's origin to coordinate v. Refit to higher max-order expansion D.
 
 % Restrict translated field to delay-only modifications under far-field assumptions. 
 % SH C encodes planewave frequency responses from incident direction u.
