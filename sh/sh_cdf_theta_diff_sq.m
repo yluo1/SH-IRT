@@ -9,8 +9,8 @@ function d = sh_cdf_theta_diff_sq(C_pdf, D_pdf, mode, options)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
-%C:                 [(P + 1)^2 x M] SH coefficients (max order P of M number of functions)
-%D:                 [(P + 1)^2 x M] SH coefficients (max order P of M number of functions)
+%C_pdf:             [(P + 1)^2 x M] Density SH coefficients  (max order P of M number of functions)
+%D_pdf:             [(P + 1)^2 x M] Density SH coefficients  (max order P of M number of functions)
 %mode:              String, estimation method  {'quadrature', 'analytic', 'analytic_unroll'}
 
 %options:           struct

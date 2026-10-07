@@ -18,7 +18,7 @@ function E = sh_filter_dir(C, D, is_real, mode)
 
 %is_real:       Logical, if true, evaluate real SH
 
-%mode:          String, muliplication method {'CGC', 'SHT'}
+%mode:          String, SH multiplication method {'CGC', 'SHT'}
 %                   'CGC':   Clebsch-Gordan coefficients
 %                   'SHT':   Spherical harmonic transform (inverse -> prod -> forward)
 

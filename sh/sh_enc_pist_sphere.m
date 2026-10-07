@@ -105,5 +105,9 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 h_fig = [];
 if options.enable_disp && coder.target('MATLAB')
-    h_fig = sh_plt(C, 'horizontal', false, 'hz', hz);
+    if N == 1
+        h_fig = sh_plt(C, 'mercator', false, 'hz', hz);
+    else
+        h_fig = sh_plt(C, 'horizontal', false, 'hz', hz);
+    end
 end

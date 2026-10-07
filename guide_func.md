@@ -53,21 +53,22 @@ and is vectorized in the same format as the complex case. In such instances, the
 | sh_refl.m | Reflection | 
 | sh_mul.m | Multiplication | 
 | sh_conv.m | Convolution | 
-| sh_nrm.m | Normalizations | 
-| sh_int.m | Integration | 
+| sh_nrm.m | Normalization | 
 | sh_msq.m | Magnitude squared| 
 | sh_sqrt.m | Square root magnitude approximation | 
 | sh_conj.m | Conjugation | 
 | sh_cpx2re.m | Complex to real form | 
 | sh_re2cpx.m | Real to complex form | 
-| sh_resize.m | Truncation and zero-padding | 
-| sh_translation.m | Translate origin coordinate | 
+| sh_resize.m | Truncate or zero-pad to different max-order expansions | 
+| sh_translate.m | Translate origin coordinate | 
 
 ## SH Evaluations
 | File | Description |
 | :--- | :--- | 
 |sh_val.m| Evaluate SH bases |
 |sh_dec.m| Evaluate SH expansions |
+|sh_int.m | Compute integral sum or power | 
+|sh_cov.m | Compute covariance | 
 
 ## SH Spatial Room Impulse Response Generation
 | File | Description |
@@ -91,9 +92,9 @@ and is vectorized in the same format as the complex case. In such instances, the
 |sh_filter.m | Filter time domain SH expansion |
 |sh_filter_freq.m | Filter frequency domain SH expansion |
 |sh_filter_delay.m | Add sample delay to SH expansion at angular frequencies |
-|sh_filter_dir.m | Directional filtering |
+|sh_filter_dir.m | Directional filtering via SH multiplication|
 |sh_filter_val.m | Evaluate FIR fitted SH expansions at angular frequencies for resampling SH expansions |
-|sh_freqz.m | Frequency response of SH expansion |
+|sh_freqz.m | Evaluate frequency response of SH expansion |
 |sh_exp_conv.m | Direction independent time-varying exponentiating convolution|
 |sh_exp_conv_gp.m | Direction dependent T60 time-varying exponentiating convolution |
 |sh_rec_conv.m | Time-varying recursive convolution |

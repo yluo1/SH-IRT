@@ -5,8 +5,8 @@ function d = sh_pdf_dist(C_pdf, D_pdf, mode, is_real, options)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
-%C_pdf:     [(P + 1)^2 x M] SH coefficients (max order P of M number of functions)
-%D_pdf:     [(P + 1)^2 x M] SH coefficients (max order P of M number of functions)
+%C_pdf:     [(P + 1)^2 x M] Density SH coefficients (max order P of M number of functions)
+%D_pdf:     [(P + 1)^2 x M] Density SH coefficients (max order P of M number of functions)
 %mode:      String, compute method {'Wasserstein2'}
 %               'SlicedWasserstein2':   Approximate Wasserstein p=2:  W_2^2(C_pdf, D_pdf)  
 %                                       via spherical sliced projections onto semi-circle given by 

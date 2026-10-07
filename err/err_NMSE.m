@@ -1,6 +1,6 @@
 function err = err_NMSE(obs, ref)
 %Normalized mean squared error
-%sum((obs - ref).^2) / sum(ref.^2)
+%sum(abs(obs(:) - ref(:)).^2) / sum(abs(ref(:)).^2)
 
 %Author: Yuancheng Luo, 2026
 
@@ -17,4 +17,4 @@ function err = err_NMSE(obs, ref)
 
 assert(numel(obs) == numel(ref), 'a, b size mismatch');
 
-err = sum((obs(:) - ref(:)).^2) / sum(ref(:).^2);
+err = sum(abs(obs(:) - ref(:)).^2) / sum(abs(ref(:)).^2);

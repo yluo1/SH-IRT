@@ -32,7 +32,7 @@ function [C_pdf, err] = sh_pdf_fit(X, theta, phi, max_odr, is_real, mode, option
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
-%C_pdf:             [(max_odr + 1)^2 x M] SH coefficients
+%C_pdf:             [(max_odr + 1)^2 x M] Density SH coefficients
 %err:               [1 x M] Sum-of-square errors
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
