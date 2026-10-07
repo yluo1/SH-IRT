@@ -2,11 +2,12 @@
 
 This open-source library provides tools for modifying, generating, and analyzing spatial room impulse responses (SRIRs) in the spherical harmonics (SH) domain. SH-IRT supports the following features:
 
-* **Operators**:  Rotation, reflection, addition, multiplication, conjugation, magnitude square, convolution, normalization, translation, complex-real conversion
+* **Operations**:  Rotation, reflection, addition, multiplication, conjugation, magnitude square, convolution, normalization, translation, complex-real conversion
+* **Evaluations**: SH basis, expansion, integral (sum, power), covariance
 * **Fitting**: Least squares (truncated singular value decomposition, Tiknonov regularization, magnitude squared, sum-of-magnitude squared, mix-of-magnitude squared, mixture power), radial basis functions
+* **Encoding**: Projections, radial basis functions, spherical baffled piston
 * **Filtering**: Time / frequency domain LTI convolution, time-varying exponentiating and recursive convolution, Tiknonov least squares FIR
 * **Density Modeling**: Maximum likelihood fitting, inverse sampling, scattering transport, spherical sliced Wasserstein optimal transport
-* **Encoding**: Projections, radial basis functions, spherical baffled piston
 * **SRIR Generation**: Cross-directivity SH image-source model (ISM) expansion, spherical Poisson-process
 * **T60 Modeling**: Spherical frequency decay time Gaussian process (GP) regression and sampling
 * **Misc**: Projection plotting, SH-AmbiX conversion, spherical coordinate grid generation (uniform spherical Fibonacci, Platonic-solid vertices, polar sampling)
