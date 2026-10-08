@@ -12,7 +12,7 @@ This open-source library provides tools for modifying, generating, and analyzing
 * **T60 Modeling**: Spherical frequency decay time Gaussian process (GP) regression and sampling
 * **Misc**: Projection plotting, SH-AmbiX conversion, spherical coordinate grid generation (uniform spherical Fibonacci, Platonic-solid vertices, polar sampling)
 
-## Content
+## Table of Contents
 
 * [Installation](#installation)
 * [Guides and Tutorials](#guides-and-tutorials)
