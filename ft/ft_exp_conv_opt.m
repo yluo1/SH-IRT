@@ -8,6 +8,10 @@ function [f, h_fig] = ft_exp_conv_opt(h, g, options)
 %h:                 [1 x M] Fixed IR
 %g:                 [1 x N] Exponentiating IR
 
+%options:               struct
+%options.enable_disp:   Logical, if true, plot filters
+%options.Fs:            Sampling rate for display
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
 %f:                 [1 x M * N]     Filtered IR

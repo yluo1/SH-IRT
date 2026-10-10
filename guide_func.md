@@ -151,10 +151,12 @@ and is vectorized in the same format as the complex case. In such instances, the
 ## FT Filter Fitting
 | File | Description |
 | :--- | :--- | 
+|ft_fit_minphase.m| Minimum phase FIR fit to magnitude targets |
 |ft_fit_bnd_minphase.m| Magnitude bounded minimum phase FIR fit to magnitude targets|
 |ft_fit_tr.m | Tiknonov regularized least squares FIR fit to complex targets: l2 norm, exponential and circular exponential window, discrete Picard criterion |
 |ft_fit_sh.m| Tiknonov regularized least squares FIR fit to SH coefficients: l2 norm, exponential and circular exponential window|
 |ft_freq_wt.m | Frequency weighting functions|
+|ft_tf_minphase.m | Decompose transfer function coefficients into minimum-phase and all-pass coefficients |
 
 # Gaussian Processes
 

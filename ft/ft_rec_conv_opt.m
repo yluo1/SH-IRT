@@ -16,6 +16,9 @@ function [f, h_fig] = ft_rec_conv_opt(h, g, options)
 
 %options.mode:      String, compute method 'fourblock', 'twoblock'
 
+%options.enable_disp:   Logical, if true, plot filters
+%options.Fs:            Sampling rate for display
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
 %f:                 [1 x M * N]     Filtered IR
