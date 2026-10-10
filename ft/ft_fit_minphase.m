@@ -50,6 +50,7 @@ end
 
 assert(numel(X_mag) == numel(w), 'X_mag and w size mismatch');
 assert(issorted(w), 'w must be in ascending order');
+M = numel(X_mag);
 
 if strcmp(mode, 'rceps') % Real cepstrum method
     
@@ -74,7 +75,7 @@ if strcmp(mode, 'rceps') % Real cepstrum method
     w_uni(1) = w_uni(2) / 2;
     w(1) = w_uni(1);
 
-    %Interpolate
+    % Interpolate
     if strcmp(options.rceps_interp, 'logpchip')
         log_X_mag = interp1(log(w), log(X_mag), log(w_uni), 'pchip');
     elseif strcmp(options.rceps_interp, 'loglin')
@@ -104,20 +105,23 @@ end
 if options.enable_disp && coder.target('MATLAB')
 
     fontsize = 16;
+    linewidth = 2;
     
-    hz_disp = logspace(log10(min(20, w(1) / (2*pi) * options.Fs)), log10(options.Fs/2), 1024);
+    hz_disp = logspace(log10(min(20, min(w(w > 0)) / (2*pi) * options.Fs)), log10(options.Fs/2), 1024);
     H_disp = freqz(h, 1, hz_disp, options.Fs);
+    freq_in = w / (2*pi) * options.Fs;
+    H_in = freqz(h, 1, freq_in, options.Fs);
     grp_del = grpdelay(h, 1, hz_disp, options.Fs);
 
     h_fig = figure;
-    h_fig.Position = [100,100, 800, 600];
+    h_fig.Position = [100,100, 900, 720];
     h_t = tiledlayout(3, 1);
     title(h_t, ['Minimum Phase Fit: ', num2str(num_taps), ' Taps'], 'fontsize', fontsize + 2);
 
     % Magnitude
     nexttile;
-    semilogx(hz_disp, mag2db(abs(H_disp)), w / (2*pi) * options.Fs, mag2db(X_mag), '*', 'markersize', 12, 'linewidth', 1.5);
-    h_lg =  legend('Fitted Response', 'Target Response', 'location', 'best');  set(h_lg, 'fontsize', fontsize - 1);
+    semilogx(freq_in, mag2db(X_mag), 'ro-', hz_disp, mag2db(abs(H_disp)), 'b-', freq_in, mag2db(abs(H_in)) - mag2db(X_mag), 'g-', 'markersize', 4, 'linewidth', linewidth);
+    h_lg =  legend('Target Response', 'Fitted Response', 'Residual', 'location', 'best', 'Orientation', 'horizontal');  set(h_lg, 'fontsize', fontsize - 1);
     xlabel('Frequency (Hz)', 'fontsize', fontsize); 
     ylabel('Magnitude (dB)', 'fontsize', fontsize);
     title('Magnitude Response', 'fontsize', fontsize + 1);
@@ -126,7 +130,7 @@ if options.enable_disp && coder.target('MATLAB')
     
     % Phase
     nexttile;
-    semilogx(hz_disp, deg2rad(angle(H_disp)), 'linewidth', 1.5);
+    semilogx(hz_disp, deg2rad(angle(H_disp)), 'b-', 'linewidth', linewidth);
     h_lg = legend('Fitted Response', 'location', 'best');  set(h_lg, 'fontsize', fontsize - 1);
     xlabel('Frequency (Hz)', 'fontsize', fontsize);
     ylabel('Phase (Degrees)', 'fontsize', fontsize);
@@ -136,7 +140,7 @@ if options.enable_disp && coder.target('MATLAB')
 
     % Group delay
     nexttile;
-    semilogx(hz_disp, grp_del, 'linewidth', 1.5);
+    semilogx(hz_disp, grp_del, 'linewidth', linewidth);
     h_lg = legend('Fitted Response', 'location', 'best');  set(h_lg, 'fontsize', fontsize - 1);
     xlabel('Frequency (Hz)', 'fontsize', fontsize);
     ylabel('Samples', 'fontsize', fontsize);

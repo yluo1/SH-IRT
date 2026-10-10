@@ -354,7 +354,7 @@ if options.enable_disp && coder.target("MATLAB")
     X_in_dB = mag2db(abs(X_in));
     H_dB = mag2db(abs(H));
     H_in_dB = mag2db(abs(H_in));
-    semilogx(hz, X_in_dB, 'b-', hz_h, H_dB, 'r-', hz, H_in_dB - X_in_dB, 'g-', 'linewidth', 1.5);
+    semilogx(hz, X_in_dB, 'ro-', hz_h, H_dB, 'b-', hz, H_in_dB - X_in_dB, 'g-', 'markersize', 4, 'linewidth', 1.5);
     grid on; axis tight; ylim(options.dB_lim);
     set(gca, 'fontsize', fontsize - 1);
     xlabel('Frequency (Hz)', 'fontsize', fontsize);
@@ -368,7 +368,7 @@ if options.enable_disp && coder.target("MATLAB")
     X_in_deg = rad2deg(angle(X_in));
     H_deg = rad2deg(angle(H));
     H_in_deg = rad2deg(angle(H_in));
-    semilogx(hz, X_in_deg, 'b-', hz_h, H_deg, 'r-', hz, H_in_deg - X_in_deg, 'g-', 'linewidth', 1.5);
+    semilogx(hz, X_in_deg, 'ro-', hz_h, H_deg, 'b-', hz, H_in_deg - X_in_deg, 'g-', 'markersize', 4, 'linewidth', 1.5);
     grid on; axis tight; ylim(options.deg_lim);
     set(gca, 'fontsize', fontsize - 1);
     xlabel('Frequency (Hz)', 'fontsize', fontsize);
