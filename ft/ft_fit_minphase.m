@@ -168,6 +168,7 @@ if options.enable_disp && coder.target('MATLAB')
     grid on; axis tight;
     set(gca, 'fontsize', fontsize - 1);
     ylim(options.disp_dB_lim);
+    xlim([min(hz_disp), max(hz_disp)]);
     
     % Phase
     nexttile;
@@ -181,6 +182,7 @@ if options.enable_disp && coder.target('MATLAB')
     grid on; axis tight;
     set(gca, 'fontsize', fontsize - 1);
     ylim(options.disp_deg_lim);
+    xlim([min(hz_disp), max(hz_disp)]);
 
     % Group delay
     nexttile;
@@ -194,5 +196,6 @@ if options.enable_disp && coder.target('MATLAB')
     grid on; axis tight;
     set(gca, 'fontsize', fontsize - 1);
     ylim(options.disp_grp_del_lim);
+    xlim([min(hz_disp), max(hz_disp)]);
 
 end
