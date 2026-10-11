@@ -12,9 +12,11 @@ function [h] = ft_fit_minphase(X_mag, w, num_taps, mode, options)
 %                   'rceps':    Fit to real cepstrum from uniform frequency interpolated X_mag
 
 %options:               struct
-%options.rceps_M:       Number of uniform frequency points from DC to Nyquist
+%options.rceps_M:       Number of uniform frequency points from DC to Nyquist for interpolation
 %options.rceps_interp:  String, interpolation method {'logpchip', 'loglin', 'pchip'}
 %options.rceps_extrap:  String, extrapolation method at DC, Nyquist {'nearest'}
+%options.rceps_fit:     String, fitting method to minimum phase target {'trunc', 'leastsquares'}
+%options.rceps_fit_M:   Number of log-frequency points to fit to minimum phase target 
 
 %options.enable_disp:   Logical, if true, display fitted response
 %options.Fs:            Sampling rate for display
@@ -34,6 +36,9 @@ function [h] = ft_fit_minphase(X_mag, w, num_taps, mode, options)
 % [h_16]    = ft_fit_minphase(X_mag, freq / Fs * (2 * pi), 16, mode, 'enable_disp', true);
 % [h_128]   = ft_fit_minphase(X_mag, freq / Fs * (2 * pi), 128, mode, 'enable_disp', true);
 
+% [h_16]    = ft_fit_minphase(X_mag, freq / Fs * (2 * pi), 16, mode, 'rceps_fit', 'leastsquares', 'enable_disp', true);
+% [h_128]    = ft_fit_minphase(X_mag, freq / Fs * (2 * pi), 64, mode, 'rceps_fit', 'leastsquares', 'enable_disp', true);
+
 arguments
     X_mag (1,:) double {mustBePositive} = 1;
     w (1,:) double {mustBeNonnegative} = 0;
@@ -43,6 +48,8 @@ arguments
     options.rceps_M (1,1) double {mustBeInteger, mustBePositive} = 4096;
     options.rceps_interp (1,:) char {mustBeMember(options.rceps_interp, {'logpchip', 'loglin', 'pchip'})} = 'logpchip';
     options.rceps_extrap (1,:) char {mustBeMember(options.rceps_extrap, {'nearest'})} = 'nearest';
+    options.rceps_fit    (1,:) char {mustBeMember(options.rceps_fit, {'trunc', 'leastsquares'})} = 'trunc';
+    options.rceps_fit_M (1,1) double {mustBeInteger, mustBePositive} = 4096;
 
     options.enable_disp (1,1) logical = false;
     options.Fs (1,1) double {mustBePositive} = 48000;
@@ -93,7 +100,24 @@ if strcmp(mode, 'rceps') % Real cepstrum method
     wn = [1; 2 * ones([(N+odd)/2-1,1]) ; ones([1-rem(N,2),1]); zeros([(N+odd)/2-1,1])];
     H_mp_rceps = exp(fft(wn.*xhat)); % Minimum phase target
     h_mp_rceps = real(ifft(H_mp_rceps))';
-    h = h_mp_rceps(1:num_taps);
+
+    if strcmp(options.rceps_fit, 'trunc')
+
+        h = h_mp_rceps(1:num_taps);
+        
+    elseif strcmp(options.rceps_fit, 'leastsquares')
+
+        ndx = 0:(num_taps - 1);
+        w_fit = logspace(log10(w(1)), log10(pi), options.rceps_fit_M);
+        F = exp( -1i * (w_fit(:) * ndx) ); %[rceps_fit_M x num_taps]
+        X_tgt = freqz(h_mp_rceps, 1, w_fit);
+    
+        b = real(F'*F) \ real(F' * X_tgt(:));
+        h = b';
+
+    else
+        error('Unsupported options.rceps_fit');
+    end
 
 else
     error('Unsupported mode');
@@ -120,7 +144,8 @@ if options.enable_disp && coder.target('MATLAB')
 
     % Magnitude
     nexttile;
-    semilogx(freq_in, mag2db(X_mag), 'ro-', hz_disp, mag2db(abs(H_disp)), 'b-', freq_in, mag2db(abs(H_in)) - mag2db(X_mag), 'g-', 'markersize', 4, 'linewidth', linewidth);
+    semilogx(freq_in, mag2db(X_mag), 'ro-', hz_disp, mag2db(abs(H_disp)), 'b-', freq_in, mag2db(abs(H_in)) - mag2db(X_mag), 'g-', 'markersize', 4, 'linewidth', linewidth); hold on;
+    yline(0, 'k:', 'linewidth', linewidth);
     h_lg =  legend('Target Response', 'Fitted Response', 'Residual', 'location', 'best', 'Orientation', 'horizontal');  set(h_lg, 'fontsize', fontsize - 1);
     xlabel('Frequency (Hz)', 'fontsize', fontsize); 
     ylabel('Magnitude (dB)', 'fontsize', fontsize);

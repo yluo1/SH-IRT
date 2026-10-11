@@ -70,7 +70,6 @@ for i = 1:N_z % Iterate over zeros
     z_i = z(i);
     d_i = abs(z_i);
 
-
     if d_i >= 1 / options.margin && d_i <= options.margin % Zero is within margin of exclusion
         if d_i > 1 % Outside
             z_i = z_i / d_i * options.margin;
