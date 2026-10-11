@@ -61,7 +61,7 @@ function [h, err, h_figs] = ft_fit_tr(X, w, num_taps, lambda, mode, options)
 %Output
 %h:             [num_taps x M] FIR filter
 %err:           Scalar, norm( W^(1/2) * (F * h - X) )
-%h_figs:        Handle to figures
+%h_figs:        [1 x *] cell array of figure handles
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: Fit FIR to log-frequency sampled spherical piston model

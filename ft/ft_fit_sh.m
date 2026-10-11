@@ -48,6 +48,8 @@ function [h, err, h_figs] = ft_fit_sh(C, w, is_real, num_taps, mode, options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output 
 %h:         [(P + 1)^2 x num_taps]  Row-matrix filter taps
+%err:       Error, norm(F * (h.') - (C.'));
+%h_figs:    [1 x 4] cell array of figure handles
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage:  Resample log-frequency response of spherical piston to

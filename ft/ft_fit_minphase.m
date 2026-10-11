@@ -1,4 +1,4 @@
-function [h] = ft_fit_minphase(X_mag, w, num_taps, options)
+function [h, err, h_fig] = ft_fit_minphase(X_mag, w, num_taps, options)
 % Fit minimum phase FIR to real cepstrum of interpolated magnitude target X_mag at angular frequency w
 
 %Author: Yuancheng Luo, 2026
@@ -33,6 +33,8 @@ function [h] = ft_fit_minphase(X_mag, w, num_taps, options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
 %h:             [1 x num_taps]  Fitted FIR filter
+%err:           Error, norm(abs(freqz(h, 1, w)) - X_mag)
+%h_fig:         Handle to figure
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: Sample fit to log-frequency targets
@@ -63,7 +65,7 @@ arguments
     options.Fs (1,1) double {mustBePositive} = 48000;
     options.disp_dB_lim (1,2) double = [-inf, inf];
     options.disp_deg_lim (1,2) double = [-180, 180];
-    options.disp_grp_del_lim (1,2) double = [-10, 10];
+    options.disp_grp_del_lim (1,2) double = [-20, 20];
 
 end
 
@@ -131,10 +133,13 @@ else
     error('Unsupported options.rceps_fit');
 end
 
+% Compute error
+err = norm(abs(freqz(h, 1, w)) - X_mag);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plotting
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+h_fig = [];
 if options.enable_disp && coder.target('MATLAB')
 
     fontsize = 16;
