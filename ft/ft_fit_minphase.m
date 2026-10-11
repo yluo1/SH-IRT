@@ -8,8 +8,8 @@ function [h] = ft_fit_minphase(X_mag, w, num_taps, mode, options)
 %X_mag:         [1 x M] Target magnitude responses at angular frequency w
 %w:             [1 x M] Angular frequency (radians / sample) [0 to 2 * pi]
 %num_taps:      Number of FIR taps
-%mode:          String, fitting method {'rceps'}
-%                   'rceps':    Fit to real cepstrum from uniform frequency interpolated X_mag
+%mode:          String, minimum phase generation method {'rceps'}
+%                   'rceps':    Real cepstrum from uniform frequency interpolated X_mag
 
 %options:               struct
 %options.rceps_M:       Number of uniform frequency points from DC to Nyquist for interpolation
