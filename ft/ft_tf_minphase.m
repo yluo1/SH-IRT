@@ -6,10 +6,13 @@ function [b_mp, a_mp, b_ap, a_ap] = ft_tf_minphase(b, a, options)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
+%b:                     [1 x N_b] Numerator coefficients
+%a:                     [1 x N_a] Denominator coefficients
 
 %options:               struct
 %options.margin:        Scalar, projects any poles and zeros with modulus within 
 %                       margin [1/margin, margin] onto nearest margin
+
 %options.enable_disp:   Logical, if true, display frequency responses in fvtool
 %options.Fs:            Scalar, sampling rate for display
 
@@ -29,18 +32,18 @@ function [b_mp, a_mp, b_ap, a_ap] = ft_tf_minphase(b, a, options)
 %a = randn(1, 3);
 
 %[b_mp, a_mp, b_ap, a_ap] = ft_tf_minphase(b, a, 'enable_disp', true);
-%ft_tf_minphase(b, a, 'margin', 2, 'enable_disp', true); % With margin
+%ft_tf_minphase(b, a, 'margin', 1.001, 'enable_disp', true); % With margin
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Sample usage: Minimum-phase allpass decomposition of FIR
+%Sample usage: Minimum-phase allpass decomposition of long FIR
 
 %Fs = 48000;
 %rng(5234);
-%b = randn(1, 10);
+%b = randn(1, 1024);
 %a = 1;
 
 %[b_mp, a_mp, b_ap, a_ap] = ft_tf_minphase(b, a, 'enable_disp', true);
-%ft_tf_minphase(b, a, 'margin', 2, 'enable_disp', true); % With margin
+%ft_tf_minphase(b, a, 'margin', 1.001, 'enable_disp', true); % With margin
 
 arguments
     b (1,:) double = 1;
@@ -49,11 +52,14 @@ arguments
     options.margin (1,1) double {mustBeNonnegative} = 1;
     options.enable_disp (1,1) logical = false;
     options.Fs (1,1) double {mustBeNonnegative} = 48000;
+
 end
 
 assert(options.margin >= 1, 'Require margin >= 1');
 
-[z, p, k] = tf2zpk(b, a);
+%[z, p, k] = tf2zpk(b, a);
+sos = tf2sos(b, a); % More stable
+[z, p, k] = sos2zp(sos);
 
 N_z = numel(z); % Number of zeros
 N_p = numel(p); % Numoer of poles
@@ -120,9 +126,36 @@ for i = 1:N_p % Iterate over poles
     end
 end
 
+%k_ap = real(prod(p_ap));
+% [b_mp, a_mp] = zp2tf(z_mp, p_mp, k / k_ap);
+% [b_ap, a_ap] = zp2tf(z_ap, p_ap, k_ap);
+
 k_ap = real(prod(p_ap));
-[b_mp, a_mp] = zp2tf(z_mp, p_mp, k / k_ap);
-[b_ap, a_ap] = zp2tf(z_ap, p_ap, k_ap);
+[sos_mp, g_mp] = zp2sos(z_mp, p_mp, k / k_ap);
+[sos_ap, g_ap] = zp2sos(z_ap, p_ap, k_ap);
+
+[b_mp, a_mp] = sos2tf(sos_mp, g_mp);
+[b_ap, a_ap] = sos2tf(sos_ap, g_ap);
+
+% Correct for error
+err_sos_mp = norm(freqz(b_mp, a_mp, 1024) - g_mp * freqz(sos_mp, 1024));
+err_sos_ap = norm(freqz(b_ap, a_ap, 1024) - g_ap * freqz(sos_ap, 1024));
+if err_sos_mp > 1e-8
+    N_mp = 2 * size(sos_mp, 1) + 1;
+    b_mp = g_mp * ifft(prod(fft(sos_mp(:, 1:3), N_mp, 2), 1), [], 2, 'symmetric');
+    a_mp = ifft(prod(fft(sos_mp(:, 4:6), N_mp, 2), 1), [], 2, 'symmetric');    
+end
+if err_sos_ap > 1e-8
+    N_ap = 2 * size(sos_ap, 1) + 1;
+    b_ap = g_ap * ifft(prod(fft(sos_ap(:, 1:3), N_ap, 2), 1), [], 2, 'symmetric');
+    a_ap = ifft(prod(fft(sos_ap(:, 4:6), N_ap, 2), 1), [], 2, 'symmetric');    
+end
+
+if isscalar(a) % FIR
+    a_mp = 1;
+end
+
+assert( isstable(b_mp, a_mp), 'minimum phase is not stable');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plotting
