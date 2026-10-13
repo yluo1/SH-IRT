@@ -34,6 +34,9 @@ h_D = sh_plt(D, 'mercator', false, 'title_name', 'Directional Function', varargi
 h_C = sh_plt(C, 'mercator', false, 'title_name', 'Random Function', varargin{:}, 'disp_cb', false, 'disp_ylabel', false, 'disp_yticks', false);
 h_E = sh_plt(E, 'mercator', false, 'title_name', 'Product Function', varargin{:}, 'disp_cb', true, 'disp_ylabel', false, 'disp_yticks', false);
 
+[theta_fib, phi_fib] = sh_grd_fib((P_C + P_D + 1)^2);
+h_E_marks = sh_plt(E, 'mercator', false, 'title_name', 'Product Function', varargin{:}, 'disp_cb', true, 'disp_ylabel', false, 'disp_yticks', false, 'disp_theta_phi', [theta_fib, phi_fib], 'disp_theta_phi_markersize', 4);
+
 %Export figures
 out_dir = 'figs';
 if ~isfolder(out_dir)
@@ -43,3 +46,4 @@ end
 % exportgraphics(h_D{1}, fullfile(out_dir, 'sample_SqExP_dir.png'));
 % exportgraphics(h_C{1}, fullfile(out_dir, 'sample_random_func.png'));
 % exportgraphics(h_E{1}, fullfile(out_dir, 'sample_filtered_func.png'));
+% exportgraphics(h_E_marks{1}, fullfile(out_dir, 'sample_filtered_func_marks.png'));

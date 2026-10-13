@@ -1,4 +1,4 @@
-function [h, err, h_fig] = ft_fit_minphase(X_mag, w, num_taps, options)
+function [h, h_mp_rceps, err, h_fig] = ft_fit_minphase(X_mag, w, num_taps, options)
 % Fit minimum phase FIR to real cepstrum of interpolated magnitude target X_mag at angular frequency w
 
 %Author: Yuancheng Luo, 2026
@@ -33,6 +33,7 @@ function [h, err, h_fig] = ft_fit_minphase(X_mag, w, num_taps, options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
 %h:             [1 x num_taps]  Fitted FIR filter
+%h_mp_rceps:    [1 x 2 * (options.rceps_fit_M - 1)] Minimum phase reconstruction from real cepstrum
 %err:           Error, norm(abs(freqz(h, 1, w)) - X_mag)
 %h_fig:         Handle to figure
 
@@ -55,7 +56,7 @@ arguments
     w (1,:) double {mustBeNonnegative} = 0;
     num_taps (1,1) double {mustBeInteger, mustBePositive} = 1;
 
-    options.rceps_M (1,1) double {mustBeInteger, mustBePositive} = 4096;
+    options.rceps_M (1,1) double {mustBeInteger, mustBePositive} = 4096+1;
     options.rceps_interp (1,:) char {mustBeMember(options.rceps_interp, {'logpchip', 'loglin', 'pchip', 'lin'})} = 'logpchip';
     options.rceps_extrap (1,:) char {mustBeMember(options.rceps_extrap, {'nearest'})} = 'nearest';
     options.rceps_fit    (1,:) char {mustBeMember(options.rceps_fit, {'trunc', 'leastsquares'})} = 'trunc';
@@ -112,9 +113,10 @@ xhat = real(ifft( [log_X_mag, fliplr(log_X_mag(2:end-1))] ))';
 N = numel(xhat);
 odd = fix(rem(N,2));
 wn = [1; 2 * ones([(N+odd)/2-1,1]) ; ones([1-rem(N,2),1]); zeros([(N+odd)/2-1,1])];
-H_mp_rceps = exp(fft(wn.*xhat)); % Minimum phase target
-h_mp_rceps = real(ifft(H_mp_rceps))';
+H_mp_rceps = exp(fft(wn.*xhat));        % Minimum phase target
+h_mp_rceps = real(ifft(H_mp_rceps))';   % Minimum phase reconstruction
 
+% Fit to target
 if strcmp(options.rceps_fit, 'trunc')
 
     h = h_mp_rceps(1:num_taps);
