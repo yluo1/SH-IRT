@@ -367,8 +367,7 @@ if options.enable_disp && coder.target("MATLAB")
     nexttile;
     X_in_deg = rad2deg(angle(X_in));
     H_deg = rad2deg(angle(H));
-    H_in_deg = rad2deg(angle(H_in));
-    semilogx(hz, X_in_deg, 'ro-', hz_h, H_deg, 'b-', hz, H_in_deg - X_in_deg, 'g-', 'markersize', 4, 'linewidth', 1.5);
+    semilogx(hz, X_in_deg, 'ro-', hz_h, H_deg, 'b-', hz, rad2deg(angle(H_in ./ X_in)), 'g-', 'markersize', 4, 'linewidth', 1.5);
     grid on; axis tight; ylim(options.deg_lim);
     set(gca, 'fontsize', fontsize - 1);
     xlabel('Frequency (Hz)', 'fontsize', fontsize);

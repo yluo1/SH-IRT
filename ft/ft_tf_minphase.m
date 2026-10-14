@@ -137,9 +137,9 @@ k_ap = real(prod(p_ap));
 [b_mp, a_mp] = sos2tf(sos_mp, g_mp);
 [b_ap, a_ap] = sos2tf(sos_ap, g_ap);
 
-% Correct for error
-err_sos_mp = norm(freqz(b_mp, a_mp, 1024) - g_mp * freqz(sos_mp, 1024));
-err_sos_ap = norm(freqz(b_ap, a_ap, 1024) - g_ap * freqz(sos_ap, 1024));
+% Correct for error in sos2tf (internally convolves coefficients) via FFT/IFFT reformulation
+err_sos_mp = norm(freqz(b_mp, a_mp, 1024) - g_mp * freqz([sos_mp; 1 0 0 1 0 0], 1024));
+err_sos_ap = norm(freqz(b_ap, a_ap, 1024) - g_ap * freqz([sos_ap; 1 0 0 1 0 0], 1024));
 if err_sos_mp > 1e-8
     N_mp = 2 * size(sos_mp, 1) + 1;
     b_mp = g_mp * ifft(prod(fft(sos_mp(:, 1:3), N_mp, 2), 1), [], 2, 'symmetric');
@@ -155,7 +155,8 @@ if isscalar(a) % FIR
     a_mp = 1;
 end
 
-assert( isstable(b_mp, a_mp), 'minimum phase is not stable');
+% Checks
+assert( isminphase(b_mp, a_mp), 'not minimum phase');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Plotting

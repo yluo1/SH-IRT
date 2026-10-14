@@ -49,7 +49,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 ## SH Operators
 | File | Description |
 | :--- | :--- | 
-| sh_rot.m | Rotation | 
+| [sh_rot.m](sh/sh_rot.m) | Rotation | 
 | sh_refl.m | Reflection | 
 | sh_mul.m | Multiplication | 
 | sh_conv.m | Convolution | 
@@ -155,6 +155,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 |ft_fit_bnd_minphase.m| Magnitude bounded minimum phase FIR fit to magnitude targets|
 |ft_fit_tr.m | Tiknonov regularized least squares FIR fit to complex targets: l2 norm, exponential and circular exponential window, discrete Picard criterion |
 |ft_fit_sh.m| Tiknonov regularized least squares FIR fit to SH coefficients: l2 norm, exponential and circular exponential window|
+|ft_fit_tf.m | Transfer function least fitting IIR fit to complex targets: Supports unconstrained, minimum phase, allpass filter types, and stabilization options|
 |ft_freq_wt.m | Frequency weighting functions|
 |ft_tf_minphase.m | Decompose transfer function coefficients into minimum-phase and all-pass coefficients |
 
