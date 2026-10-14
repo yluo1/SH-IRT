@@ -6,7 +6,7 @@ This open-source library provides tools for modifying, generating, and analyzing
 * **Evaluations**: SH basis, expansion, integral (sum, power), covariance
 * **Fitting**: Least squares (truncated singular value decomposition, Tiknonov regularization, magnitude squared, sum-of-magnitude squared, mix-of-magnitude squared, mixture power), radial basis functions
 * **Encoding**: Projections, radial basis functions, spherical baffled piston
-* **Filtering**: Time / frequency domain LTI convolution, time-varying exponentiating and recursive convolution, Tiknonov least squares FIR
+* **Filtering**: Time / frequency domain LTI convolution, time-varying exponentiating and recursive convolution, Tiknonov least squares FIR fitting, iterative re-weighted least squares IIR fitting
 * **Density Modeling**: Maximum likelihood fitting, inverse sampling, scattering transport, spherical sliced Wasserstein optimal transport
 * **SRIR Generation**: Cross-directivity SH image-source model (ISM) expansion, spherical Poisson-process
 * **T60 Modeling**: Spherical frequency decay time Gaussian process (GP) regression and sampling
