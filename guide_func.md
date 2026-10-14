@@ -50,90 +50,90 @@ and is vectorized in the same format as the complex case. In such instances, the
 | File | Description |
 | :--- | :--- | 
 | [sh_rot.m](sh/sh_rot.m) | Rotation | 
-| sh_refl.m | Reflection | 
-| sh_mul.m | Multiplication | 
-| sh_conv.m | Convolution | 
-| sh_nrm.m | Normalization | 
-| sh_msq.m | Magnitude squared| 
-| sh_sqrt.m | Square root magnitude approximation | 
-| sh_conj.m | Conjugation | 
-| sh_cpx2re.m | Complex to real form | 
-| sh_re2cpx.m | Real to complex form | 
-| sh_resize.m | Truncate or zero-pad to different max-order expansions | 
-| sh_translate.m | Translate origin coordinate | 
+| [sh_refl.m](sh/sh_refl.m) | Reflection | 
+| [sh_mul.m](sh/sh_mul.m) | Multiplication | 
+| [sh_conv.m](sh/sh_conv.m) | Convolution | 
+| [sh_nrm.m](sh/sh_nrm.m) | Normalization | 
+| [sh_msq.m](sh/sh_msq.m) | Magnitude squared| 
+| [sh_sqrt.m](sh/sh_sqrt.m) | Square root magnitude approximation | 
+| [sh_conj.m](sh/sh_conj.m) | Conjugation | 
+| [sh_cpx2re.m](sh/sh_cpx2re.m) | Complex to real form | 
+| [sh_re2cpx.m](sh/sh_re2cpx.m) | Real to complex form | 
+| [sh_resize.m](sh/sh_resize.m) | Truncate or zero-pad to different max-order expansions | 
+| [sh_translate.m](sh/sh_translate.m) | Translate origin coordinate | 
 
 ## SH Evaluations
 | File | Description |
 | :--- | :--- | 
-|sh_val.m| Evaluate SH bases |
-|sh_dec.m| Evaluate SH expansions |
-|sh_int.m | Compute integral sum or power | 
-|sh_cov.m | Compute covariance | 
+|[sh_val.m](sh/sh_val.m)| Evaluate SH bases |
+|[sh_dec.m](sh/sh_dec.m)| Evaluate SH expansions |
+|[sh_int.m](sh/sh_int.m) | Compute integral sum or power | 
+|[sh_cov.m](sh/sh_cov.m) | Compute covariance | 
 
 ## SH Spatial Room Impulse Response Generation
 | File | Description |
 | :--- | :--- | 
-|sh_ism.m| Image-source model |
-|sh_rand.m| Random field |
-|sh_rand_pp.m| Poisson process |
+|[sh_ism.m](sh/sh_ism.m)| Image-source model |
+|[sh_rand.m](sh/sh_rand.m)| Random field |
+|[sh_rand_pp.m](sh/sh_rand_pp.m)| Poisson process |
 
 ## SH Basis Fitting
 | File | Description |
 | :--- | :--- | 
-|sh_fit_svd.m | Truncated singular value decomposition least squares: Maximum singular value fraction, total variance fraction, bottom fraction, discrete Picard criterion |
-|sh_fit_tr.m | Tikhonov regularized least squares: l2 norm, quadratic degree penalty, discrete Picard criterion |
-|sh_fit_rbf.m | Radial basis function fitting: Squared exponential, Matérn, exponential |
-|sh_fit_msq.m | Magnitude squared least-squares: Magnitude squared, sum-of-magnitude squared, mix-of-magnitude squared, mixture power|
+|[sh_fit_svd.m](sh/sh_fit_svd.m) | Truncated singular value decomposition least squares: Maximum singular value fraction, total variance fraction, bottom fraction, discrete Picard criterion |
+|[sh_fit_tr.m](sh/sh_fit_tr.m) | Tikhonov regularized least squares: l2 norm, quadratic degree penalty, discrete Picard criterion |
+|[sh_fit_rbf.m](sh/sh_fit_rbf.m) | Radial basis function fitting: Squared exponential, Matérn, exponential |
+|[sh_fit_msq.m](sh/sh_fit_msq.m) | Magnitude squared least-squares: Magnitude squared, sum-of-magnitude squared, mix-of-magnitude squared, mixture power|
 
 
 ## SH Filtering
 | File | Description |
 | :--- | :--- | 
-|sh_filter.m | Filter time domain SH expansion |
-|sh_filter_freq.m | Filter frequency domain SH expansion |
-|sh_filter_delay.m | Add sample delay to SH expansion at angular frequencies |
-|sh_filter_dir.m | Directional filtering via SH multiplication|
-|sh_filter_val.m | Evaluate FIR fitted SH expansions at angular frequencies for resampling SH expansions |
-|sh_freqz.m | Evaluate frequency response of SH expansion |
-|sh_exp_conv.m | Direction independent time-varying exponentiating convolution|
-|sh_exp_conv_gp.m | Direction dependent T60 time-varying exponentiating convolution |
-|sh_rec_conv.m | Time-varying recursive convolution |
+|[sh_filter.m](sh/sh_filter.m) | Filter time domain SH expansion |
+|[sh_filter_freq.m](sh/sh_filter_freq.m) | Filter frequency domain SH expansion |
+|[sh_filter_delay.m](sh/sh_filter_delay.m) | Add sample delay to SH expansion at angular frequencies |
+|[sh_filter_dir.m](sh/sh_filter_dir.m) | Directional filtering via SH multiplication|
+|[sh_filter_val.m](sh/sh_filter_val.m) | Evaluate FIR fitted SH expansions at angular frequencies for resampling SH expansions |
+|[sh_freqz.m](sh/sh_freqz.m) | Evaluate frequency response of SH expansion |
+|[sh_exp_conv.m](sh/sh_exp_conv.m) | Direction independent time-varying exponentiating convolution|
+|[sh_exp_conv_gp.m](sh/sh_exp_conv_gp.m) | Direction dependent T60 time-varying exponentiating convolution |
+|[sh_rec_conv.m](sh/sh_rec_conv.m) | Time-varying recursive convolution |
 
 ## SH Function Encodings
 | File | Description |
 | :--- | :--- | 
-|sh_enc_proj.m | Dirac-delta projection into spherical harmonics |
-|sh_enc_proj_msq.m | Dirac-delta projection magnitude square into spherical harmonics |
-|sh_enc_uni.m | Constant function |
-|sh_enc_rbf.m | Radial basis functions: Squared exponential, Matérn, exponential, sinc |
-|sh_enc_pist_sphere.m | External piston on sphere frequency responses|
+|[sh_enc_proj.m](sh/sh_enc_proj.m) | Dirac-delta projection into spherical harmonics |
+|[sh_enc_proj_msq.m](sh/sh_enc_proj_msq.m) | Dirac-delta projection magnitude square into spherical harmonics |
+|[sh_enc_uni.m](sh/sh_enc_uni.m) | Constant function |
+|[sh_enc_rbf.m](sh/sh_enc_rbf.m) | Radial basis functions: Squared exponential, Matérn, exponential, sinc |
+|[sh_enc_pist_sphere.m](sh/sh_enc_pist_sphere.m) | External piston on sphere frequency responses|
 
 ## SH Probability Density Functions
 | File | Description |
 | :--- | :--- | 
-|sh_pdf_fit.m | Density function fitting|
-|sh_pdf_dist.m | Density function distances: Spherical sliced Wasserstein, Kullback-Lieber divergence|
-|sh_pdf_sample.m | Sampling spherical coordinates from density|
-|sh_pdf_scatter.m | Transport density function towards uniform density|
-|sh_pdf_transport.m | Transport between density functions|
-|sh_pdf_preset.m | Preset density functions|
-|sh_cdf_inv_theta.m | Inverse sampling marginal cumulative distribution function over co-latitude|
-|sh_cdf_inv_phi_cond.m | Inverse sampling cumulative distribution function over azimuth given co-latitude|
+|[sh_pdf_fit.m](sh/sh_pdf_fit.m) | Density function fitting|
+|[sh_pdf_dist.m](sh/sh_pdf_dist.m) | Density function distances: Spherical sliced Wasserstein, Kullback-Lieber divergence|
+|[sh_pdf_sample.m](sh/sh_pdf_sample.m) | Sampling spherical coordinates from density|
+|[sh_pdf_scatter.m](sh/sh_pdf_scatter.m) | Transport density function towards uniform density|
+|[sh_pdf_transport.m](sh/sh_pdf_transport.m) | Transport between density functions|
+|[sh_pdf_preset.m](sh/sh_pdf_preset.m) | Preset density functions|
+|[sh_cdf_inv_theta.m](sh/sh_cdf_inv_theta.m) | Inverse sampling marginal cumulative distribution function over co-latitude|
+|[sh_cdf_inv_phi_cond.m](sh/sh_cdf_inv_phi_cond.m) | Inverse sampling cumulative distribution function over azimuth given co-latitude|
 
 ## SH Spherical Coordinate Grids
 | File | Description |
 | :--- | :--- | 
-|sh_grd_fib.m| Spherical Fibonacci points |
-|sh_grd_plat.m| Platonic solid vertex points |
-|sh_grd_caps.m| Uniform points along co-latitude and azimuth (polar concentrated)|
-|sh_grd_rand.m | Uniform random spherical coordinates |
+|[sh_grd_fib.m](sh/sh_grd_fib.m)| Spherical Fibonacci points |
+|[sh_grd_plat.m](sh/sh_grd_plat.m)| Platonic solid vertex points |
+|[sh_grd_caps.m](sh/sh_grd_caps.m)| Uniform points along co-latitude and azimuth (polar concentrated)|
+|[sh_grd_rand.m](sh/sh_grd_rand.m) | Uniform random spherical coordinates |
 
 ## SH Miscellaneous
 | File | Description |
 | :--- | :--- | 
-|sh_plt.m| Plot SH expansion: Mercator, horizontal, cardinal direction projections|
-|sh2ambx.m| SH to AmbiX format |
-|ambx2sh.m| AmbiX to SH format |
+|[sh_plt.m](sh/sh_plt.m)| Plot SH expansion: Mercator, horizontal, cardinal direction projections|
+|[sh2ambx.m](sh/sh2ambx.m)| SH to AmbiX format |
+|[ambx2sh.m](sh/ambx2sh.m)| AmbiX to SH format |
 
 
 # Filter Toolbox
@@ -141,34 +141,34 @@ and is vectorized in the same format as the complex case. In such instances, the
 ## FT Time-varying Exponentiation
 | File | Description |
 | :--- | :--- | 
-|ft_exp_conv_opt.m| Exponentiated convolution optimized |
-|ft_exp_conv_direct.m| Exponentiated convolution direct |
-|ft_exp_design.m| Exponentiating FIR filter design |
-|ft_two_tap_FIR.m| Two-tap FIR filter design |
-|ft_rec_conv_opt.m| Recursive convolution optimized |
-|ft_rec_conv_direct.m| Recursive convolution direct |
+|[ft_exp_conv_opt.m](ft/ft_exp_conv_opt.m)| Exponentiated convolution optimized |
+|[ft_exp_conv_direct.m](ft/ft_exp_conv_direct.m)| Exponentiated convolution direct |
+|[ft_exp_design.m](ft/ft_exp_design.m)| Exponentiating FIR filter design |
+|[ft_two_tap_FIR.m](ft/ft_two_tap_FIR.m)| Two-tap FIR filter design |
+|[ft_rec_conv_opt.m](ft/ft_rec_conv_opt.m)| Recursive convolution optimized |
+|[ft_rec_conv_direct.m](ft/ft_rec_conv_direct.m)| Recursive convolution direct |
 
 ## FT Filter Fitting
 | File | Description |
 | :--- | :--- | 
-|ft_fit_minphase.m| Minimum phase FIR fit to magnitude targets |
-|ft_fit_bnd_minphase.m| Magnitude bounded minimum phase FIR fit to magnitude targets|
-|ft_fit_tr.m | Tiknonov regularized least squares FIR fit to complex targets: l2 norm, exponential and circular exponential window, discrete Picard criterion |
-|ft_fit_sh.m| Tiknonov regularized least squares FIR fit to SH coefficients: l2 norm, exponential and circular exponential window|
-|ft_fit_tf.m | Transfer function least fitting IIR fit to complex targets: Supports unconstrained, minimum phase, allpass filter types, and stabilization options|
-|ft_freq_wt.m | Frequency weighting functions|
-|ft_tf_minphase.m | Decompose transfer function coefficients into minimum-phase and all-pass coefficients |
+|[ft_fit_minphase.m](ft/ft_fit_minphase.m) | Minimum phase FIR fit to magnitude targets |
+|[ft_fit_bnd_minphase.m](ft/ft_fit_bnd_minphase.m)| Magnitude bounded minimum phase FIR fit to magnitude targets|
+|[ft_fit_tr.m](ft/ft_fit_tr.m) | Tiknonov regularized least squares FIR fit to complex targets: l2 norm, exponential and circular exponential window, discrete Picard criterion |
+|[ft_fit_sh.m](ft/ft_fit_sh.m)| Tiknonov regularized least squares FIR fit to SH coefficients: l2 norm, exponential and circular exponential window|
+|[ft_fit_tf.m](ft/ft_fit_tf.m) | Transfer function least fitting IIR fit to complex targets: Supports unconstrained, minimum phase, allpass filter types, and stabilization options|
+|[ft_freq_wt.m](ft/ft_freq_wt.m) | Frequency weighting functions|
+|[ft_tf_minphase.m](ft/ft_tf_minphase.m) | Decompose transfer function coefficients into minimum-phase and all-pass coefficients |
 
 # Gaussian Processes
 
 | File | Description |
 | :--- | :--- | 
-|gp_mu.m| Prior mean function selector|
-|gp_cov.m| Covariance function selector |
-|gp_t60_optimize.m | Hyper-parameter optimization of T60 model|
-|gp_t60_sample.m | T60 function sampling from GP prior or posterior|
-|gp_plt.m| Plotting |
-|mu_pow.m| Power-law prior mean function |
-|mu_lpf.m| Low-pass prior mean function |
-|cov_sqx_chw_ns.m| Squared exponential chordal x non-stationary frequency covariance function |
-|cov_sqx_chw_sqx.m| Squared exponential chordal x squared exponential frequency covariance function |
+|[gp_mu.m](gp/gp_mu.m) | Prior mean function selector|
+|[gp_cov.m](gp/gp_cov.m) | Covariance function selector |
+|[gp_t60_optimize.m](gp/gp_t60_optimize.m) | Hyper-parameter optimization of T60 model|
+|[gp_t60_sample.m](gp/gp_t60_sample.m) | T60 function sampling from GP prior or posterior|
+|[gp_plt.m](gp/gp_plt.m)| Plotting |
+|[mu_pow.m](gp/mu_pow.m)| Power-law prior mean function |
+|[mu_lpf.m](gp/mu_lpf.m)| Low-pass prior mean function |
+|[cov_sqx_chw_ns.m](gp/cov_sqx_chw_ns.m)| Squared exponential chordal x non-stationary frequency covariance function |
+|[cov_sqx_chw_sqx.m](gp/cov_sqx_chw_sqx.m)| Squared exponential chordal x squared exponential frequency covariance function |
