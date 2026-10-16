@@ -162,10 +162,10 @@ function [b, a, err, output] = ft_fit_tf(X, w, N_b, N_a, mode, options)
 % 
 % N_b = 8;
 % N_a = 10;
-% [b_AM, a_AM] = ft_fit_tf(X, w, N_b, N_a, 'unconstr', 'wt_mode', 'AM', 'stab_mode', 'none', 'enable_disp', true);
-% [b_AM, a_AM] = ft_fit_tf(X, w, N_b, N_a, 'unconstr', 'wt_mode', 'AM', 'stab_mode', 'reflect', 'enable_disp', true);
-% [b_AM, a_AM] = ft_fit_tf(X, w, N_b, N_a, 'unconstr', 'wt_mode', 'AM', 'stab_mode', 'realz', 'enable_disp', true);
-% [b_AM, a_AM] = ft_fit_tf(X, w, N_b, N_a, 'unconstr', 'wt_mode', 'AM', 'stab_mode', 'LMI', 'enable_disp', true);
+% [b_none, a_none]      = ft_fit_tf(X, w, N_b, N_a, 'unconstr', 'wt_mode', 'AM', 'stab_mode', 'none', 'enable_disp', true);
+% [b_refl, a_refl]      = ft_fit_tf(X, w, N_b, N_a, 'unconstr', 'wt_mode', 'AM', 'stab_mode', 'reflect', 'enable_disp', true);
+% [b_realz, a_realz]    = ft_fit_tf(X, w, N_b, N_a, 'unconstr', 'wt_mode', 'AM', 'stab_mode', 'realz', 'enable_disp', true);
+% [b_LMI, a_LMI]        = ft_fit_tf(X, w, N_b, N_a, 'unconstr', 'wt_mode', 'AM', 'stab_mode', 'LMI', 'enable_disp', true);
 
 
 arguments
@@ -313,10 +313,6 @@ if strcmp(mode, 'unconstr')
                 variable b_k(N_b, 1)
                 variable P(N_a-1, N_a-1) semidefinite
 
-                expression f(N,1)
-  
-                f = wt_sqrt_k .* ((Fa * flipud([a_k; 1])) .* X - Fb * b_k);
-
                 % Companion matrix of coefficients a_k, V1
                 C_coef = [zeros(N_a-2, 1); -1]; % Last row fills in coefficients a_k
                 C_zero = [zeros(N_a-2, 1), eye(N_a-2); zeros(1, N_a-1)];
@@ -339,6 +335,8 @@ if strcmp(mode, 'unconstr')
                 [(P * C_zero + C_coef * a_k')', P]] >= options.stabilize_tol0 * eye(2 * (N_a-1) );
 
                 % Objective
+                f = wt_sqrt_k .* ((Fa * flipud([a_k; 1])) .* X - Fb * b_k);
+
                 minimize(norm(f, 2))
                 %minimize(sum(f' * f))
                 
@@ -478,14 +476,10 @@ elseif strcmp(mode, 'allpass')
         elseif strcmp(options.stab_mode, 'LMI')
             
             cvx_clear
-            cvx_begin
+            cvx_begin sdp
              
                 variable a_k(N_a - 1, 1)
                 variable P(N_a - 1, N_a - 1) semidefinite
-                %variable P(N_a - 1, N_a - 1)
-
-                expression f(N,1)
-                f = wt_sqrt_k .* ((Fa * flipud([a_k; 1])) .* X - fliplr(Fa) * flipud([a_k; 1]));
 
                 % Companion matrix of coefficients a_k, V1
                 C_coef = [zeros(N_a-2, 1); -1]; % Last row fills in coefficients a_k
@@ -509,6 +503,8 @@ elseif strcmp(mode, 'allpass')
                 [(P * C_zero + C_coef * a_k')', P]] >= options.stabilize_tol0 * eye(2 * (N_a-1) );                
                 
                 % Objective
+                f = wt_sqrt_k .* ((Fa * flipud([a_k; 1])) .* X - fliplr(Fa) * flipud([a_k; 1]));
+
                 minimize(norm(f, 2))
                 %minimize(sum(f' * f))
 
