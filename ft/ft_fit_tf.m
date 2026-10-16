@@ -28,13 +28,13 @@ function [b, a, err, output] = ft_fit_tf(X, w, N_b, N_a, mode, options)
 
 % Options
 % * Weight function specification: See options.wt_mode
-% * Stable denominator coefficients a: See options.stabilize_mode
+% * Stable denominator coefficients a: See options.stab_mode
 
 % Author: Yuancheng Luo, 2026
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
-%X:         [N x M] N frequency responses, M functions
+%X:         [N x 1] N frequency responses
 %w:         [N x 1] Angular frequency (radians / sample) [0 to 2 * pi]
 %N_b:       Number of numerator coefficients        \sum_{n=0)^N_b b_n * exp(-1i * w * n)
 %N_a:       Number of denominator coefficients  1 + \sum_{n=1)^N_a a_n * exp(-1i * w * n)
@@ -56,13 +56,16 @@ function [b, a, err, output] = ft_fit_tf(X, w, N_b, N_a, mode, options)
 % options.alpha:        Scalar, weight update rate between [0, 1]
 % options.epsilon:      Scalar, minimum denominator weighting
 
-% options.stabilize_mode:    String, stabilize poles  {'none', 'reflect', 'realz'}
+% options.stab_mode:    String, stabilize poles  {'none', 'reflect', 'realz', 'LMI'}
 %                               'none':     Allow unstable poles
 %                               'reflect':  Reflect poles into complex unit circle per iteration
 %                               'realz':    Enforce linear constrained real(H_b(w)) > 0 for grid of w in [0, pi]
 %                                           Reference: A. Chottera and G. Jullien, "A linear programming approach to recursive digital filter design with linear phase," in IEEE Transactions on Circuits and Systems, vol. 29, no. 3, pp. 139-149, March 1982, doi: 10.1109/TCS.1982.1085123
-% options.stabilize_M_w:     Number of uniform angular frequencies betwen [0, pi] for stabilization in 'stabilize_mode' = 'realz'
-% options.stabilize_tol0:    Margin around unit diskin 'stabilize_mode' = 'realz
+%                               'LMI':      Linear matrix inequality for constrained positive-definite matrix P and companion matrix C where P - C'*P*C \succ 0 via Schur complement (cvx required)
+%                                           Modified Reference: Antoniou, A., & Lu, W. S. (2007). Practical optimization: algorithms and engineering applications. Boston, MA: Springer US.
+
+% options.stabilize_M_w:     Number of uniform angular frequencies betwen [0, pi] for stabilization in 'stab_mode' = 'realz'
+% options.stabilize_tol0:    Margin around unit disk in 'stab_mode' = {'realz', 'LMI'}
 
 % options.enable_disp:  Logical, if true, plot fit
 % options.Fs:           Sample rate for display
@@ -88,7 +91,7 @@ function [b, a, err, output] = ft_fit_tf(X, w, N_b, N_a, mode, options)
 % N_a_ref = 12;
 % b_ref = randn(1, N_b_ref);
 % a_ref = randn(1, N_a_ref);
-% a_ref = polystab(a_ref);
+% %a_ref = polystab(a_ref);
 % 
 % freq = logspace(log10(20), log10(Fs/2), 512)';
 % w = freq / Fs * (2 * pi);
@@ -143,6 +146,28 @@ function [b, a, err, output] = ft_fit_tf(X, w, N_b, N_a, mode, options)
 % [b_HM, a_HM] = ft_fit_tf(X, w, N_a, N_a, 'allpass', 'wt_mode', 'HM', 'enable_disp', true);
 % [b_BM, a_BM] = ft_fit_tf(X, w, N_a, N_a, 'allpass', 'wt_mode', 'BM', 'enable_disp', true);
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Sample usage: Fit to randomized transfer function across different stabilization modes 
+% rng(7657);
+% Fs = 48000;
+% N_b_ref = 10;
+% N_a_ref = 12;
+% b_ref = randn(1, N_b_ref);
+% a_ref = randn(1, N_a_ref);
+% %a_ref = polystab(a_ref);
+% 
+% freq = logspace(log10(20), log10(Fs/2), 512)';
+% w = freq / Fs * (2 * pi);
+% X = freqz(b_ref, a_ref, w);
+% 
+% N_b = 8;
+% N_a = 10;
+% [b_AM, a_AM] = ft_fit_tf(X, w, N_b, N_a, 'unconstr', 'wt_mode', 'AM', 'stab_mode', 'none', 'enable_disp', true);
+% [b_AM, a_AM] = ft_fit_tf(X, w, N_b, N_a, 'unconstr', 'wt_mode', 'AM', 'stab_mode', 'reflect', 'enable_disp', true);
+% [b_AM, a_AM] = ft_fit_tf(X, w, N_b, N_a, 'unconstr', 'wt_mode', 'AM', 'stab_mode', 'realz', 'enable_disp', true);
+% [b_AM, a_AM] = ft_fit_tf(X, w, N_b, N_a, 'unconstr', 'wt_mode', 'AM', 'stab_mode', 'LMI', 'enable_disp', true);
+
+
 arguments
     X (:,1) double = 1;
     w (:,1) double = 0;
@@ -158,8 +183,8 @@ arguments
     options.wt (:,1) double {mustBePositive} = [];
     options.alpha (1,1) double {mustBeNonnegative} = 0.5;
     options.epsilon (1,1) double {mustBeNonnegative} = 1e-8;
-    options.stabilize_mode (1,:) char {mustBeMember(options.stabilize_mode, {'none', 'reflect', 'realz'})} = 'none';
-    options.stabilize_M_w (1,1) double {mustBePositive, mustBeInteger} = 128;
+    options.stab_mode (1,:) char {mustBeMember(options.stab_mode, {'none', 'reflect', 'realz', 'LMI'})} = 'none';
+    options.stabilize_M_w (1,1) double {mustBePositive, mustBeInteger} = 256;
     options.stabilize_tol0 (1,1) double {mustBeNonnegative} = 1e-8; 
 
     options.enable_disp (1,1) logical = false;
@@ -219,14 +244,14 @@ err_iters = zeros(options.max_iter, 1);
 if strcmp(mode, 'unconstr') 
 
     % Pre-compute stabilization constraints
-    if strcmp(options.stabilize_mode, 'realz')
+    if strcmp(options.stab_mode, 'realz')
     
         Fa_stab = real(exp(-1i * linspace(0, pi, options.stabilize_M_w)' * (0:(N_a-1)) ));
         A_stab_ineq = -[Fa_stab(:, 2:end), zeros(options.stabilize_M_w, N_b)];
         b_stab_ineq = (1 - options.stabilize_tol0) * Fa_stab(:, 1);
         
         options_quadprog = optimoptions('quadprog', 'Display', 'none');
-        
+
     end
 
     for k = 1:options.max_iter
@@ -240,20 +265,20 @@ if strcmp(mode, 'unconstr')
         F = bsxfun(@times, [bsxfun(@times, Fa(:, 2:end), X), -Fb], wt_sqrt_k);
         Y = -(wt_sqrt_k .* X);
 
-        if strcmp(options.stabilize_mode, 'none')
+        if strcmp(options.stab_mode, 'none')
 
             x = lsqminnorm([real(F); imag(F)], [real(Y); imag(Y)]);
             b_k = x(N_a:end).';
             a_k = [1; x(1:(N_a - 1))].';
 
-        elseif strcmp(options.stabilize_mode, 'reflect')
+        elseif strcmp(options.stab_mode, 'reflect')
 
             x = lsqminnorm([real(F); imag(F)], [real(Y); imag(Y)]);
             b_k = x(N_a:end).';
             a_k = [1; x(1:(N_a - 1))].';
             a_k = polystab(a_k); 
 
-        elseif strcmp(options.stabilize_mode, 'realz')
+        elseif strcmp(options.stab_mode, 'realz')
 
             F_re_im = [real(F); imag(F)];
             Y_re_im = [real(Y); imag(Y)];
@@ -277,10 +302,57 @@ if strcmp(mode, 'unconstr')
             b_k = x(N_a:end).';
             a_k = [1; x(1:(N_a - 1))].';
 
-            assert(all(abs(roots(a_k)) <= 1), 'unstable poles');
+            assert(isstable(b_k, a_k), 'unstable poles, increase options.stabilize_M_w');
+
+        elseif strcmp(options.stab_mode, 'LMI')
             
+            cvx_clear
+            cvx_begin sdp
+             
+                variable a_k(N_a - 1, 1)
+                variable b_k(N_b, 1)
+                variable P(N_a-1, N_a-1) semidefinite
+
+                expression f(N,1)
+  
+                f = wt_sqrt_k .* ((Fa * flipud([a_k; 1])) .* X - Fb * b_k);
+
+                % Companion matrix of coefficients a_k, V1
+                C_coef = [zeros(N_a-2, 1); -1]; % Last row fills in coefficients a_k
+                C_zero = [zeros(N_a-2, 1), eye(N_a-2); zeros(1, N_a-1)];
+
+                % linear matrix inequality for Lyapunov stability:
+                % P \succ 0
+                % P - C'*P*C = P - (P * C)' * inv(P) * (P * C) \succ 0
+                % Schur's complement: [[P, P*C]; [(P*C)', P]] \succ 0
+                P >= options.stabilize_tol0 * eye(N_a-1);
+
+                % Constrain P s.t. last row and column are e_{N_a-1} s.t. Schur matrix is LMI w.r.t. P and a_k 
+                for n = 1:N_a-2
+                    P(n, N_a-1) == 0;
+                    P(N_a-1, n) == 0;
+                end
+                P(N_a - 1, N_a - 1) == 1;
+
+                % P * C_coef * a_k' = C_coef * a_k'
+                [[P, P * C_zero + C_coef * a_k']; ...
+                [(P * C_zero + C_coef * a_k')', P]] >= options.stabilize_tol0 * eye(2 * (N_a-1) );
+
+                % Objective
+                minimize(norm(f, 2))
+                %minimize(sum(f' * f))
+                
+            cvx_end
+
+            b_k = double(b_k)';
+            a_k = double(flipud([a_k(:); 1]))';
+            
+            %eig(P)
+            %roots(a_k)
+            assert(isstable(b_k, a_k), 'unstable poles');
+
         else
-            error('Unsupported options.stabilize_mode');
+            error('Unsupported options.stab_mode');
         end
 
         H_a_k = Fa * a_k(:);
@@ -344,7 +416,7 @@ elseif strcmp(mode, 'allpass')
     X = X ./ abs(X);
 
     % Pre-compute stabilization constraints
-    if strcmp(options.stabilize_mode, 'realz')
+    if strcmp(options.stab_mode, 'realz')
     
         Fa_stab = real(exp(-1i * linspace(0, pi, options.stabilize_M_w)' * (0:(N_a-1)) ));
         A_stab_ineq = -Fa_stab(:, 2:end);
@@ -364,20 +436,20 @@ elseif strcmp(mode, 'allpass')
 
         F = bsxfun(@times, bsxfun(@times, Fa(:, 2:end), X) - fliplr(Fa(:, 1:end-1)), wt_sqrt_k);
         Y = wt_sqrt_k .* (Fa(:, end) - X);
-        if strcmp(options.stabilize_mode, 'none')
+        if strcmp(options.stab_mode, 'none')
 
             x = lsqminnorm([real(F); imag(F)], [real(Y); imag(Y)]);
             a_k = [1; x(1:(N_a - 1))].';
             b_k = fliplr(a_k);
 
-        elseif strcmp(options.stabilize_mode, 'reflect')
+        elseif strcmp(options.stab_mode, 'reflect')
 
             x = lsqminnorm([real(F); imag(F)], [real(Y); imag(Y)]);
             a_k = [1; x(1:(N_a - 1))].';
             a_k = polystab(a_k);
             b_k = fliplr(a_k);
 
-        elseif strcmp(options.stabilize_mode, 'realz')
+        elseif strcmp(options.stab_mode, 'realz')
 
             F_re_im = [real(F); imag(F)];
             Y_re_im = [real(Y); imag(Y)];
@@ -401,10 +473,54 @@ elseif strcmp(mode, 'allpass')
             a_k = [1; x(1:(N_a - 1))].';
             b_k = fliplr(a_k);
 
-            assert(all(abs(roots(a_k)) <= 1), 'unstable poles');
+            assert(isstable(b_k, a_k), 'unstable poles, increase options.stabilize_M_w');
+
+        elseif strcmp(options.stab_mode, 'LMI')
+            
+            cvx_clear
+            cvx_begin
+             
+                variable a_k(N_a - 1, 1)
+                variable P(N_a - 1, N_a - 1) semidefinite
+                %variable P(N_a - 1, N_a - 1)
+
+                expression f(N,1)
+                f = wt_sqrt_k .* ((Fa * flipud([a_k; 1])) .* X - fliplr(Fa) * flipud([a_k; 1]));
+
+                % Companion matrix of coefficients a_k, V1
+                C_coef = [zeros(N_a-2, 1); -1]; % Last row fills in coefficients a_k
+                C_zero = [zeros(N_a-2, 1), eye(N_a-2); zeros(1, N_a-1)];
+
+                % linear matrix inequality for Lyapunov stability:
+                % P \succ 0
+                % P - C'*P*C = P - (P * C)' * inv(P) * (P * C) \succ 0
+                % Schur's complement: [[P, P*C]; [(P*C)', P]] \succ 0
+                P >= options.stabilize_tol0 * eye(N_a-1);
+
+                % Constrain P s.t. last row and column are e_{N_a-1} s.t. Schur matrix is LMI w.r.t. P and a_k 
+                for n = 1:N_a-2
+                    P(n, N_a-1) == 0;
+                    P(N_a-1, n) == 0;
+                end
+                P(N_a - 1, N_a - 1) == 1;
+
+                % P * C_coef * a_k' = C_coef * a_k'
+                [[P, P * C_zero + C_coef * a_k']; ...
+                [(P * C_zero + C_coef * a_k')', P]] >= options.stabilize_tol0 * eye(2 * (N_a-1) );                
+                
+                % Objective
+                minimize(norm(f, 2))
+                %minimize(sum(f' * f))
+
+            cvx_end
+
+            a_k = double(flipud([a_k(:); 1]))';
+            b_k = fliplr(a_k);
+
+            assert(isstable(b_k, a_k), 'unstable poles');
             
         else
-            error('Unsupported options.stabilize_mode');            
+            error('Unsupported options.stab_mode');            
         end
                                
         H_a_k = Fa * a_k(:);
@@ -451,7 +567,7 @@ if options.enable_disp && coder.target("MATLAB")
     h_fig.Position = [100, 100, 800, 600];
     h_t = tiledlayout(2, 1);
 
-    title_str = ['Transfer Function Fit: Mode = ', mode, 'Numer = ', num2str(N_b), ', Denom = ', num2str(N_a), ', Update = ', options.wt_mode];
+    title_str = ['Transfer Function Fit: Mode = ', mode, ', Num = ', num2str(N_b), ', Den = ', num2str(N_a), ', Update = ', options.wt_mode, ', Stab = ', options.stab_mode];
     if options.disp_output
          title_str = [title_str, '\newlineError = ', num2str(err), ', Stable = ', num2str(output.stable)];
     end
