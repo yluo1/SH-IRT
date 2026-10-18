@@ -25,7 +25,7 @@ The supported mean and covariance functions are specified as follows:
 
 ### Mean Function Prior Specifications
 
-A simple T60 prior mean is the power law function given by
+A simple T60 prior mean is the power law function in `mu_pow.m` given by
 
 $$\overline{T}_{60}(\omega) =  \alpha  \max \left ( 1, \nu(\omega)  \right ) ^{-\beta}, \quad \nu(\omega) = \frac{\omega}{2 \pi}, $$
 
@@ -36,7 +36,7 @@ gp_plt('mu_pow');
 ```
 <img src="./figs/figs_t60/mu_pow_1.png" alt="Power Function" width="600"/>
 
-The power law function is monotonic decreasing for positive $\beta$ and whose derivative converges to $0$ for increasing frequency. We can introduce a 3rd shape parameter to control the tilt following an idealized low-pass filter response design given by
+The power law function is monotonic decreasing for positive $\beta$ and whose derivative converges to $0$ for increasing frequency. We can introduce a 3rd shape parameter to control the tilt following an idealized low-pass filter response design in `mu.lpf.m` given by
 
 $$\overline{T}_{60}(\omega) =  \frac{\alpha}{1 + \left ( \frac{\nu(\omega)}{f_c}  \right )^{\beta}}, $$
 
@@ -47,12 +47,24 @@ gp_plt('mu_lpf');
 ```
 <img src="./figs/figs_t60/mu_lpf_1.png" alt="Power Function" width="900"/>
 
-The GP prior mean function can be evaluated via `gp_mu.m` by specifying its options struct `gp_mu_opts.m` and plotted:
+We can model T60 distributions conditioned on real-world rooms via the linear and quadratic T60 fits of furnished and unfurnished room types[^DIAZ_DWELL] in `mu_well.m`. The interpolated T60s w.r.t. frequency and the room's cubic volume are shown:
+```
+gp_plt('mu_dwell', 'mu_dwell_mode', 'furnished');
+gp_plt('mu_dwell', 'mu_dwell_mode', 'unfurnished');
+```
+| Furnished Dwelling | Unfurnished Dwelling |
+  | :-: | :-: |
+|<img src="./figs/figs_t60/mu_dwell_furnished_1.png" alt="Furnished Dwelling" width="450"/> | <img src="./figs/figs_t60/mu_dwell_unfurnished_1.png" alt="Furnished Dwelling" width="450"/>|
+
+where the T60 functions are monotonic decreasing in frequency between 125 to 4000 Hz. Frequencies outside the 1/3 octave band center frequencies are interpolated via piecewise splines, and extrapolated via piecewise log-linear functions.
+
+The GP prior mean functions can be evaluated via `gp_mu.m` by specifying its options struct `gp_mu_opts.m` and plotted:
 ```
 omega = 2 * pi * logspace(log10(20), log10(24000), 256)'; % Angular frequencies
 
 mu_power = gp_mu(omega, gp_mu_opts('mu_func', 'power', 'mu_alpha', 1, 'mu_beta', 0.5, 'enable_disp', true));
 mu_lpf   = gp_mu(omega, gp_mu_opts('mu_func', 'LPF',   'mu_alpha', 1, 'mu_beta', 0.5, 'mu_fc', 500, 'enable_disp', true));
+mu_dwell = gp_mu(omega, gp_mu_opts('mu_func', 'dwell', 'mu_dwell_mode', 'furnished', 'mu_dwell_vol', 35, 'enable_disp', true));
 ```
 
 ### Covariance Function Prior Specifications
@@ -61,7 +73,7 @@ We can construct positive semi-definite covariance functions from chordal distan
 
 $$d(\theta, \phi, \theta', \phi') = 2 \sin \left ( \frac{ \left | \cos^{-1} (\bf{v}^T \bf{v}') \right |   }{2} \right ) = \left \lVert \bf{v} - \bf{v}'  \right \rVert_2 .$$
 
-The squared exponential of chordal distance with non-stationary kernel wavelengths is therefore a non-stationary Gaussian kernel[^PACIOREK_NS] in 3-dimensions where $\bf{\Sigma} = \lambda^2 \bf{I} \in \mathbb{R}^{3 \times 3}$, and is positive semi-definite following  
+The squared exponential of chordal distance with non-stationary kernel wavelengths is therefore a non-stationary Gaussian kernel[“PACIOREK_NS] in 3-dimensions where $\bf{\Sigma} = \lambda^2 \bf{I} \in \mathbb{R}^{3 \times 3}$, and is positive semi-definite following  
 
 $$k(\bf{x},\bf{x}') = \sigma^2 \left ( \frac{2 \lambda \lambda'}{\lambda^2 + (\lambda')^2} \right )^{3/2} \exp \left (  - \frac{d^2(\theta, \phi, \theta', \phi') }{ \left ( \lambda^2 + (\lambda')^2 \right ) / 2}  \right ),$$
 
@@ -526,7 +538,7 @@ Let us generate a sample SH-Poisson RIR and augment its T60 in the function `plo
   sh_plt(D_exp, 'horizontal', is_real, 'disp_phase', false, 'title_name_override', 'Exponential k = 0.5 Scattering', 'dB_lim', dB_lim, 't', t);
   ```
 	| No Scattering | Linear Scattering | Exponential Scattering |
-  | --- | --- | --- |
+  | :-: | :-: | :-: |
   |<img src="./figs/figs_t60/rand_pp_pdf.png" alt="No scattering density" width="400"/>|<img src="./figs/figs_t60/rand_pp_pdf_lin.png" alt="Linear scattering density" width="400"/>|<img src="./figs/figs_t60/rand_pp_pdf_exp.png" alt="Exponential scattering density" width="400"/>|
   
 	where no scattering holds the density constant over time, linear scattering mixes with uniform density over time, and exponential scattering transports towards uniform density over time.
@@ -552,7 +564,7 @@ Let us generate a sample SH-Poisson RIR and augment its T60 in the function `plo
       'direct_unity_first_pulse', true, 'C_pdf', D_exp, 'enable_disp', true);
   ```
 	| Density | SRIRs Decoded On-Axis | Energy / Time on Horizontal Plane |
-  | --- | --- | --- |
+  | :-: | :-: | :-: |
   |No Scattering|<img src="./figs/figs_t60/SRIR_pp_pdf.png" width="800"/>|<img src="./figs/figs_t60/SRIR_hplane_pp_pdf.png"  width="400"/>|
   |Linear Scattering|<img src="./figs/figs_t60/SRIR_pp_pdf_lin.png" width="800"/>|<img src="./figs/figs_t60/SRIR_hplane_pp_pdf_lin.png"  width="400"/>|
   |Exponential Scattering|<img src="./figs/figs_t60/SRIR_pp_pdf_exp.png" width="800"/>|<img src="./figs/figs_t60/SRIR_hplane_pp_pdf_exp.png"  width="400"/>| 
@@ -608,7 +620,7 @@ Let us generate a sample SH-Poisson RIR and augment its T60 in the function `plo
         'enable_disp', true, 'options_disp_gp', options_disp_gp);
   ```
   | T60 GP Prior | T60 GP Posterior|
-  | --- |--- |
+  | :-: | :-: |
   <img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior.png"  width="400"/> | <img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post.png"  width="400"/>
 
 * Decode and plot SRIRs at spherical coordinates on the horizontal plane:
@@ -644,7 +656,7 @@ Let us generate a sample SH-Poisson RIR and augment its T60 in the function `plo
   ```
 
   | Original | Exponentiated SRIR with T60 GP prior| Exponentiated SRIR with T60 GP Posterior|
-    | --- | --- |--- |
+     | :-: | :-: | :-: |
     |<img src="./figs/figs_t60/SRIR_pp_gp_exp_orig_1.png" width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior_1.png"  width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post_1.png"  width="400"/>|
     |<img src="./figs/figs_t60/SRIR_pp_gp_exp_orig_2.png" width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior_2.png"  width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post_2.png"  width="400"/>|
   |<img src="./figs/figs_t60/SRIR_pp_gp_exp_orig_3.png" width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior_3.png"  width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post_3.png"  width="400"/>|
@@ -698,13 +710,13 @@ Let us generate a sample SH-ISM RIR and augment its T60 in the function `plot_sh
   ```
 
   | SRIR 0th to 0th Order SH Source to Receiver Expansion | SRIR 0th Order SH Source to On-Axis Receiver Direction| Energy / Time or 0th Order Source on Horizontal Plane |
-  | --- | --- | --- |
+    | :-: | :-: | :-: |
   |<img src="./figs/figs_t60/sh_ism_RIR_0.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_RIR_onaxis.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_RIR_hplane.png"  width="400"/>|
 
 * Specify a T60 GP prior mean and covariance. Set the T60 sampling method to only the GP prior mean function (direction independent, `sample_method_gp = ‘mean’; obs = []`) and apply SH exponentiated convolutions to the exponential scattered SRIR `C_pp_exp_T60_prior` via `sh_exp_conv_gp.m`. Then add a set of observed T60 to `obs` and repeat for the posterior 'C_pp_exp_T60_post':
 
     | T60 GP Prior | T60 GP Posterior|
-    | --- |--- |
+    | :-: | :-: |
     <img src="./figs/figs_t60/sh_ism_T60_prior.png"  width="400"/> | <img src="./figs/figs_t60/sh_ism_T60_post.png"  width="400"/>
 
 * Decode and plot SRIRs at spherical coordinates on the horizontal plane:
@@ -740,12 +752,13 @@ Let us generate a sample SH-ISM RIR and augment its T60 in the function `plot_sh
   ```
   
   | Original | Exponentiated SRIR with T60 GP prior| Exponentiated SRIR with T60 GP Posterior|
-    | --- | --- |--- |
+  | :-: | :-: | :-: |
     |<img src="./figs/figs_t60/sh_ism_orig_1.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_prior_1.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_post_1.png"  width="400"/>|
     |<img src="./figs/figs_t60/sh_ism_orig_2.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_prior_2.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_post_2.png"  width="400"/>|
   |<img src="./figs/figs_t60/sh_ism_orig_3.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_prior_3.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_post_3.png"  width="400"/>|
   |<img src="./figs/figs_t60/sh_ism_orig_4.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_prior_4.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_post_4.png"  width="400"/>|
 
+[^DIAZ_DWELL]: Díaz, C., & Pedrero, A. (2007). The reverberation time and equivalent sound absorption area of rooms in dwellings. Noise & Vibration Worldwide, 38(6), 12-20.
 
 [^PACIOREK_NS]: Paciorek, C., & Schervish, M. (2003). "Nonstationary covariance functions for Gaussian process regression". Advances in neural information processing systems, 16.
 

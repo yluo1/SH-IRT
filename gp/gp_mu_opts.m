@@ -9,13 +9,16 @@ function options = gp_mu_opts(options)
 
 arguments
     %Default covariance function
-    options.mu_func    (1,:) char {mustBeMember(options.mu_func, {'power', 'LPF'}) } = 'power'; %Prior mean function name
+    options.mu_func    (1,:) char {mustBeMember(options.mu_func, {'power', 'LPF', 'dwell'}) } = 'power'; %Prior mean function name
 
     options.mu_alpha   (1,1) double {mustBeNonnegative} = 1;            % Normative function value
     options.mu_beta    (1,1) double {mustBeNonnegative} = 0.25;         % Decay exponent
 
     options.mu_fc      (1,1) double {mustBeNonnegative} = 8000;         % Cross-over frequency
 
+    options.mu_dwell_mode (1,:) char {mustBeMember(options.mu_dwell_mode, {'furnished', 'unfurnished'})} = 'furnished'; % Dwelling type
+    options.mu_dwell_vol (1,1) double {mustBePositive} = 25;            % Volume (m^3)
+    
     %Misc.
     options.enable_disp (1,1) logical = false;                          % Logical, if true, display plot in gp_mu.m
 end

@@ -19,6 +19,7 @@ function mu = gp_mu(omega, options)
 
 % mu_power = gp_mu(omega, gp_mu_opts('mu_func', 'power', 'mu_alpha', 1, 'mu_beta', 0.5, 'enable_disp', true));
 % mu_lpf   = gp_mu(omega, gp_mu_opts('mu_func', 'LPF',   'mu_alpha', 1, 'mu_beta', 0.5, 'mu_fc', 500, 'enable_disp', true));
+% mu_dwell = gp_mu(omega, gp_mu_opts('mu_func', 'dwell', 'mu_dwell_mode', 'furnished', 'mu_dwell_vol', 35, 'enable_disp', true));
 
 arguments
     omega (:,:) double {mustBeNonnegative} = pi/2;
@@ -42,6 +43,13 @@ elseif strcmp(options.mu_func, 'LPF')
         gp_plt('mu_lpf', 'mu_lpf_alpha_list', options.mu_alpha, 'mu_lpf_beta_list', options.mu_beta, 'mu_lpf_omega_fc_list', options.mu_fc * 2 * pi, 'mu_lpf_fig_position', [100, 100, 900, 450]);
     end
 
+elseif strcmp(options.mu_func, 'dwell')
+
+    mu = mu_dwell(omega, options.mu_dwell_mode, options.mu_dwell_vol); %[N x M]
+
+    if options.enable_disp  && coder.target('MATLAB')
+         gp_plt('mu_dwell', 'mu_dwell_mode', options.mu_dwell_mode, 'mu_dwell_vol', options.mu_dwell_vol, 'mu_dwell_fig_position', [100, 100, 900, 450]);
+    end
 else
     error('Unsupported options.mu_func');
 end

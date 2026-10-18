@@ -23,6 +23,12 @@ function h_fig_list = gp_plt(func_name, options)
 % options.mu_lpf_omega_fc_list:         [1 x N_fc], list of cross-over frequencies
 % options.mu_lpf_fig_position:          [1 x 4] figure position [x, y, width, height]
 
+% options.mu_dwell_f_lo:                 Scalar, frequency start (Hz)
+% options.mu_dwell_f_hi:                 Scalar, Frequency end (Hz)
+% options.mu_dwell_mode:                 String, dwelling type {'furnished', 'unfurnished'}
+% options.mu_dwell_vol:                  [1 x M_vol] cubic volume of space
+% options.mu_dwell_fig_position:         [1 x 4] figure position [x, y, width, height]
+
 % options.cov_sqx_chw_ns_f_0_list:       [1 x N_f_0] Frequency f_0 (Hz)
 % options.cov_sqx_chw_ns_f_lo:           Scalar, frequency start (Hz)
 % options.cov_sqx_chw_ns_f_hi:           Scalar, Frequency end (Hz)
@@ -30,7 +36,7 @@ function h_fig_list = gp_plt(func_name, options)
 % options.cov_sqx_chw_ns_ell_list:       [1 x N_ell] list of wavelength scaling
 % options.cov_sqx_chw_ns_gamma_list:     [1 x N_gamma] list of wavelength exponents
 % options.cov_sqx_chw_nsfig_position:    [1 x 4] figure position [x, y, width, height]
-% 
+
 % options.cov_sqx_chw_sqx_f_0_list:      [1 x N_f_0] Frequency f_0 (Hz)
 % options.cov_sqx_chw_sqx_f_lo:          Scalar, frequency start (Hz)
 % options.cov_sqx_chw_sqx_f_hi:          Scalar, Frequency end (Hz)
@@ -38,7 +44,7 @@ function h_fig_list = gp_plt(func_name, options)
 % options.cov_sqx_chw_sqx_ell_c_list:    [1 x N_ell] list of wavelength scaling
 % options.cov_sqx_chw_sqx_ell_f_list:    [1 x N_gamma] list of wavelength exponents
 % options.cov_sqx_chw_sqx_fig_position:  [1 x 4] figure position [x, y, width, height]
-% 
+
 % options.enable_export:                 Logical, if true, export figures to files
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -50,12 +56,14 @@ function h_fig_list = gp_plt(func_name, options)
 
 %gp_plt('mu_pow', 'enable_export', true);
 %gp_plt('mu_lpf', 'enable_export', true);
+%gp_plt('mu_dwell', 'mu_dwell_mode', 'furnished', 'enable_export', true);
+%gp_plt('mu_dwell', 'mu_dwell_mode', 'unfurnished', 'enable_export', true);
 
 %gp_plt('cov_sqx_chw_ns', 'enable_export', true);
 %gp_plt('cov_sqx_chw_sqx', 'enable_export', true);
 
 arguments
-    func_name (1,:) char {mustBeMember(func_name, {'mu_pow', 'mu_lpf', 'cov_sqx_chw_ns', 'cov_sqx_chw_sqx'})} = 'cov_sqx_chw_ns';
+    func_name (1,:) char {mustBeMember(func_name, {'mu_pow', 'mu_lpf', 'mu_dwell', 'cov_sqx_chw_ns', 'cov_sqx_chw_sqx'})} = 'cov_sqx_chw_ns';
 
     options.mu_pow_f_lo (1,1) double {mustBePositive} = 20;
     options.mu_pow_f_hi (1,1) double {mustBePositive}  = 24000;
@@ -69,6 +77,12 @@ arguments
     options.mu_lpf_beta_list (1,:) double  {mustBeNonnegative} = [0, 0.25, 0.5];
     options.mu_lpf_omega_fc_list (1,:) double {mustBeNonnegative} = 2 * pi * [50, 500, 5000];
     options.mu_lpf_fig_position (1,4) double {mustBeNonnegative} = [100, 100, 1600, 900];
+
+    options.mu_dwell_f_lo (1,1) double {mustBePositive} = 20;
+    options.mu_dwell_f_hi (1,1) double {mustBePositive}  = 24000;
+    options.mu_dwell_mode (1,:) char {mustBeMember(options.mu_dwell_mode, {'furnished', 'unfurnished'})} = 'furnished';
+    options.mu_dwell_vol (1,:) double {mustBePositive} = [12.5, 25, 50];
+    options.mu_dwell_fig_position (1,4) double {mustBeNonnegative} = [100, 100, 600, 450];    
 
     options.cov_sqx_chw_ns_f_0_list  (1,:) double {mustBePositive} = [50, 500, 5000];
     options.cov_sqx_chw_ns_f_lo (1,1) double {mustBePositive} = 20;
@@ -213,6 +227,38 @@ elseif strcmp(func_name, 'mu_lpf')
     end
 
     title(h_t, 'Prior Mean Low-Pass Function', 'fontsize', fontsize + 1);
+
+elseif strcmp(func_name, 'mu_dwell')
+
+    %Plot
+    h_fig = figure;
+    h_fig.Position = options.mu_dwell_fig_position;
+    h_fig_list{1} = h_fig;
+
+    N_freq = 128;
+    f_lo = options.mu_dwell_f_lo;
+    f_hi = options.mu_dwell_f_hi;
+    freq_list = logspace(log10(f_lo), log10(f_hi), N_freq);
+    omega = 2 * pi * freq_list;
+
+    M_vol = numel(options.mu_dwell_vol);
+    mu_T60 = zeros([N_freq, M_vol]);
+    legend_str = cell(1, M_vol);
+    for m = 1:M_vol
+        mu_T60(:, m) = mu_dwell(omega, options.mu_dwell_mode, options.mu_dwell_vol(m));
+        legend_str{m} = num2str(options.mu_dwell_vol(m));
+    end
+
+    fontsize = options.fontsize - 2;
+    semilogx(freq_list, mu_T60, 'linewidth', 1.5); 
+    grid on; axis tight; set(gca, 'fontsize', fontsize - 1);
+    h_lg = legend(legend_str, 'location', 'best'); set(h_lg, 'fontsize', fontsize - 1); title(h_lg, 'Volume m^3');
+    xlabel('Frequency (Hz)', 'fontsize', fontsize);
+    ylabel('T60 (Seconds)', 'fontsize', fontsize);
+    title(['T60 Dwelling ', options.mu_dwell_mode], 'fontsize', fontsize + 1);
+
+    % Augment func name
+    func_name = [func_name, '_', options.mu_dwell_mode];
 
 elseif strcmp(func_name, 'cov_sqx_chw_ns')
 
