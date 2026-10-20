@@ -63,7 +63,7 @@ SH_fit_mode = 'svd_ls';
 N_freq_uni_fit = 24;
 max_taps_g = 24;
 
-% Sample fromr T60 prior mean
+% Sample from T60 prior mean
 obs = [];
 [C_sh_ism_T60_prior, h_fig_gp_prior] = sh_exp_conv_gp(squeeze(C(1, :, :)), obs, is_real, ...
     'Fs', Fs, 'options_mu', options_mu, 'options_cov', options_cov, ...
@@ -87,6 +87,9 @@ obs = gp_obs_opts(  'omega', omega_obs, ...
       'N_freq_uni_fit', N_freq_uni_fit, 'max_taps_g', max_taps_g, ...
       'SH_fit_mode', SH_fit_mode, 'SH_fit_svd_trunc_frac', 0, ...
       'enable_disp', true, 'options_disp_gp', options_disp_gp);
+
+h_SH_ism_SH_hplane_prior = sh_plt(C_sh_ism_T60_prior(:, 1:numel(t)), 'horizontal', is_real, 'disp_phase', false, 'dB_lim', [-120, 0], 't', t, 'disp_xaxis_ker_size', 1024, 'title_name', 'Prior');
+h_SH_ism_SH_hplane_post  = sh_plt(C_sh_ism_T60_post(:, 1:numel(t)), 'horizontal', is_real, 'disp_phase', false, 'dB_lim', [-120, 0], 't', t, 'disp_xaxis_ker_size', 1024, 'title_name', 'Posterior');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Decode along grid and plot
@@ -128,6 +131,9 @@ end
 exportgraphics(h_SH_ism_RIR_0, fullfile(out_dir, 'sh_ism_RIR_0.png'));
 exportgraphics(h_SH_ism_RIR_onaxis, fullfile(out_dir, 'sh_ism_RIR_onaxis.png'));
 exportgraphics(h_SH_ism_SH_hplane{1}, fullfile(out_dir, 'sh_ism_RIR_hplane.png'));
+
+exportgraphics(h_SH_ism_SH_hplane_prior{1}, fullfile(out_dir, 'sh_ism_RIR_hplane_prior.png'));
+exportgraphics(h_SH_ism_SH_hplane_post{1}, fullfile(out_dir, 'sh_ism_RIR_hplane_post.png'));
 
 exportgraphics(h_fig_gp_prior, fullfile(out_dir, 'sh_ism_T60_prior.png'));
 exportgraphics(h_fig_gp_post, fullfile(out_dir, 'sh_ism_T60_post.png'));

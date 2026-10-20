@@ -91,6 +91,9 @@ obs = gp_obs_opts(  'omega', omega_obs, ...
       'SH_fit_mode', SH_fit_mode, 'SH_fit_svd_trunc_frac', 0, ...
       'enable_disp', true, 'options_disp_gp', options_disp_gp);
 
+h_SH_pp_SH_hplane_prior = sh_plt(C_pp_exp_T60_prior(:, 1:numel(t)), 'horizontal', is_real, 'disp_phase', false, 'dB_lim', [-120, 0], 't', t, 'disp_xaxis_ker_size', 1024, 'title_name', 'Prior');
+h_SH_pp_SH_hplane_post  = sh_plt(C_pp_exp_T60_post(:, 1:numel(t)), 'horizontal', is_real, 'disp_phase', false, 'dB_lim', [-120, 0], 't', t, 'disp_xaxis_ker_size', 1024, 'title_name', 'Posterior');
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Decode along grid and plot
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -128,22 +131,25 @@ if ~isfolder(out_dir)
     mkdir(out_dir);
 end
 
-% exportgraphics(h_pdf{1}, fullfile(out_dir, 'rand_pp_pdf.png'));
-% exportgraphics(h_pdf_lin{1}, fullfile(out_dir, 'rand_pp_pdf_lin.png'));
-% exportgraphics(h_pdf_exp{1}, fullfile(out_dir, 'rand_pp_pdf_exp.png'));
-% 
-% exportgraphics(h_pp{1}, fullfile(out_dir, 'SRIR_pp_pdf.png'));
-% exportgraphics(h_pp{2}, fullfile(out_dir, 'SRIR_hplane_pp_pdf.png'));
-% 
-% exportgraphics(h_pp_lin{1}, fullfile(out_dir, 'SRIR_pp_pdf_lin.png'));
-% exportgraphics(h_pp_lin{2}, fullfile(out_dir, 'SRIR_hplane_pp_pdf_lin.png'));
-% 
-% exportgraphics(h_pp_exp{1}, fullfile(out_dir, 'SRIR_pp_pdf_exp.png'));
-% exportgraphics(h_pp_exp{2}, fullfile(out_dir, 'SRIR_hplane_pp_pdf_exp.png'));
+exportgraphics(h_pdf{1}, fullfile(out_dir, 'rand_pp_pdf.png'));
+exportgraphics(h_pdf_lin{1}, fullfile(out_dir, 'rand_pp_pdf_lin.png'));
+exportgraphics(h_pdf_exp{1}, fullfile(out_dir, 'rand_pp_pdf_exp.png'));
 
-% exportgraphics(h_fig_gp_prior, fullfile(out_dir, 'SRIR_pp_gp_exp_T60_prior.png'));
-% exportgraphics(h_fig_gp_post, fullfile(out_dir, 'SRIR_pp_gp_exp_T60_post.png'));
-% 
+exportgraphics(h_pp{1}, fullfile(out_dir, 'SRIR_pp_pdf.png'));
+exportgraphics(h_pp{2}, fullfile(out_dir, 'SRIR_hplane_pp_pdf.png'));
+
+exportgraphics(h_pp_lin{1}, fullfile(out_dir, 'SRIR_pp_pdf_lin.png'));
+exportgraphics(h_pp_lin{2}, fullfile(out_dir, 'SRIR_hplane_pp_pdf_lin.png'));
+
+exportgraphics(h_pp_exp{1}, fullfile(out_dir, 'SRIR_pp_pdf_exp.png'));
+exportgraphics(h_pp_exp{2}, fullfile(out_dir, 'SRIR_hplane_pp_pdf_exp.png'));
+
+exportgraphics(h_fig_gp_prior, fullfile(out_dir, 'SRIR_pp_gp_exp_T60_prior.png'));
+exportgraphics(h_fig_gp_post, fullfile(out_dir, 'SRIR_pp_gp_exp_T60_post.png'));
+
+exportgraphics(h_SH_pp_SH_hplane_prior{1}, fullfile(out_dir, 'sh_pp_RIR_hplane_prior.png'));
+exportgraphics(h_SH_pp_SH_hplane_post{1}, fullfile(out_dir, 'sh_pp_RIR_hplane_post.png'));
+
 for n = 1:N_cust
     exportgraphics(h_f_cust_dec{1, n}, fullfile(out_dir, ['SRIR_pp_gp_exp_orig_', num2str(n), '.png']));
     exportgraphics(h_f_cust_dec{2, n}, fullfile(out_dir, ['SRIR_pp_gp_exp_T60_prior_', num2str(n), '.png']));
