@@ -6,7 +6,7 @@ function K = sh_cov(C, D_pdf, is_real, options)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
 %C:             [(L_C + 1)^2 x N x M]   SH coefficients (max order P of N number of expansions, M functions)
-%D_pdf:         [(L_D + 1)^2 x 1        Density SH coefficients
+%D_pdf:         [(L_D + 1)^2 x 1]       Density SH coefficients
 %is_real:       Logical, if true, evaluate real SH
 
 %options.mode:          String, integration (SH multiplication) method {'CGC', 'SHT'}
@@ -48,7 +48,7 @@ function K = sh_cov(C, D_pdf, is_real, options)
 
 
 arguments
-    C (:,:) double {coder.mustBeComplex} = complex(0);
+    C (:,:,:) double {coder.mustBeComplex} = complex(0);
     D_pdf (:,:) double {coder.mustBeComplex} = complex(0);
     is_real (1,1) logical = false;
     
