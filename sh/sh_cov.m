@@ -1,7 +1,11 @@
 function K = sh_cov(C, D_pdf, is_real, options)
-%Compute covariance between spherical harmonic expansions in C over density D_pdf
+% Compute covariance between spherical harmonic expansions in C over density D_pdf
 
-%Author: Yuancheng Luo, 2026
+% SH expansion: f_C(theta, phi) = Y(theta, phi) * C    row-vector [1 x N]
+% K = E_{D_pdf}[f_C.' * conj(f_C)]
+% K_{ij} = \int_{\Omega} Y(\Omega) * C(:, i) * conj( Y(\Omega) * C(:, j) ) * Y(\Omega) * D_pdf d\Omega for uniform grid \Omega
+
+% Author: Yuancheng Luo, 2026
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
