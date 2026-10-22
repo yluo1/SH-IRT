@@ -60,7 +60,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 | [sh_cpx2re.m](sh/sh_cpx2re.m) | Complex to real form | 
 | [sh_re2cpx.m](sh/sh_re2cpx.m) | Real to complex form | 
 | [sh_resize.m](sh/sh_resize.m) | Truncate or zero-pad to different max-order expansions | 
-| [sh_translate.m](sh/sh_translate.m) | Translate origin coordinate | 
+| [sh_translate.m](sh/sh_translate.m) | Re-expansion at new origin| 
 
 ## SH Evaluations
 | File | Description |
@@ -106,7 +106,8 @@ and is vectorized in the same format as the complex case. In such instances, the
 |[sh_enc_proj_msq.m](sh/sh_enc_proj_msq.m) | Dirac-delta projection magnitude square into spherical harmonics |
 |[sh_enc_uni.m](sh/sh_enc_uni.m) | Constant function |
 |[sh_enc_rbf.m](sh/sh_enc_rbf.m) | Radial basis functions: Squared exponential, Matérn, exponential, sinc |
-|[sh_enc_pist_sphere.m](sh/sh_enc_pist_sphere.m) | External piston on sphere frequency responses|
+|[sh_enc_pist_sphere.m](sh/sh_enc_pist_sphere.m) | External piston on spherical baffle frequency responses|
+|[sh_enc_arr_mic.m](sh/sh_enc_arr_mic.m)| Analytic plane-wave to microphone array frequency responses|
 
 ## SH Probability Density Functions
 | File | Description |

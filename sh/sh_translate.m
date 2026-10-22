@@ -15,7 +15,7 @@ function [D, h_figs] = sh_translate(C, omega, is_real, v, options)
 %is_real:  Logical, if true, evaluate real SH
 %v:        [1 x 3] Cartesian coordinate of new origin (meters)
 
-%options.c:     Wavelength at 1 Hz in meters / second
+%options.c:     Wavelength at 1 Hz in meters
 %options.R:     Radius of scatterer or geometry
 
 %options.oversample: Oversample factor (1 = none)
