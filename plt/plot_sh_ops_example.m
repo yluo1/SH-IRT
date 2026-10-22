@@ -15,14 +15,14 @@ function plot_sh_ops_example(mode)
 %plot_sh_ops_example('norm');
 %plot_sh_ops_example('rot');
 %plot_sh_ops_example('refl');
-%plot_sh_ops_example('trans');
 %plot_sh_ops_example('resamp');
 %plot_sh_ops_example('resize');
+%plot_sh_ops_example('trans');
 %plot_sh_ops_example('flt_t');
 %plot_sh_ops_example('flt_f');
 
 arguments
-    mode (1,:) char {mustBeMember(mode, {'dec', 'add', 'mul', 'conj', 'msq', 'conv', 'norm', 'rot', 'refl', 'trans', 'resamp', 'resize', 'flt_t', 'flt_f'} )}
+    mode (1,:) char {mustBeMember(mode, {'dec', 'add', 'mul', 'conj', 'msq', 'conv', 'norm', 'rot', 'refl', 'resamp', 'resize', 'trans', 'flt_t', 'flt_f'} )}
 end
 
 if strcmp(mode, 'dec')
@@ -170,27 +170,6 @@ elseif strcmp(mode, 'refl')
     
     h_figs = {h_1{1}, h_2{1}, h_3{1}, h_4{1}};
 
-elseif strcmp(mode, 'trans')
-
-    % Generate SH spherical piston normalized on-axis and translate the expansion
-    Fs = 8000;
-    is_real = false;
-    N_taps = 128;
-    w = linspace(0, 2 * pi, N_taps + 1); w = w(1:end-1);
-    t = (0:(N_taps-1))/Fs;
-    omega = w * Fs;
-    freq = omega / (2 * pi);
-    
-    C = sh_enc_pist_sphere(30, pi/2, 0, 0.25, deg2rad(20), freq, 4, 'normalize_piston_axis', true);
-    [D, h_1] = sh_translate(C, omega, is_real, [- 0.5/1000 * 343, 0, 0], 'enable_disp', true, 'disp_dB_lim', [-20, 6]); % 1/2 ms in -x direction
-        
-    C_td = ifft(C, [], 2, 'symmetric');
-    h_2 = sh_plt(C_td, 'cardinal', is_real, 't', t, 'title_name', 'Original');
-    D_td = ifft(D, [], 2, 'symmetric');
-    h_3 = sh_plt(D_td, 'cardinal', is_real, 't', t, 'title_name', 'Translated');
-
-    h_figs = {h_1{1}, h_1{2}, h_2{1}, h_3{1}};
-
 elseif strcmp(mode, 'resamp')
 
     % Resample log-frequency response of spherical piston to linear-frequency
@@ -229,6 +208,25 @@ elseif strcmp(mode, 'resize')
     h_3 = sh_plt(E, 'mercator', is_real); % Match C
 
     h_figs = {h_1{1}, h_2{1}, h_3{1}};
+
+elseif strcmp(mode, 'trans')
+
+    % Generate SH spherical piston normalized on-axis and translate the expansion
+    Fs = 8000;
+    is_real = false;
+    N_taps = 128;
+    w = linspace(0, 2 * pi, N_taps + 1); w = w(1:end-1);
+    t = (0:(N_taps-1))/Fs;
+    omega = w * Fs;
+    freq = omega / (2 * pi);
+    
+    C = sh_enc_pist_sphere(30, pi/2, 0, 0.25, deg2rad(20), freq, 4, 'normalize_piston_axis', true);
+    [D, h_1] = sh_translate(C, omega, is_real, [- 0.5/1000 * 343, 0, 0], 'enable_disp', true, 'disp_dB_lim', [-20, 6]); % 1/2 ms in -x direction
+        
+    h_2 = sh_plt(C, 'cardinal', is_real, 't', t, 'hz', freq, 'title_name', 'Original');
+    h_3 = sh_plt(D, 'cardinal', is_real, 't', t, 'hz', freq, 'title_name', 'Translated');
+
+    h_figs = {h_1{1}, h_1{2}, h_2{1}, h_3{1}};
 
 elseif strcmp(mode, 'flt_t')   
 

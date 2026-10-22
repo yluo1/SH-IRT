@@ -45,11 +45,8 @@ function [D, h_figs] = sh_translate(C, omega, is_real, v, options)
 % 
 % sh_plt(C, 'cardinal', is_real, 'hz', freq, 'title_name', 'Original');
 % sh_plt(D, 'cardinal', is_real, 'hz', freq, 'title_name', 'Translated');
-
-% C_td = ifft(C, [], 2, 'symmetric');
-% sh_plt(C_td, 'cardinal', is_real, 't', t, 'title_name', 'Original');
-% D_td = ifft(D, [], 2, 'symmetric');
-% sh_plt(D_td, 'cardinal', is_real, 't', t, 'title_name', 'Translated');
+% sh_plt(C, 'cardinal', is_real, 't', t, 'hz', freq, 'title_name', 'Original');
+% sh_plt(D, 'cardinal', is_real, 't', t, 'hz', freq, 'title_name', 'Translated');
 
 arguments
     C (:,:) double = complex(0);
@@ -57,7 +54,7 @@ arguments
     is_real (1,1) logical = false;
     v (1,3) double = [0 0 0];
 
-    options.c (1,1) double {mustBePositive} = 343;  % Sound in air under normative temp and humidity
+    options.c (1,1) double {mustBePositive} = 343;  % Velocity (e.g. sound in air under normative temp and humidity)
     options.R (1,1) double {mustBePositive} = 0.01; % Radius of bounding sphere
     options.oversample (1,1) double {mustBeInteger, mustBePositive} = 4;
     options.max_odr_fit (1,1) double {mustBeInteger, mustBeNonnegative} = 60;

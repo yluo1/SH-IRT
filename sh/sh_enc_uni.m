@@ -11,7 +11,7 @@ function C = sh_enc_uni(max_odr, enable_disp)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
-%C:             [(max_odr + 1)^2 x N] SH coefficients
+%C:             [(max_odr + 1)^2 x 1] SH coefficients
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Code generation

@@ -19,8 +19,8 @@ function D = sh_filter_delay(C, w, d)
 % is_real = false;
 % N_taps = 128;
 % w = linspace(0, 2 * pi, N_taps + 1); w = w(1:end-1);
-% t = (0:(N_taps-1))/Fs;
 % Fs = 8000;
+% t = (0:(N_taps-1))/Fs;
 % omega = w * Fs;
 % freq = omega / (2 * pi);
 
@@ -30,10 +30,8 @@ function D = sh_filter_delay(C, w, d)
 % sh_plt(C, 'cardinal', is_real, 'hz', freq, 'title_name', 'Original');
 % sh_plt(D, 'cardinal', is_real, 'hz', freq, 'title_name', 'Delayed');
 
-% C_td = ifft(C, [], 2, 'symmetric');
-% sh_plt(C_td, 'cardinal', is_real, 't', t, 'title_name', 'Original');
-% D_td = ifft(D, [], 2, 'symmetric');
-% sh_plt(D_td, 'cardinal', is_real, 't', t, 'title_name', 'Delayed');
+% sh_plt(C, 'cardinal', is_real, 't', t, 'hz', freq, 'title_name', 'Original');
+% sh_plt(D, 'cardinal', is_real, 't', t, 'hz', freq, 'title_name', 'Delayed');
 
 arguments
     C (:,:) double {coder.mustBeComplex} = complex(0);

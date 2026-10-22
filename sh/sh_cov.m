@@ -9,8 +9,8 @@ function K = sh_cov(C, D_pdf, is_real, options)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
-%C:             [(L_C + 1)^2 x N x M]   SH coefficients (max order P of N number of expansions, M functions)
-%D_pdf:         [(L_D + 1)^2 x 1]       Density SH coefficients
+%C:             [(L_C + 1)^2 x N x M]   SH coefficients (max order L_C of N number of expansions, M functions)
+%D_pdf:         [(L_D + 1)^2 x 1]       Density SH coefficients (max order L_D)
 %is_real:       Logical, if true, evaluate real SH
 
 %options.mode:          String, integration (SH multiplication) method {'CGC', 'SHT'}

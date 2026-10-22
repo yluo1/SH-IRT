@@ -13,6 +13,7 @@ In this tutorial, we cover sample usage of basic operators on the spherical harm
 * [Reflection](#reflection)
 * [Resample](#resample)
 * [Resize](#resize)
+* [Translation](#translation)
 * [Filter Time Domain](#filter-time-domain)
 * [Filter Frequency Domain](#filter-frequency-domain)
 
@@ -214,34 +215,6 @@ Sample usage `sh_refl.m`:
 | :-: | :-: | :-: | :-: | 
 
 
-## Translation
-
-Translate spherical harmonic expansion's origin to a new coordinate. Refit to higher max-order expansions.
-
-Sample usage `sh_translate.m`:
-```
-    % Generate SH spherical piston normalized on-axis and translate the expansion
-    Fs = 8000;
-    is_real = false;
-    N_taps = 128;
-    w = linspace(0, 2 * pi, N_taps + 1); w = w(1:end-1);
-    t = (0:(N_taps-1))/Fs;
-    omega = w * Fs;
-    freq = omega / (2 * pi);
-    
-    C = sh_enc_pist_sphere(30, pi/2, 0, 0.25, deg2rad(20), freq, 4, 'normalize_piston_axis', true);
-    [D, h_1] = sh_translate(C, omega, is_real, [- 0.5/1000 * 343, 0, 0], 'enable_disp', true, 'disp_dB_lim', [-20, 6]); % 1/2 ms in -x direction
-        
-    C_td = ifft(C, [], 2, 'symmetric');
-    h_2 = sh_plt(C_td, 'cardinal', is_real, 't', t, 'title_name', 'Original');
-    D_td = ifft(D, [], 2, 'symmetric');
-    h_3 = sh_plt(D_td, 'cardinal', is_real, 't', t, 'title_name', 'Translated');
-```
-
-| <img src="figs/figs_sh/ops/ops_trans_1.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_trans_2.png"  width="450"> |
-| :-: | :-: |
-|<img src="figs/figs_sh/ops/ops_trans_3.png"  width="450"> | <img src="figs/figs_sh/ops/ops_trans_4.png"  width="450"> |
-
 ## Resample
 
 Regularized least squares fit FIR filters to SH coefficients per basis over frequency. Then compute frequency response of FIRs at target angular frequency for resampling.
@@ -292,6 +265,33 @@ Sample usage `sh_resize.m`:
 
 | <img src="figs/figs_sh/ops/ops_resize_1.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_resize_2.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_resize_3.png"  width="450"> |
 | :-: | :-: | :-: | 
+
+
+## Translation
+
+Translate spherical harmonic expansion's origin to a new coordinate. Refit to higher max-order expansions.
+
+Sample usage `sh_translate.m`:
+```
+    % Generate SH spherical piston normalized on-axis and translate the expansion
+    Fs = 8000;
+    is_real = false;
+    N_taps = 128;
+    w = linspace(0, 2 * pi, N_taps + 1); w = w(1:end-1);
+    t = (0:(N_taps-1))/Fs;
+    omega = w * Fs;
+    freq = omega / (2 * pi);
+    
+    C = sh_enc_pist_sphere(30, pi/2, 0, 0.25, deg2rad(20), freq, 4, 'normalize_piston_axis', true);
+    [D, h_1] = sh_translate(C, omega, is_real, [- 0.5/1000 * 343, 0, 0], 'enable_disp', true, 'disp_dB_lim', [-20, 6]); % 1/2 ms in -x direction
+        
+    h_2 = sh_plt(C, 'cardinal', is_real, 't', t, 'hz', freq, 'title_name', 'Original');
+    h_3 = sh_plt(D, 'cardinal', is_real, 't', t, 'hz', freq, 'title_name', 'Translated');
+```
+
+| <img src="figs/figs_sh/ops/ops_trans_1.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_trans_2.png"  width="450"> |
+| :-: | :-: |
+|<img src="figs/figs_sh/ops/ops_trans_3.png"  width="450"> | <img src="figs/figs_sh/ops/ops_trans_4.png"  width="450"> |
 
 ## Filter Time domain
 
