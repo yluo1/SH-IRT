@@ -41,7 +41,7 @@ function [C, h_figs] = sh_enc_arr_mic(max_odr, mode, N, radius, delay_dist, freq
 % M = 256;
 % N = 3;
 % radius = 0.1;
-% delay_dist = 2;
+% delay_dist = 1;
 % max_odr = 30;
 % %mode = 'uni_line';
 % mode = 'uni_circ';
@@ -62,7 +62,7 @@ function [C, h_figs] = sh_enc_arr_mic(max_odr, mode, N, radius, delay_dist, freq
 % M = 256;
 % N = 4;
 % radius = 0.01;
-% delay_dist = 2;
+% delay_dist = 1;
 % max_odr = 36;
 % mode = 'spis_circ';
 % freq = linspace(0, Fs, M + 1); freq = freq(1:end-1);

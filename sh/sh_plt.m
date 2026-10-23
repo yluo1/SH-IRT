@@ -13,7 +13,8 @@ function h = sh_plt(C, mode, is_real, options)
 %                   'horizontal'    Horizontal projection of all M functions (yaxis Azimuth, xaxis options.t or options.hz),
 %                                   figure handle h is [1 x 1] cell
 %                   'cardinal'      SH evaluated along cardinal directions over time options.t or frequency options.hz
-%                                   If options.t and options.hz are non-empty and options.hz is linear in frequency, then decode to time-domain
+%                                   If options.t and options.hz are non-empty and options.hz is linear in frequency, 
+%                                   then recover time-domain from the first half of frequency bins.
 %                                   figure handle h is [1 x 1] cell
 
 %is_real:           Logical, if true, evaluate real SH
@@ -440,7 +441,7 @@ elseif strcmp(mode, 'horizontal') %Plot horizontal plane
 
 elseif strcmp(mode, 'cardinal')
 
-    if ~isempty(options.hz) && isempty(options.t)
+    if ~isempty(options.hz) && isempty(options.t) % Frequency only
         
         f_theta_0_phi_0 = sh_dec(C, 0, 0, is_real);
         f_theta_90_phi_0 = sh_dec(C, pi/2, 0, is_real);
@@ -518,7 +519,7 @@ elseif strcmp(mode, 'cardinal')
         set(gca, 'fontsize', options.fontsize - 1);
         
 
-    elseif ~isempty(options.t) && isempty(options.hz)
+    elseif ~isempty(options.t) && isempty(options.hz) % Time only
 
         f_theta_0_phi_0 = sh_dec(C, 0, 0, is_real);
         f_theta_90_phi_0 = sh_dec(C, pi/2, 0, is_real);
@@ -561,7 +562,7 @@ elseif strcmp(mode, 'cardinal')
 
         set(gca, 'fontsize', options.fontsize - 1);
 
-    elseif ~isempty(options.t) && ~isempty(options.hz)
+    elseif ~isempty(options.t) && ~isempty(options.hz) % Recover time-domain from frequency domain
 
         assert(all( abs(diff(options.hz) - ( options.hz(2) - options.hz(1) )) <= 1e-8 ), 'hz must be uniform when t and hz supplied');
 
@@ -612,8 +613,6 @@ elseif strcmp(mode, 'cardinal')
         title(title_str, 'fontsize', options.fontsize + 1);
 
         set(gca, 'fontsize', options.fontsize - 1);
-
-
         
     else
         error('options.hz or options.t must be non-empty');
