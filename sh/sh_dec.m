@@ -12,9 +12,14 @@ function f = sh_dec(C, theta, phi, is_real, mode)
 
 %is_real:       Logical, if true, evaluate real SH
 
-%mode:          String, decoding method {'eval', 'pinv'}
+%mode:          String, decoding method {'eval', 'pinv', 'flt'}
 %               'eval':     Evaluate spherical harmonic expansion Y(theta, phi) * C 
 %               'pinv':     Pseudo-inverse (least-squares equivalent) Y(theta, phi) \ C
+%               'flt':      Recover FIR filters via inverse Fourier transform of spherical harmonic expansion
+%                           of double-sided spectrum over uniform frequencies ifft(Y(theta, phi) * C, [], 2, 'symmetric')
+%               'fltss'     Recover FIR filters via inverse Fourier transform of spherical harmonic expansion
+%                           of single-sided spectrum over uniform frequencies from DC to Nyquist. f_C = Y(theta, phi) * C
+%                           f = ifft([f_C, conj(fliplr(f_C(:, 2:end-1)))], [], 2, 'symmetric') of size [N x 2*(M-1)]
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
@@ -53,7 +58,7 @@ arguments
 
     is_real (1,1) logical = false;
 
-    mode (1,:) char {mustBeMember(mode, {'eval', 'pinv'})} = 'eval';
+    mode (1,:) char {mustBeMember(mode, {'eval', 'pinv', 'flt', 'fltss'})} = 'eval';
 end
 
 [P, M] = size(C);
@@ -73,7 +78,18 @@ elseif strcmp(mode, 'pinv')
     assert(N >= (P+1)^2, 'Requires N >= (P+1)^2');
     Y = sh_val(P, theta, phi, is_real);  %[N x (P + 1)^2]
     f = Y \ C;
-    
+
+elseif strcmp(mode, 'flt')
+    %Evaluate at spherical coordinates, recover filter from first half of decoded spectrum
+    Y = sh_val(P, theta, phi, is_real);  %[N x (P + 1)^2] 
+    f = ifft(Y * C, [], 2, 'symmetric');
+
+elseif strcmp(mode, 'fltss')
+    %Evaluate at spherical coordinates, recover filter from from single-sided (DC to Nyquist) decoded spectrum
+    Y = sh_val(P, theta, phi, is_real);  %[N x (P + 1)^2] 
+    f_C = Y * C;
+    f = ifft([f_C, conj(fliplr(f_C(:, 2:end-1)))], [], 2, 'symmetric');
+
 else
     error('Unsupported mode');
 end

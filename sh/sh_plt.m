@@ -14,7 +14,8 @@ function h = sh_plt(C, mode, is_real, options)
 %                                   figure handle h is [1 x 1] cell
 %                   'cardinal'      SH evaluated along cardinal directions over time options.t or frequency options.hz
 %                                   If options.t and options.hz are non-empty and options.hz is linear in frequency, 
-%                                   then recover time-domain from the first half of frequency bins.
+%                                   then recover time-domain responses from the first half of the spectra if numel(options.t) == M,                                   
+%                                   or recover from single-sided spectra if numel(options.t) == 2 * (M-1)
 %                                   figure handle h is [1 x 1] cell
 
 %is_real:           Logical, if true, evaluate real SH
@@ -441,7 +442,7 @@ elseif strcmp(mode, 'horizontal') %Plot horizontal plane
 
 elseif strcmp(mode, 'cardinal')
 
-    if ~isempty(options.hz) && isempty(options.t) % Frequency only
+    if ~isempty(options.hz) && isempty(options.t) % Frequency-domain only
         
         f_theta_0_phi_0 = sh_dec(C, 0, 0, is_real);
         f_theta_90_phi_0 = sh_dec(C, pi/2, 0, is_real);
@@ -519,7 +520,7 @@ elseif strcmp(mode, 'cardinal')
         set(gca, 'fontsize', options.fontsize - 1);
         
 
-    elseif ~isempty(options.t) && isempty(options.hz) % Time only
+    elseif ~isempty(options.t) && isempty(options.hz) % Time-domain only
 
         f_theta_0_phi_0 = sh_dec(C, 0, 0, is_real);
         f_theta_90_phi_0 = sh_dec(C, pi/2, 0, is_real);
@@ -562,23 +563,24 @@ elseif strcmp(mode, 'cardinal')
 
         set(gca, 'fontsize', options.fontsize - 1);
 
-    elseif ~isempty(options.t) && ~isempty(options.hz) % Recover time-domain from frequency domain
+    elseif ~isempty(options.t) && ~isempty(options.hz) % Recover time-domain assuming double-sided spectra
 
         assert(all( abs(diff(options.hz) - ( options.hz(2) - options.hz(1) )) <= 1e-8 ), 'hz must be uniform when t and hz supplied');
 
-        f_theta_0_phi_0 = sh_dec(C, 0, 0, is_real);
-        f_theta_90_phi_0 = sh_dec(C, pi/2, 0, is_real);
-        f_theta_90_phi_90 = sh_dec(C, pi/2, pi/2, is_real);
-        f_theta_90_phi_180 = sh_dec(C, pi/2, pi, is_real);
-        f_theta_90_phi_270 = sh_dec(C, pi/2, 3*pi/2, is_real);
-        f_theta_180_phi_0 = sh_dec(C, pi, 0, is_real);
+        if numel(options.t) == M
+            dec_mode = 'flt';
+        elseif numel(options.t) == 2 * (M-1)
+            dec_mode = 'fltss';
+        else
+            error('options.t must be M or 2*(M-1)');
+        end
 
-        f_theta_0_phi_0 = ifft(f_theta_0_phi_0, 'symmetric');
-        f_theta_90_phi_0 = ifft(f_theta_90_phi_0, 'symmetric');
-        f_theta_90_phi_90 = ifft(f_theta_90_phi_90, 'symmetric');
-        f_theta_90_phi_180 = ifft(f_theta_90_phi_180, 'symmetric');
-        f_theta_90_phi_270 = ifft(f_theta_90_phi_270, 'symmetric');
-        f_theta_180_phi_0 = ifft(f_theta_180_phi_0, 'symmetric');
+        f_theta_0_phi_0 = sh_dec(C, 0, 0, is_real, dec_mode);
+        f_theta_90_phi_0 = sh_dec(C, pi/2, 0, is_real, dec_mode);
+        f_theta_90_phi_90 = sh_dec(C, pi/2, pi/2, is_real, dec_mode);
+        f_theta_90_phi_180 = sh_dec(C, pi/2, pi, is_real, dec_mode);
+        f_theta_90_phi_270 = sh_dec(C, pi/2, 3*pi/2, is_real, dec_mode);
+        f_theta_180_phi_0 = sh_dec(C, pi, 0, is_real, dec_mode);
 
         h_fig = figure;
         h_fig.Position = [options.fig_pos, options.fig_size];
@@ -595,7 +597,7 @@ elseif strcmp(mode, 'cardinal')
         h_lg.Title.String = '(\theta, \phi)';
         set(h_lg, 'fontsize', options.fontsize - 1);
         
-        grid on; axis tight; ylim(options.dB_lim);
+        grid on; axis tight;
         xlabel('Time (Seconds)', 'fontsize', options.fontsize);
         ylabel('Amplitude', 'fontsize', options.fontsize);
 

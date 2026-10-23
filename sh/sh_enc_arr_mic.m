@@ -55,6 +55,11 @@ function [C, h_figs] = sh_enc_arr_mic(max_odr, mode, N, radius, delay_dist, freq
 %     sh_plt(C(:, n, :), 'cardinal', false, 't', t, 'hz', freq, 'title_name', ['Mic ', num2str(n)]);
 % end
 
+% %Time-domain from DC to Nyquist only
+% for n = 1:N
+%     sh_plt(C(:, n, 1:(floor(M/2)+1)), 'cardinal', false, 't', t, 'hz', freq, 'title_name', ['Mic ', num2str(n)]);
+% end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: Generate 4 element piston directivity on spherical baffle array responses
 
