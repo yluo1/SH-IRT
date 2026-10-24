@@ -13,7 +13,8 @@ Table of contents:
 * [Filter Toolbox](#filter-toolbox)
   * [Exponentiating Filtering](#ft-time-varying-exponentiation)
   * [Filter Fitting](#ft-filter-fitting)
-* [Gaussian Process](#gaussian-processes)
+* [Gaussian Processes](#gaussian-processes)
+* [Beamformer Designs](#beamformer-designs)
 
 # Spherical Harmonic Functions
 
@@ -173,3 +174,9 @@ and is vectorized in the same format as the complex case. In such instances, the
 |[mu_lpf.m](gp/mu_lpf.m)| Low-pass prior mean function |
 |[cov_sqx_chw_ns.m](gp/cov_sqx_chw_ns.m)| Squared exponential chordal x non-stationary frequency covariance function |
 |[cov_sqx_chw_sqx.m](gp/cov_sqx_chw_sqx.m)| Squared exponential chordal x squared exponential frequency covariance function |
+
+#	Beamformer Designs
+| File | Description |
+| :--- | :--- | 
+|[bf_mvdr.m](bf/bf_mvdr.m)| Minimum variance distortionless response (MVDR) with condition number constraints|
+|[bf_grq_ex.m](bf/bf_grq_ex.m)| Generalized Rayleigh quotient extrema |

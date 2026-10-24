@@ -26,13 +26,14 @@ startup
 
 | Folder | Description |
 | :--- | :--- | 
-| sh | Spherical harmonics |
-| ft | Filtering|
+| sh | Spherical Harmonics |
+| ft | Filter Toolbox|
+| gp |  Gaussian Processes |
+|bf| Beamformer Designs |
+|tst| Unit Testing |
+| plt | Plotting Examples |
+| err | Error Metrics|
 | figs | Figures | 
-| gp |  Gaussian processes |
-| err | Error metrics|
-| plt | Plotting examples |
-|tst| Unit testing |
 
 ### Software Requirements
 * Implemented in Matlab (2024b) with the following toolboxes:
