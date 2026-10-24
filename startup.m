@@ -6,4 +6,4 @@ addpath('tst');
 addpath('err');
 addpath('gp');
 addpath('plt');
-%addpath('dat');
+addpath('bf');
