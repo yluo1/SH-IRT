@@ -17,13 +17,13 @@ In this tutorial, we cover sample usage of basic operators on the spherical harm
 * [Filter Time Domain](#filter-time-domain)
 * [Filter Frequency Domain](#filter-frequency-domain)
 
-Sample codes are contained in the function `plot_sh_ops_example.m`.
+Sample codes are contained in the function [plot_sh_ops_example.m](plt/plot_sh_ops_example.m) and parsed as follows:
 
 ## Decode
 
 Evaluate (decode) spherical harmonic expansion at select spherical coordinates. 
 
-Sample usage `sh_dec.m`:
+Sample [sh_dec.m](/sh/sh_dec.m) usage:
 ```
     is_real = false;
     max_odr = 6;    
@@ -73,7 +73,7 @@ Sample usage:
 ## Multiplication
 Multiply spherical harmonic expansions via Clebsch-Gordan coefficients.
 
-Sample usage `sh_mul.m`:
+Sample [sh_mul.m](/sh/sh_mul.m) usage:
 ```
     is_real = false;
     max_odr = 6;    
@@ -92,7 +92,7 @@ Sample usage `sh_mul.m`:
 ## Conjugation
 Conjugate spherical harmonic expansion evaluations.
 
-Sample usage `sh_conj.m`:
+Sample [sh_conj.m](/sh/sh_conj.m) usage:
 ```
     is_real = false;
     max_odr = 6;    
@@ -109,7 +109,7 @@ Sample usage `sh_conj.m`:
 ## Magnitude Squared
 Compute magnitude squared expansion of spherical harmonic expansion.
 
-Sample usage `sh_msq.m`:
+Sample [sh_msq.m](/sh/sh_msq.m) usage:
 ```
     rng(5324);
     is_real = false;
@@ -128,7 +128,7 @@ Sample usage `sh_msq.m`:
 ## Convolution
 Convolve multiple spherical harmonic expansions.
 
-Sample usage `sh_conv.m`:
+Sample [sh_conv.m](/sh/sh_conv.m) usage:
 ```
     rng(5324);
     is_real = false;
@@ -149,7 +149,7 @@ Sample usage `sh_conv.m`:
 ## Normalization
 Normalize N3D spherical harmonic expansion by its integral sum or power.
 
-Sample usage `sh_nrm.m`:
+Sample [sh_nrm.m](/sh/sh_nrm.m) usage:
 ```
     rng(5324);
     is_real = false;
@@ -170,7 +170,7 @@ Sample usage `sh_nrm.m`:
 
 Rotate spherical harmonic expansion coefficients by zyx (yaw-pitch-roll), Tait-Bryan rotation, intrinsic.
 
-Sample usage `sh_rot.m`:
+Sample [sh_rot.m](/sh/sh_rot.m) usage:
 ```
     rng(1123);
     is_real = false;
@@ -194,7 +194,7 @@ Sample usage `sh_rot.m`:
 
 Reflect spherical harmonic expansion over a cardinal plane.
 
-Sample usage `sh_refl.m`:
+Sample [sh_refl.m](/sh/sh_refl.m) usage:
 ```
     rng(1953);
     is_real = false;
@@ -219,7 +219,7 @@ Sample usage `sh_refl.m`:
 
 Regularized least squares fit FIR filters to SH coefficients per basis over frequency. Then compute frequency response of FIRs at target angular frequency for resampling.
 
-Sample usage `ft_fit_sh.m` and `sh_filter_val.m`:
+Sample [ft_fit_sh.m](/ft/ft_fit_sh.m) and [sh_filter_val.m](/sh/sh_filter_val.m) usage:
 ```
     % Resample log-frequency response of spherical piston to linear-frequency
     Fs = 48000;
@@ -248,7 +248,7 @@ Sample usage `ft_fit_sh.m` and `sh_filter_val.m`:
 
 Resize max order of spherical harmonic expansions via truncation or zero-padding.
 
-Sample usage `sh_resize.m`:
+Sample [sh_resize.m](/sh/sh_resize.m) usage:
 ```
     rng(534);
     P = 4;
@@ -271,7 +271,7 @@ Sample usage `sh_resize.m`:
 
 Translate spherical harmonic expansion's origin to a new coordinate. Refit to higher max-order expansions.
 
-Sample usage `sh_translate.m`:
+Sample [sh_translate.m](/sh/sh_translate.m) usage:
 ```
     % Generate SH spherical piston normalized on-axis and translate the expansion
     Fs = 8000;
@@ -297,7 +297,7 @@ Sample usage `sh_translate.m`:
 
 Filter spherical harmonic expansion coefficients in the time-domain by numerator/denominator coefficients or second-order-sections.
 
-Sample usage `sh_filter.m`:
+Sample [sh_filter.m](/sh/sh_filter.m) usage:
 ```
     Fs    = 48000;
     M_w   = 256;
@@ -335,7 +335,7 @@ Sample usage `sh_filter.m`:
 
 Filter spherical harmonic expansion coefficients in the frequency domain (Hardamard product) by numerator/denominator coefficients or second-order-sections.
 
-Sample usage `sh_filter_freq.m`:
+Sample [sh_filter_freq.m](/sh/sh_filter_freq.m) usage:
 ```
     Fs    = 48000;
     freq  = logspace(log10(100), log10(Fs / 2), 256);
