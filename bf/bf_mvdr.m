@@ -1,4 +1,4 @@
-function [W, WNG] = bf_mvdr(v, R, kappa, mode)
+function [W, fval, WNG] = bf_mvdr(v, R, kappa, mode)
 % Minimum variance distortionless response beamformer design with condition number constraints
 % min_{W, sigma} W'*R(kappa)*W   s.t.    W'*v = 1,   
 
@@ -30,14 +30,15 @@ function [W, WNG] = bf_mvdr(v, R, kappa, mode)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
 %W:         [N x 1]     Conjugate symmetric beamformer weights
-%WNG:                   Scalar, W'*W
+%fval                   Scalar, objective real(W'*R*W)
+%WNG:                   Scalar, white-noise gain W'*W
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: Plot condition number versus WNG tradeoff for poorly conditioned R
 
-% rng(413);
+% rng(4113);
 % N = 6;
-% v = randn(N, 1);
+% v = randn(N, 1) + randn(N, 1)*1i;;
 % R = randn(N) + randn(N)*1i; R = R*R';
 % R = R - 0.999 * eigs(R, 1, 'smallestreal') * eye(N);
 % N_kappa = 32;
@@ -46,9 +47,9 @@ function [W, WNG] = bf_mvdr(v, R, kappa, mode)
 % W_thres = zeros(N, N_kappa);   WNG_thres = zeros(1, N_kappa);
 % W_exp = zeros(N, N_kappa);     WNG_exp = zeros(1, N_kappa);
 % for n = 1:N_kappa
-%   [W_diag(:, n), WNG_diag(n)]     = bf_mvdr(v, R, kappa_list(n), 'diag');
-%   [W_thres(:, n), WNG_thres(n)]   = bf_mvdr(v, R, kappa_list(n), 'thres');
-%   [W_exp(:, n), WNG_exp(n)]       = bf_mvdr(v, R, kappa_list(n), 'exp');
+%   [W_diag(:, n), ~, WNG_diag(n)]     = bf_mvdr(v, R, kappa_list(n), 'diag');
+%   [W_thres(:, n), ~, WNG_thres(n)]   = bf_mvdr(v, R, kappa_list(n), 'thres');
+%   [W_exp(:, n), ~, WNG_exp(n)]       = bf_mvdr(v, R, kappa_list(n), 'exp');
 % end
 % 
 % %Plotting
@@ -73,15 +74,17 @@ N = numel(v);
 assert(N == size(R, 1) && N == size(R, 2), 'v and R size mismatch');
 assert(kappa >= 1, 'Require condition number kappa >= 1');
 
-if strcmp(mode, 'diag')
+if strcmp(mode, 'diag') % Shape preserving across entire eigenvalues by upwards shifting all eigenvalues
+    % minimizes total difference of normalized cumulative eigenvalues and constrained eigenvalues
 
     lambda_max = eigs(R, 1, 'largestreal');
     lambda_min = eigs(R, 1, 'smallestreal');
 
     sigma = (lambda_max - lambda_min) / (kappa - 1);
-    Rinv_v = (R + sigma * eye(N)) \ v;
+    Rinv_v = (R + sigma * eye(N)) \ v; 
 
-elseif strcmp(mode, 'thres')
+elseif strcmp(mode, 'thres') % Shape preserving upto threshold, then brick-wall limit small eigenvalues
+    % minimizes total difference between original and constrained eigenvalues
 
     [V, D] = eig(R);
     d = diag(D);
@@ -93,7 +96,8 @@ elseif strcmp(mode, 'thres')
     
     Rinv_v = (V * Dinv * V') * v;
 
-elseif strcmp(mode, 'exp')
+
+elseif strcmp(mode, 'exp') % Shape smoothing eigenvalues via soft-compression
 
     [V, D] = eig(R);
     d = diag(D);
@@ -112,7 +116,7 @@ else
     error('Unknown mode');
 end
 
-% Normalize for distortionless constraint
-W = Rinv_v / (v' * Rinv_v);
-
+% Output
+W = Rinv_v / (v' * Rinv_v); % Normalize for distortionless constraint
+fval = real(W'*R*W);
 WNG = W'*W;
