@@ -1,5 +1,5 @@
 function [W, fval, exitflag] = bf_rmvb(v, R, P, options)
-% Robust minimum variance beamformer design with additional null space,
+% Robust minimum variance beamformer design with optional null space,
 % white-noise gain, and channel gain constraints
 
 % min_{W, lambda} W'*R*W   s.t. 
