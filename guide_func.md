@@ -179,5 +179,5 @@ and is vectorized in the same format as the complex case. In such instances, the
 | File | Description |
 | :--- | :--- | 
 |[bf_mvdr.m](bf/bf_mvdr.m)| Minimum variance distortionless response (MVDR) with condition number constraints|
-|[bf_grq_ex.m](bf/bf_grq_ex.m)| Generalized Rayleigh quotient extrema |
+|[bf_grq_ex.m](bf/bf_grq_ex.m)| Generalized Rayleigh quotient (GRQ) extrema |
 |[bf_rmvb.m](bf/bf_rmvb.m)| Robust minimum variance beamformer (RMVB) with null space, white-noise gain, and channel gain constraints |
