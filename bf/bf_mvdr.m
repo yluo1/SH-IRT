@@ -63,8 +63,8 @@ function [W, fval, WNG] = bf_mvdr(v, R, kappa, mode)
 % h_lg = legend('diag', 'thres', 'exp', 'location', 'best'); set(h_lg, 'fontsize', fontsize - 1);
 
 arguments
-    v (:,1) double = [1];
-    R (:,:) double = [1];
+    v (:,1) double {coder.mustBeComplex} = complex(1);
+    R (:,:) double {coder.mustBeComplex} = complex(1);
     kappa (1,1) double {mustBePositive} = inf;
     mode (1,:) char {mustBeMember(mode, {'diag', 'thres', 'exp'} )} = 'diag';
 end

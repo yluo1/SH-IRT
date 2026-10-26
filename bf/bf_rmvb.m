@@ -79,13 +79,13 @@ function [W, fval, exitflag] = bf_rmvb(v, R, P, options)
 % test_cg_c = abs(W_rmvb).^2
 
 arguments
-    v (:,1) double = [1];
-    R (:,:) double = [1];
-    P (:,:) double = [1];
+    v (:,1) double {coder.mustBeComplex} = complex(1);
+    R (:,:) double {coder.mustBeComplex} = complex(1);
+    P (:,:) double {coder.mustBeComplex} = complex(1);
 
     options.mode_sqrt (1,:) char {mustBeMember(options.mode_sqrt, {'eig', 'chol'})} = 'eig';
     
-    options.U (:,:) double = [];
+    options.U (:,:) double {coder.mustBeComplex} = [];
     options.WNG (:,1) double = [];
     options.CG (:,1) double = [];
 

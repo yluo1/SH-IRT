@@ -68,7 +68,7 @@ arguments
     R (:,:) double {coder.mustBeComplex} = complex(1);
 
     options.mode (1,:) char {mustBeMember(options.mode, {'chol', 'gev'} )} = 'chol';
-    options.U (:,:) double = [];
+    options.U (:,:) double {coder.mustBeComplex} = [];
 end
 
 assert(isequal(size(A), size(R)), 'A, R size mismatch');
