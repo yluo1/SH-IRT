@@ -21,6 +21,8 @@ function [W, fval] = bf_grq_proj(w, A, R, tau, mode)
 %R:         [N x N] Reject covariance matrix
 %tau:       Scalar, target GRQ 
 %mode:      String, compute method {'secular', 'fmincon'}
+%                   'secular'   Find critical root of Secular quadratic equation
+%                   'fmincon'   Constrained minimization
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
