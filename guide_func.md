@@ -180,4 +180,5 @@ and is vectorized in the same format as the complex case. In such instances, the
 | :--- | :--- | 
 |[bf_mvdr.m](bf/bf_mvdr.m)| Minimum variance distortionless response (MVDR) with condition number constraints|
 |[bf_grq_ex.m](bf/bf_grq_ex.m)| Generalized Rayleigh quotient (GRQ) extrema with linear homogeneous constraints |
+|[bf_grq_proj.m](bf/bf_grq_proj.m)| Steering vector projection onto generalized Rayleigh quotient (GRQ) equality constraints |
 |[bf_rmvb.m](bf/bf_rmvb.m)| Robust minimum variance beamformer (RMVB) with null space, white-noise gain, and channel gain constraints |

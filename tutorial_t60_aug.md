@@ -1,7 +1,9 @@
 # Tutorial: Spatial Room Impulse Response T60 Augmentation
 
-In this tutorial, we cover sound decay time augmentation of spatial room impulse responses (SRIRs) from our paper 
->Yuancheng Luo, "Fast Time-Varying Exponentiated Convolution Methods for Generative Direction Dependent Reverberation", Proceedings of the 161th Audio Engineering Society Convention.
+In this tutorial, we cover sound decay time augmentation of spatial room impulse responses (SRIRs) from our paper  
+>Y. Luo, “Fast Time-Varying Exponentiated Convolution Methods for Generative Direction Dependent Reverberation,” in Proc. AES Show 2026 Nashville, Oct. 2026, pp. 59:1-10.
+[[Publisher](https://aes.org/publications/elibrary/elibrary-page/?id=23489)], [[ArXiv](https://arxiv.org/abs/2609.24809)],
+
 
 The high-level steps are as follows:
 * [Sampling T60 from Gaussian Processes (GPs):](#sampling-t60-functions-from-gaussian-processes) Sample or design a sound decay time function $T_{60}(\omega, \theta, \phi)$ of angular frequency $\omega$, and spherical coordinates $(\theta, \phi)$ co-latitude and azimuth respectively

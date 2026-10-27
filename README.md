@@ -59,9 +59,11 @@ startup
 
 This library was developed from methods in the following works:
 
-> Luo, Y. (2026). [Fast Time-Varying Exponentiated Convolution Methods for Generative Direction Dependent Reverberation](https://arxiv.org/abs/2609.24809), Accepted at the 161th Audio Engineering Society Convention.
+> Luo, Y. (2026). [Fast Time-Varying Exponentiated Convolution Methods for Generative Direction Dependent Reverberation](https://arxiv.org/abs/2609.24809), In AES Show 2026 Nashville. Audio Engineering Society; 2026.pp. 59:1-10.
 >
 > Luo, Y. (2026). [Spherical Harmonic Sliced Wasserstein Displacement Interpolation for Acoustic Source and Reflection Density Modeling](https://arxiv.org/abs/2609.22028). 	arXiv:2609.22028.
+> 
+> Luo, Y. (2024, August). [Constant Directivity Loudspeaker Beamforming](https://ieeexplore.ieee.org/abstract/document/10715159). In 2024 32nd European Signal Processing Conference (EUSIPCO) (pp. 246-250). IEEE.
 > 
 > Luo, Y. (2021). [Spherical Harmonic Covariance and Magnitude Function Encodings for Beamformer Design](https://link.springer.com/article/10.1186/s13636-021-00230-7). EURASIP Journal on Audio, Speech, and Music Processing, 2021(1), 41.
 > 

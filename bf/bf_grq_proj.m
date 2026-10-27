@@ -1,11 +1,11 @@
 function [W, fval] = bf_grq_proj(w, A, R, tau, mode)
-% Projected generalized Rayleigh quotient (GRQ) beamformer design finds the nearest
-% beamformer weights from steering vector w that satisfies GRQ(A,R) = tau: 
+% Steering vector projection onto generalized Rayleigh quotient (GRQ) equality constraints:
+% Find nearest beamformer weights W = w + v from steering vector w that satisfies GRQ(A,R) = tau
 
 % min_{v} v'*v s.t. W'*A*W / (W'*R*W) = tau,    W = w + v
 
 % Equivalent formulation:
-% min_{v} w'*w s.t. W'*D*W = 0, D = A - tau * R (indefinite),    W = w + v
+% min_{v} w'*w s.t. W'*D*W = 0, D = A - tau * R (indefinite matrix),    W = w + v
 
 % Notes: tau is thresholded to be within tau_min_max (see bf_grq_ex.m)
 
@@ -132,7 +132,7 @@ else
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Objective function
+% Objective function
 function [f, g] = func_obj(v)
 f = v'*v;
 if nargout > 1
@@ -140,12 +140,12 @@ if nargout > 1
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Non-linear constraints
-%Output
-%cons:          [N_cons x 1]
-%conseq:        [N_conseq x 1]
-%gradc:         [N_vars x N_cons]
-%gradceq:       [N_vars x N_conseq]
+% Non-linear constraints
+% Output
+% cons:          [N_cons x 1]
+% conseq:        [N_conseq x 1]
+% gradc:         [N_vars x N_cons]
+% gradceq:       [N_vars x N_conseq]
 function [cons, conseq, gradc, gradceq] = f_nonlcon(v, D, w)
 
 W = w + v;
