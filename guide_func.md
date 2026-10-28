@@ -172,6 +172,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 |[gp_plt.m](gp/gp_plt.m)| Plotting |
 |[mu_pow.m](gp/mu_pow.m)| Power-law prior mean function |
 |[mu_lpf.m](gp/mu_lpf.m)| Low-pass prior mean function |
+|[mu_dwell.m](gp/mu_dwell.m)| Empirical dwelling (living/bedrooms) T60 fitted functions for varying volume sizes and furnished/unfurnished|
 |[cov_sqx_chw_ns.m](gp/cov_sqx_chw_ns.m)| Squared exponential chordal x non-stationary frequency covariance function |
 |[cov_sqx_chw_sqx.m](gp/cov_sqx_chw_sqx.m)| Squared exponential chordal x squared exponential frequency covariance function |
 
@@ -179,6 +180,8 @@ and is vectorized in the same format as the complex case. In such instances, the
 | File | Description |
 | :--- | :--- | 
 |[bf_mvdr.m](bf/bf_mvdr.m)| Minimum variance distortionless response (MVDR) with condition number constraints|
-|[bf_grq_ex.m](bf/bf_grq_ex.m)| Generalized Rayleigh quotient (GRQ) extrema with linear homogeneous constraints |
-|[bf_grq_proj.m](bf/bf_grq_proj.m)| Steering vector projection onto generalized Rayleigh quotient (GRQ) equality constraints |
 |[bf_rmvb.m](bf/bf_rmvb.m)| Robust minimum variance beamformer (RMVB) with null space, white-noise gain, and channel gain constraints |
+|[bf_grq_ex.m](bf/bf_grq_ex.m)| Generalized Rayleigh quotient (GRQ) extrema with linear homogeneous constraints |
+|[bf_grq_proj.m](bf/bf_grq_proj.m)| Steering vector projection onto GRQ equality constraints |
+|[bf_grq_mscd.m](bf/bf_grq_mscd.m)| Maximum sensitivity constant directivity (MSCD): GRQ and linear constriants |
+|[bf_grq_mecd.m](bf/bf_grq_mecd.m)| Maximum efficiency constant directivity (MECD): GRQ and quadratic constriants |

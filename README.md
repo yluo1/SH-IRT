@@ -10,6 +10,7 @@ This open-source library provides tools for modifying, generating, and analyzing
 * **Density Modeling**: Maximum likelihood fitting, inverse sampling, scattering transport, spherical sliced Wasserstein optimal transport
 * **SRIR Generation**: Cross-directivity SH image-source model (ISM) expansion, spherical Poisson-process
 * **T60 Modeling**: Spherical frequency decay time Gaussian process (GP) regression and sampling
+* **Beamforming**: MVDR, RMVB, GRQ beamformer designs
 * **Misc**: Projection plotting, SH-AmbiX conversion, spherical coordinate grid generation (uniform spherical Fibonacci, Platonic-solid vertices, polar sampling)
 
 ## Table of Contents

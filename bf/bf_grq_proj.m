@@ -5,7 +5,7 @@ function [W, fval] = bf_grq_proj(w, A, R, tau, options)
 % min_{v} v'*v s.t. W'*A*W / (W'*R*W) = tau.
 
 % Equivalent formulation:
-% min_{v} w'*w s.t. W'*D*W = 0, D = A - tau * R (indefinite matrix),
+% min_{v} w'*w s.t. W'*D*W = 0, D = A - tau * R (indefinite matrix).
 
 % Notes: tau is thresholded to be within tau_min_max (see bf_grq_ex.m)
 

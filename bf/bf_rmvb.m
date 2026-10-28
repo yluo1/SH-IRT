@@ -17,7 +17,7 @@ function [W, fval, exitflag] = bf_rmvb(v, R, P, options)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
-%v:         [N x 1]     Steering vectors for N channels
+%v:         [N x 1]     Steering vector for N channels
 %R:         [N X N]     [N x N] Rejection covariance matrix
 %P:         [N x N]     [N x N] Elipsoid covariance matrix
 
