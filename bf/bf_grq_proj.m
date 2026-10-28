@@ -1,11 +1,11 @@
-function [W, fval] = bf_grq_proj(w, A, R, tau, mode)
+function [W, fval] = bf_grq_proj(w, A, R, tau, options)
 % Steering vector projection onto generalized Rayleigh quotient (GRQ) equality constraints:
-% Find nearest beamformer weights W = w + v from steering vector w that satisfies GRQ(A,R) = tau
+% Find nearest beamformer weights W = w + v from steering vector w that satisfies GRQ(A, R, W) = tau,
 
-% min_{v} v'*v s.t. W'*A*W / (W'*R*W) = tau,    W = w + v
+% min_{v} v'*v s.t. W'*A*W / (W'*R*W) = tau.
 
 % Equivalent formulation:
-% min_{v} w'*w s.t. W'*D*W = 0, D = A - tau * R (indefinite matrix),    W = w + v
+% min_{v} w'*w s.t. W'*D*W = 0, D = A - tau * R (indefinite matrix),
 
 % Notes: tau is thresholded to be within tau_min_max (see bf_grq_ex.m)
 
@@ -20,9 +20,14 @@ function [W, fval] = bf_grq_proj(w, A, R, tau, mode)
 %A:         [N x N] Accept covariance matrix
 %R:         [N x N] Reject covariance matrix
 %tau:       Scalar, target GRQ 
-%mode:      String, compute method {'secular', 'fmincon'}
-%                   'secular'   Find critical root of Secular quadratic equation
-%                   'fmincon'   Constrained minimization
+
+%options:           struct
+%options.mode:      String, compute method {'secular', 'fmincon'}
+%                       'secular'   Find critical root of Secular quadratic equation
+%                       'fmincon'   Constrained minimization
+
+%options.check_constraints: Logical, if true check for constraints satisfication of solution
+%options.options_fmincon:   options struct for options.mode = 'fmincon'
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
@@ -39,12 +44,9 @@ function [W, fval] = bf_grq_proj(w, A, R, tau, mode)
 % A = randn(N) + randn(N) * 1i;     A = A * A';
 % R = randn(N) + randn(N) * 1i;     R = R * R';
 % tau = 6;
-% [W_sec, fval_sec] = bf_grq_proj(w, A, R, tau, 'secular')
-% [W_fmc, fval_fmc] = bf_grq_proj(w, A, R, tau, 'fmincon')
+% [W_sec, fval_sec] = bf_grq_proj(w, A, R, tau, 'mode', 'secular', 'check_constraints', true)
+% [W_fmc, fval_fmc] = bf_grq_proj(w, A, R, tau, 'mode', 'fmincon', 'check_constraints', true)
 
-% %Check constraints
-% abs(W_sec'*A*W_sec / (W_sec'*R*W_sec) - tau) <= 1e-8
-% abs(W_fmc'*A*W_fmc / (W_fmc'*R*W_fmc) - tau) <= 1e-8
 
 arguments
     w (:,1) double {coder.mustBeComplex} = complex(1);
@@ -52,7 +54,12 @@ arguments
     R (:,:) double {coder.mustBeComplex} = complex(1);
     tau (1,1) double {mustBeNonnegative} = inf;
  
-    mode (1,:) char {mustBeMember(mode, {'secular', 'fmincon'})} = 'secular';
+    options.mode (1,:) char {mustBeMember(options.mode, {'secular', 'fmincon'})} = 'secular';
+    options.check_constraints (1,1) logical = false;
+
+    options.options_fmincon = optimoptions('fmincon', 'FunctionTolerance', 1e-10, 'OptimalityTolerance', 1e-10, 'TolX', 1e-10, 'ConstraintTolerance', 1e-10, ...
+                'MaxIter', 1000,  'Display', 'none', ...
+                'SpecifyObjectiveGradient', true, 'SpecifyConstraintGradient', true, 'CheckGradients', false);
 end
 
 N = numel(w);
@@ -71,7 +78,7 @@ elseif tau > tau_min_max(2) % Solution is GRQ maximizer
 
 else
 
-    if strcmp(mode, 'secular')
+    if strcmp(options.mode, 'secular')
 
         D = A - tau * R;
         [V, E] = eig(D);
@@ -89,11 +96,7 @@ else
         fval = v'*v;
         W = w + v;
 
-    elseif strcmp(mode, 'fmincon')
-
-        options_fmincon = optimoptions('fmincon', 'FunctionTolerance', 1e-10, 'OptimalityTolerance', 1e-10, 'TolX', 1e-10, 'ConstraintTolerance', 1e-10, ...
-                'MaxIter', 1000,  'Display', 'none', ...
-                'SpecifyObjectiveGradient',true, 'SpecifyConstraintGradient', true,'CheckGradients', false);
+    elseif strcmp(options.mode, 'fmincon')
     
         func = @(x) func_obj(x);
 
@@ -102,7 +105,7 @@ else
             D = A - tau * R;
             nonlcon = @(x) f_nonlcon(x, D, w);
             x0 = ones(N, 1);
-            [v, ~, exitflag]  = fmincon(func, x0, [],[],[],[],[],[], nonlcon, options_fmincon);
+            [v, ~, exitflag]  = fmincon(func, x0, [],[],[],[],[],[], nonlcon, options.options_fmincon);
             assert(exitflag > 0, 'fmincon not converge');
 
         else
@@ -114,7 +117,7 @@ else
             D_re_im = A_re_im - tau * R_re_im;
             nonlcon = @(x) f_nonlcon(x, D_re_im, w_re_im);
             x0 = ones(2 * N, 1);
-            [v_re_im, ~, exitflag]  = fmincon(func, x0, [],[],[],[],[],[], nonlcon, options_fmincon);
+            [v_re_im, ~, exitflag]  = fmincon(func, x0, [],[],[],[],[],[], nonlcon, options.options_fmincon);
             assert(exitflag > 0, 'fmincon not converge');
 
             v = v_re_im(1:N) + 1i * v_re_im((N+1):end);
@@ -133,10 +136,16 @@ else
 
 end
 
+if options.check_constraints
+    tol = 1e-8;
+    pass_grq_tau_c = abs(W'*A*W / (W'*R*W) - tau) <= tol
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Objective function
 function [f, g] = func_obj(v)
 f = v'*v;
+
 if nargout > 1
     g = 2 * v;
 end
