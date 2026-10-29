@@ -68,15 +68,15 @@ and is vectorized in the same format as the complex case. In such instances, the
 | :--- | :--- | 
 |[sh_val.m](sh/sh_val.m)| Evaluate SH bases |
 |[sh_dec.m](sh/sh_dec.m)| Evaluate SH expansions |
-|[sh_int.m](sh/sh_int.m) | Compute integral sum or power | 
-|[sh_cov.m](sh/sh_cov.m) | Compute covariance | 
+|[sh_int.m](sh/sh_int.m) | Compute integral sum or power over spherical coordinates| 
+|[sh_cov.m](sh/sh_cov.m) | Compute spatial covariance w.r.t. density expansion | 
 
 ## SH Spatial Room Impulse Response Generation
 | File | Description |
 | :--- | :--- | 
-|[sh_ism.m](sh/sh_ism.m)| Image-source model |
+|[sh_ism.m](sh/sh_ism.m)| Image-source model of all pair-wise SH expansions between source-receiver|
 |[sh_rand.m](sh/sh_rand.m)| Random field |
-|[sh_rand_pp.m](sh/sh_rand_pp.m)| Poisson process |
+|[sh_rand_pp.m](sh/sh_rand_pp.m)| Poisson process echo density model |
 
 ## SH Basis Fitting
 | File | Description |
