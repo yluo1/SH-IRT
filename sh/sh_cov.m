@@ -9,8 +9,10 @@ function K = sh_cov(C, D_pdf, is_real, options)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
-%C:             [(L_C + 1)^2 x N x M]   SH coefficients (max order L_C of N number of expansions, M functions)
-%D_pdf:         [(L_D + 1)^2 x 1]       Density SH coefficients (max order L_D)
+%C:             [(L_C + 1)^2 x N x M] SH coefficients (max order L_C of N number of expansions, M functions)
+
+%D_pdf:         [(L_D + 1)^2 x 1] or [(L_D + 1)^2 x M]       Density SH coefficients (max order L_D) across all/each of M functions
+
 %is_real:       Logical, if true, evaluate real SH
 
 %options.mode:          String, integration (SH multiplication) method {'CGC', 'SHT'}
@@ -68,15 +70,16 @@ assert(L_C == floor(L_C), 'Invalid size C');
 
 N_D = size(D_pdf, 1);
 L_D = sqrt(N_D) - 1;
-assert(L_D == floor(L_D), 'Invalid size D');
+assert(L_D == floor(L_D), 'Invalid size D_pdf');
+assert(size(D_pdf, 2) == 1 || size(D_pdf, 2) == M, 'size(D_pdf, 2) must be 1 or M');
 
 assert(sh_pdf_check(D_pdf, is_real), 'D_pdf is invalid density');
 
 K = complex(zeros([N, N, M]));
 
 if strcmp(options.mode, 'CGC')
-
-    D_pdf_res = sh_resize(D_pdf, 2 * L_C); % [(2 * L_C + 1)^2 x 1]
+    
+    D_pdf_res = sh_resize(D_pdf, 2 * L_C); % [(2 * L_C + 1)^2 x 1] or  % [(2 * L_C + 1)^2 x M]
 
     for m = 1:M    
         for i = 1:N
@@ -85,13 +88,21 @@ if strcmp(options.mode, 'CGC')
 
             E_i_m = A_i * C(:, i:N , m); % [(2 * L_C + 1)^2 x (N - i + 1)]
 
-            K(i, i:N, m) = conj(D_pdf_res' * E_i_m); % Conjugate to account for input ordering
+            if size(D_pdf_res, 2) == 1
+                K(i, i:N, m) = conj(D_pdf_res' * E_i_m); % Conjugate to account for input ordering
+            else
+                K(i, i:N, m) = conj(D_pdf_res(:, m)' * E_i_m); % Conjugate to account for input ordering
+            end
             K(i:N, i, m) = conj(K(i, i:N, m));
 
         end
 
         if options.center_mean
-            mu = D_pdf(1:min(N_C, N_D))' * C(1:min(N_C, N_D), :, m); % [1 x N]
+            if size(D_pdf_res, 2) == 1
+                mu = D_pdf(1:min(N_C, N_D))' * C(1:min(N_C, N_D), :, m); % [1 x N]
+            else
+                mu = D_pdf(1:min(N_C, N_D), m)' * C(1:min(N_C, N_D), :, m); % [1 x N]
+            end
             K(:, :, m) = K(:, :, m) - conj(mu' * mu);
         end
     end
@@ -102,14 +113,18 @@ elseif strcmp(options.mode, 'SHT')
 
     [theta, phi] = sh_grd_fib(N_C2);
 
-    f_pdf = sh_dec(D_pdf, theta, phi, is_real) / N_C2 * (4 * pi); %[N_C2 x 1]
+    f_pdf = sh_dec(D_pdf, theta, phi, is_real) / N_C2 * (4 * pi); %[N_C2 x 1] or %[N_C2 x M]
 
     for m = 1:M
 
         f_C = sh_dec(C(:, :, m), theta, phi, is_real); % [N_C2 x N] 
-        f_C_pdf = bsxfun(@times, f_C, f_pdf); % [N_C2 x N] 
+        if size(f_pdf, 2) == 1
+            f_C_pdf = bsxfun(@times, f_C, f_pdf); % [N_C2 x N] 
+        else
+            f_C_pdf = bsxfun(@times, f_C, f_pdf(:, m)); % [N_C2 x N] 
+        end
         K(:, :, m) = conj(f_C' * f_C_pdf); % Conjugate to account for input ordering
-        
+
         if options.center_mean            
             mu = sum(f_C_pdf, 1); % [1 x N]
             K(:, :, m) = K(:, :, m) - conj(mu' * mu);
