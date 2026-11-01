@@ -1,17 +1,28 @@
 function wt = ft_freq_wt(hz, mode, options)
 %Compute frequency weighting
 
+% mode = 'unity':       Constant 1
+% mode = 'logQuad':     Log quadrature differential
+% mode = 'logSqCov':    Decorrelate via squared exponential covariance of log frequency
+% mode = 'octave':      Octave weighting peaking at options.oct_freq with symmetric options.oct_roll (dB/Octave) rolloff
+% mode = 'octaveLP':    Octave weighting with options.oct_roll (dB/Octave) rolloff above options.oct_freq
+% mode = 'octaveHP':    Octave weighting with options.oct_roll (dB/Octave) rolloff below options.oct_freq
+% mode = 'octaveSoft':      Soft-knee variant of octave
+% mode = 'octaveSoftLP':    Soft-knee variant of octaveLP
+% mode = 'octaveSoftHP':    Soft-knee variant of octaveHP
+
 %Author: Yuancheng Luo, 2026
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
 %hz:        [N x 1] Frequency
-%mode:      String, frequency weighting method {'unity', 'logQuad', 'logSqCov', 'octave'}
+%mode:      String, frequency weighting method {'unity', 'logQuad', 'logSqCov', 'octave', 'octaveLP', 'octaveHP'}
 
 %options:   struct
 
 %options.norm_sum:  Logical, if true, normalize sum of wt to unity
 %options.oct_freq:  Frequency (Hz) center for octave normalization
+%options.oct_roll:  dB/Oct attenuation for octave normalization
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
@@ -21,29 +32,37 @@ function wt = ft_freq_wt(hz, mode, options)
 %Sample usage: Plot weighting functions
 
 % Fs = 48000;
-% N = 1024;
+% N = 4096;
 % hz = linspace(0, Fs/2, N)';
-% norm_sum = true;
+% %norm_sum = true;
+% norm_sum = false;
 % wt_unity      = ft_freq_wt(hz, 'unity', 'norm_sum', norm_sum);
 % wt_logQuad    = ft_freq_wt(hz, 'logQuad', 'norm_sum', norm_sum);
 % wt_logSqCov   = ft_freq_wt(hz, 'logSqCov', 'norm_sum', norm_sum);
-% wt_octave     = ft_freq_wt(hz, 'octave', 'norm_sum', norm_sum);
- 
+% wt_octave     = ft_freq_wt(hz, 'octave', 'norm_sum', norm_sum, 'oct_freq', 1000, 'oct_roll', 12);
+% wt_octaveLP   = ft_freq_wt(hz, 'octaveLP', 'norm_sum', norm_sum, 'oct_freq', 100);
+% wt_octaveHP   = ft_freq_wt(hz, 'octaveHP', 'norm_sum', norm_sum, 'oct_freq', 100);
+% wt_octaveSoft     = ft_freq_wt(hz, 'octaveSoft', 'norm_sum', norm_sum, 'oct_freq', 1000, 'oct_roll', 12);
+% wt_octaveSoftLP   = ft_freq_wt(hz, 'octaveSoftLP', 'norm_sum', norm_sum, 'oct_freq', 100);
+% wt_octaveSoftHP   = ft_freq_wt(hz, 'octaveSoftHP', 'norm_sum', norm_sum, 'oct_freq', 100);
+% 
 % figure;
-% loglog(hz, wt_unity, hz, wt_logQuad, hz, wt_logSqCov, hz, wt_octave, 'linewidth', 1.5);
+% semilogx(hz, mag2db(wt_unity), hz, mag2db(wt_logQuad), hz, mag2db(wt_logSqCov), hz, mag2db(wt_octave), hz, mag2db(wt_octaveLP), hz, mag2db(wt_octaveHP), 'linewidth', 1.5); hold on;
+% semilogx(hz, mag2db(wt_octaveSoft), '-.', hz, mag2db(wt_octaveSoftLP), '-.', hz, mag2db(wt_octaveSoftHP), '-.', 'linewidth', 1.5);
 % xlabel('Frequency (Hz)', 'fontsize', 14); 
-% ylabel('Weight', 'fontsize', 14); 
+% ylabel('Weight (dB)', 'fontsize', 14);
 % title('Frequency Weighting', 'fontsize', 15); 
 % set(gca, 'fontsize', 13);
 % grid on; axis tight;
-% h_lg = legend({'unity', 'logQuad', 'logSqCov', 'octave'}, 'location', 'best');  set(h_lg, 'fontsize', 13);
+% h_lg = legend({'unity', 'logQuad', 'logSqCov', 'octave', 'octaveLP', 'octaveHP',  'octaveSoft', 'octaveSoftLP', 'octaveSoftHP'}, 'location', 'best', 'NumColumns', 3);  set(h_lg, 'fontsize', 13);
 
 arguments
     hz (:,1) double = [0];
-    mode (1,:) char {mustBeMember(mode, {'unity', 'logQuad', 'logSqCov', 'octave'})} = 'unity';
+    mode (1,:) char {mustBeMember(mode, {'unity', 'logQuad', 'logSqCov', 'octave', 'octaveLP', 'octaveHP', 'octaveSoft', 'octaveSoftLP', 'octaveSoftHP'})} = 'unity';
     
     options.norm_sum (1,1) logical = false;
     options.oct_freq (1,1) double {mustBePositive} = 100;
+    options.oct_roll (1,1) double {mustBeNonnegative} = 6;
 end
 
 N = numel(hz);
@@ -70,13 +89,34 @@ elseif strcmp(mode, 'logSqCov')
 elseif strcmp(mode, 'octave')
 
     wt = hz ./ options.oct_freq;
-    wt = min(wt, 1./ wt);
+    wt = min(wt, 1./ wt).^(options.oct_roll / 6);
+    
+elseif strcmp(mode, 'octaveLP')
+
+    wt = (max(hz, options.oct_freq) ./ options.oct_freq).^(-options.oct_roll / 6);
+
+elseif strcmp(mode, 'octaveHP')
+
+    wt = (min(hz, options.oct_freq) ./ options.oct_freq).^(options.oct_roll / 6);
+
+elseif strcmp(mode, 'octaveSoft')
+
+    wt = hz ./ options.oct_freq;
+    wt = 1 ./ (1 + (min(wt, 1./ wt)).^(-options.oct_roll / 6));
+    
+elseif strcmp(mode, 'octaveSoftLP')
+
+    wt = 1 ./ (1 + (hz ./ options.oct_freq).^(options.oct_roll / 6));
+
+elseif strcmp(mode, 'octaveSoftHP')
+
+    wt = 1 ./ (1 + (hz ./ options.oct_freq).^(-options.oct_roll / 6));
 
 else
     error('Unsupported mode');
 end
 
-%Normaize summation to unity
+% Normaize summation to unity
 if options.norm_sum
     wt = wt / sum(wt);
 end
