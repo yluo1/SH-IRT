@@ -18,7 +18,7 @@ function C_pdf = sh_pdf_preset(dir_name, func_name, max_odr, is_real, options)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
-%C              [(max_odr + 1)^2 x num_func] SH coefficients
+%C              [(max_odr + 1)^2 x 1] SH coefficients
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: Generate sample PDF presets
