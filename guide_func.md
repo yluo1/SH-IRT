@@ -108,7 +108,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 |[sh_enc_uni.m](sh/sh_enc_uni.m) | Constant function |
 |[sh_enc_rbf.m](sh/sh_enc_rbf.m) | Radial basis functions: Squared exponential, Matérn, exponential, sinc |
 |[sh_enc_pist_sphere.m](sh/sh_enc_pist_sphere.m) | External piston on spherical baffle frequency responses|
-|[sh_enc_arr_mic.m](sh/sh_enc_arr_mic.m)| Analytic plane-wave to microphone array frequency responses|
+|[sh_enc_arr.m](sh/sh_enc_arr.m)| Analytic plane-wave to transducer array frequency responses|
 
 ## SH Probability Density Functions
 | File | Description |

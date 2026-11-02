@@ -1,5 +1,6 @@
-function [C, h_figs] = sh_enc_arr_mic(max_odr, mode, N, radius, delay_dist, freq, options)
-% Encode planewave to analytic microphone array frequency responses in spherical harmonic domain
+function [C, h_figs] = sh_enc_arr(max_odr, mode, N, radius, delay_dist, freq, options)
+% Encode planewave to analytic transducer (e.g. microphone, loudspeaker, antenna) array 
+% frequency responses in spherical harmonic domain
 
 % Author:    Yuancheng Luo, 2026
 
@@ -20,7 +21,7 @@ function [C, h_figs] = sh_enc_arr_mic(max_odr, mode, N, radius, delay_dist, freq
 %delay_dist:    Delay distance to apply to all frequency responses in meters
 %freq:          [1 x M] Frequency in Hz
 
-%options.c:             Velocity of sound meters / second
+%options.c:             Velocity of propagation meters / second
 %options.V_custom:      [3 x N] custom coordinates for mode = 'uni_custom'
 
 %options.spis_arc_len:  Spherical piston's arc length in meters for mode = 'spis_circ'
@@ -48,16 +49,16 @@ function [C, h_figs] = sh_enc_arr_mic(max_odr, mode, N, radius, delay_dist, freq
 % %mode = 'uni_sphere';
 % freq = linspace(0, Fs, M + 1); freq = freq(1:end-1);
 % 
-% C = sh_enc_arr_mic(max_odr, mode, N, radius, delay_dist, freq, 'enable_disp', true, 'disp_dB_lim', [-3, 3]);
+% C = sh_enc_arr(max_odr, mode, N, radius, delay_dist, freq, 'enable_disp', true, 'disp_dB_lim', [-3, 3]);
 % 
 % t = 0:(1/Fs):((M-1)/Fs);
 % for n = 1:N
-%     sh_plt(C(:, n, :), 'cardinal', false, 't', t, 'hz', freq, 'title_name', ['Mic ', num2str(n)]);
+%     sh_plt(C(:, n, :), 'cardinal', false, 't', t, 'hz', freq, 'title_name', ['Trans. ', num2str(n)]);
 % end
 
 % %Time-domain from DC to Nyquist only
 % for n = 1:N
-%     sh_plt(C(:, n, 1:(floor(M/2)+1)), 'cardinal', false, 't', t, 'hz', freq, 'title_name', ['Mic ', num2str(n)]);
+%     sh_plt(C(:, n, 1:(floor(M/2)+1)), 'cardinal', false, 't', t, 'hz', freq, 'title_name', ['Trans. ', num2str(n)]);
 % end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -73,11 +74,11 @@ function [C, h_figs] = sh_enc_arr_mic(max_odr, mode, N, radius, delay_dist, freq
 % freq = linspace(0, Fs, M + 1); freq = freq(1:end-1);
 % spis_arc_len = 0.0035; % 3.5 mm
 % 
-% C = sh_enc_arr_mic(max_odr, mode, N, radius, delay_dist, freq, 'spis_arc_len', spis_arc_len, 'enable_disp', true, 'disp_dB_lim', [-6, 6]);
+% C = sh_enc_arr(max_odr, mode, N, radius, delay_dist, freq, 'spis_arc_len', spis_arc_len, 'enable_disp', true, 'disp_dB_lim', [-6, 6]);
 % 
 % t = 0:(1/Fs):((M-1)/Fs);
 % for n = 1:N
-%     sh_plt(C(:, n, :), 'cardinal', false, 't', t, 'hz', freq, 'title_name', ['Mic ', num2str(n)]);
+%     sh_plt(C(:, n, :), 'cardinal', false, 't', t, 'hz', freq, 'title_name', ['Trans. ', num2str(n)]);
 % end
 
 arguments
@@ -136,7 +137,7 @@ if any(strcmp(mode, {'uni_line', 'uni_circ', 'uni_sphere', 'uni_custom'})) % Uni
     d_sec = delay_dist / options.c;  
     C_origin = repmat( sh_enc_uni(0), [1, M]); % uniform directivity at origin
 
-    % Translate expansion origin to microphone coordinates
+    % Translate expansion origin to transducer coordinates
     for n = 1:N
         C(:, n, :) = sh_resize(sh_translate(C_origin, omega, false, V(:, n)', 'max_odr_fit', max_odr, 'R', radius), max_odr);    
         C(:, n, :) = bsxfun(@times, squeeze(C(:, n, :)), exp(-1i * d_sec * omega) );   % Add bulk-delay to make responses causal    
@@ -192,7 +193,7 @@ if options.enable_disp && coder.target("MATLAB")
     xlabel('X-axis', 'fontsize', fontsize);
     ylabel('Y-axis', 'fontsize', fontsize);
     zlabel('Z-axis', 'fontsize', fontsize);
-    title('Microphone 3D Coordinates', 'fontsize', fontsize + 1);
+    title('Transducer 3D Coordinates', 'fontsize', fontsize + 1);
     xlim(1.25 * [-radius, radius]);
     ylim(1.25 * [-radius, radius]);
     zlim(1.25 * [-radius, radius]);
@@ -205,7 +206,7 @@ if options.enable_disp && coder.target("MATLAB")
 
     % Plot horizontal projections
     for n = 1:N
-        str_title_n = ['Mic. ', num2str(n), ' [', num2str(V(1,n),3), ' ,', num2str(V(2,n),3), ', ', num2str(V(3,n),3), ']'];        
+        str_title_n = ['Trans. ', num2str(n), ' [', num2str(V(1,n),3), ' ,', num2str(V(2,n),3), ', ', num2str(V(3,n),3), ']'];        
         h_n = sh_plt(C(:, n, freq > 0), 'horizontal', false, 'title_name', str_title_n, 'dB_lim', options.disp_dB_lim, 'hz', freq(freq > 0), 'disp_mag', options.disp_mag);
         h_figs{end+1} = h_n{1};
     end    
