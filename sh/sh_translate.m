@@ -39,14 +39,24 @@ function [D, h_figs] = sh_translate(C, omega, is_real, v, options)
 % t = (0:(N_taps-1))/Fs;
 % omega = w * Fs;
 % freq = omega / (2 * pi);
+% v = [- 0.5/1000 * 343, 0, 0];
 
 % C = sh_enc_pist_sphere(30, pi/2, 0, 0.25, deg2rad(20), freq, 4, 'normalize_piston_axis', true);
-% D = sh_translate(C, omega, is_real, [- 0.5/1000 * 343, 0, 0], 'enable_disp', true, 'disp_dB_lim', [-20, 6]); % 1/2 ms in -x direction
+% D = sh_translate(C, omega, is_real, v, 'enable_disp', true, 'disp_dB_lim', [-20, 6]); % 1/2 ms in -x direction
 % 
 % sh_plt(C, 'cardinal', is_real, 'hz', freq, 'title_name', 'Original');
 % sh_plt(D, 'cardinal', is_real, 'hz', freq, 'title_name', 'Translated');
 % sh_plt(C, 'cardinal', is_real, 't', t, 'hz', freq, 'title_name', 'Original');
 % sh_plt(D, 'cardinal', is_real, 't', t, 'hz', freq, 'title_name', 'Translated');
+
+% %Test explicit translation from transcoding
+% flt_C_translate = sh_dec(C, pi/2, 0, is_real, 'flt', [repmat(v, [N_taps, 1]), omega' / 343 ]);
+% flt_D = sh_dec(D, pi/2, 0, is_real, 'flt');
+% err = err_NMSE(flt_D, flt_C_translate)
+
+% flt_C_translate = sh_dec(C, pi/3, pi/4, is_real, 'flt', [repmat(v, [N_taps, 1]), omega' / 343 ]);
+% flt_D = sh_dec(D,  pi/3, pi/4, is_real, 'flt');
+% err = err_NMSE(flt_D, flt_C_translate)
 
 arguments
     C (:,:) double = complex(0);
@@ -67,7 +77,7 @@ end
 max_odr = sqrt(N_C) - 1;
 assert(max_odr - floor(max_odr) == 0, 'Invalid size C');
 
-kappa = omega / options.c; % Wavenumber
+kappa = omega / options.c; % Angular wavenumber
 P_max = floor(max(kappa) * (options.R + norm(v))); % Theoretical maximum expansion order
 P_E = min( options.max_odr_fit, max(P_max, max_odr) );
 
