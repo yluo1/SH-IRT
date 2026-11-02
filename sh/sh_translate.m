@@ -1,5 +1,6 @@
 function [D, h_figs] = sh_translate(C, omega, is_real, v, options)
-% Translate SH expansion C's origin to coordinate v. Refit to higher max-order expansion D.
+% Translate SH expansion C's origin to coordinate v (moves the source or recenver to v).
+% Refit to higher max-order expansion D.
 
 % Restrict translated field to delay-only modifications under far-field assumptions. 
 % SH C encodes planewave frequency responses from incident direction u.
@@ -15,7 +16,7 @@ function [D, h_figs] = sh_translate(C, omega, is_real, v, options)
 %is_real:  Logical, if true, evaluate real SH
 %v:        [1 x 3] Cartesian coordinate of new origin (meters)
 
-%options.c:     Wavelength at 1 Hz in meters
+%options.c:     Velocity of propagation in meters / sec
 %options.R:     Radius of scatterer or geometry
 
 %options.oversample: Oversample factor (1 = none)
