@@ -32,6 +32,10 @@ function h = sh_plt(C, mode, is_real, options)
 
 %options.rot_theta_zyx  [1 x 3] Rotate expansion by radians along +z, +y, +x (yaw, pitch, roll) axes
 
+%options.center_wavnum: [] or [M x 4]   If non-empty, compensate for direction and delay of non-common
+%                                       center-of-expansion coordinates xyz, and angular wavenumber kappa [x, y, z, kappa] 
+%                                       (e.g. kappa = 2 * pi * hz / c for propagation velocity c)
+
 %options.disp_mag:      Logical, display magnitude response plots if true
 %options.disp_phase:    Logical, display phase response plots if true
 %options.disp_cb:       Logical, display color plot if true
@@ -88,6 +92,8 @@ arguments
     
     options.rot_theta_zyx (1,3) double = [0 0 0];
 
+    options.center_wavnum (:,4) double = [];
+
     options.disp_mag (1,1) logical = true;
     options.disp_phase (1,1) logical = true;
     options.disp_cb (1,1) logical = true;
@@ -118,6 +124,10 @@ end
 P = floor(sqrt(P))-1;
 assert(P - floor(P) == 0, 'Invalid size C');
 
+if ~isempty(options.center_wavnum)
+    assert(size(options.center_wavnum, 1) == M, 'Size options.center_wavnum mismatch M in C');
+end
+
 %Rotate field
 if ~isequal(options.rot_theta_zyx, [0, 0, 0])
      C = sh_rot(C, options.rot_theta_zyx, is_real);
@@ -137,12 +147,13 @@ if strcmp(mode, 'mercator') %Plot mercator layout per function
     [phi, theta] = meshgrid(phi_list, theta_list);
     phi = phi(:);
     theta = theta(:);
-    Y = sh_val(P, theta, phi, is_real);  %[N x (P+1)^2] 
+
+    f_C = sh_dec(C, theta, phi, is_real, 'eval', options.center_wavnum); % [N x M]
 
     h = cell(1, M);
     for m = 1:M
 
-        f = reshape(Y * C(:, m), [options.resolution(1), options.resolution(2)]);
+        f = reshape(f_C(:, m), [options.resolution(1), options.resolution(2)]);
 
         h{m} = figure;
         h{m}.Position = [options.fig_pos, options.fig_size];
@@ -275,9 +286,8 @@ elseif strcmp(mode, 'horizontal') %Plot horizontal plane
         phi = linspace(-pi, pi, options.resolution(2))';
         theta = pi/2 * ones(numel(phi), 1);
 
-        Y = sh_val(P, theta, phi, is_real);  %[N x (P+1)^2] 
-        f =  Y * C;     %[N x M]
-        
+        f = sh_dec(C, theta, phi, is_real, 'eval', options.center_wavnum); % [N x M]
+
         %Optional 1D convolution in time
         if options.disp_xaxis_ker_size > 1
            f = conv2(f, hann(options.disp_xaxis_ker_size)');
@@ -444,12 +454,12 @@ elseif strcmp(mode, 'cardinal')
 
     if ~isempty(options.hz) && isempty(options.t) % Frequency-domain only
         
-        f_theta_0_phi_0 = sh_dec(C, 0, 0, is_real);
-        f_theta_90_phi_0 = sh_dec(C, pi/2, 0, is_real);
-        f_theta_90_phi_90 = sh_dec(C, pi/2, pi/2, is_real);
-        f_theta_90_phi_180 = sh_dec(C, pi/2, pi, is_real);
-        f_theta_90_phi_270 = sh_dec(C, pi/2, 3*pi/2, is_real);
-        f_theta_180_phi_0 = sh_dec(C, pi, 0, is_real);
+        f_theta_0_phi_0     = sh_dec(C, 0, 0, is_real, 'eval', options.center_wavnum);
+        f_theta_90_phi_0    = sh_dec(C, pi/2, 0, is_real, 'eval', options.center_wavnum);
+        f_theta_90_phi_90   = sh_dec(C, pi/2, pi/2, is_real, 'eval', options.center_wavnum);
+        f_theta_90_phi_180  = sh_dec(C, pi/2, pi, is_real, 'eval', options.center_wavnum);
+        f_theta_90_phi_270  = sh_dec(C, pi/2, 3*pi/2, is_real, 'eval', options.center_wavnum);
+        f_theta_180_phi_0   = sh_dec(C, pi, 0, is_real, 'eval', options.center_wavnum);
 
         h_fig = figure;
         h_fig.Position = [options.fig_pos, [options.fig_size(1) options.fig_size(2) * 2]];
@@ -522,12 +532,16 @@ elseif strcmp(mode, 'cardinal')
 
     elseif ~isempty(options.t) && isempty(options.hz) % Time-domain only
 
-        f_theta_0_phi_0 = sh_dec(C, 0, 0, is_real);
-        f_theta_90_phi_0 = sh_dec(C, pi/2, 0, is_real);
-        f_theta_90_phi_90 = sh_dec(C, pi/2, pi/2, is_real);
-        f_theta_90_phi_180 = sh_dec(C, pi/2, pi, is_real);
-        f_theta_90_phi_270 = sh_dec(C, pi/2, 3*pi/2, is_real);
-        f_theta_180_phi_0 = sh_dec(C, pi, 0, is_real);
+        if ~isempty(options.center_wavnum)
+            warning('Delays due to options.center_wavnum are uncompensated');
+        end
+
+        f_theta_0_phi_0     = sh_dec(C, 0, 0, is_real);
+        f_theta_90_phi_0    = sh_dec(C, pi/2, 0, is_real);
+        f_theta_90_phi_90   = sh_dec(C, pi/2, pi/2, is_real);
+        f_theta_90_phi_180  = sh_dec(C, pi/2, pi, is_real);
+        f_theta_90_phi_270  = sh_dec(C, pi/2, 3*pi/2, is_real);
+        f_theta_180_phi_0   = sh_dec(C, pi, 0, is_real);
 
         h_fig = figure;
         h_fig.Position = [options.fig_pos, options.fig_size];
@@ -575,12 +589,12 @@ elseif strcmp(mode, 'cardinal')
             error('options.t must be M or 2*(M-1)');
         end
 
-        f_theta_0_phi_0 = sh_dec(C, 0, 0, is_real, dec_mode);
-        f_theta_90_phi_0 = sh_dec(C, pi/2, 0, is_real, dec_mode);
-        f_theta_90_phi_90 = sh_dec(C, pi/2, pi/2, is_real, dec_mode);
-        f_theta_90_phi_180 = sh_dec(C, pi/2, pi, is_real, dec_mode);
-        f_theta_90_phi_270 = sh_dec(C, pi/2, 3*pi/2, is_real, dec_mode);
-        f_theta_180_phi_0 = sh_dec(C, pi, 0, is_real, dec_mode);
+        f_theta_0_phi_0     = sh_dec(C, 0, 0, is_real, dec_mode, options.center_wavnum);
+        f_theta_90_phi_0    = sh_dec(C, pi/2, 0, is_real, dec_mode, options.center_wavnum);
+        f_theta_90_phi_90   = sh_dec(C, pi/2, pi/2, is_real, dec_mode, options.center_wavnum);
+        f_theta_90_phi_180  = sh_dec(C, pi/2, pi, is_real, dec_mode, options.center_wavnum);
+        f_theta_90_phi_270  = sh_dec(C, pi/2, 3*pi/2, is_real, dec_mode, options.center_wavnum);
+        f_theta_180_phi_0   = sh_dec(C, pi, 0, is_real, dec_mode, options.center_wavnum);
 
         h_fig = figure;
         h_fig.Position = [options.fig_pos, options.fig_size];

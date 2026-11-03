@@ -34,7 +34,7 @@ function [C, center, h_figs] = sh_enc_arr(max_odr, mode, N, radius, delay_dist, 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
 %C:             [(max_odr + 1)^2 x N x M] SH expansions
-%center:        [N x 3] Center-of-expansion coordinates
+%center:        [] or [N x 3] non-centered expansion coordinates if options.noncentered is true
 %h_figs:        [1 x (N + 1)] cell array of figure handles
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -155,7 +155,7 @@ if any(strcmp(mode, {'uni_line', 'uni_circ', 'uni_sphere', 'uni_custom'})) % Uni
             C(:, n, :) = sh_resize(sh_translate(C_origin, omega, false, V(:, n)', 'max_odr_fit', max_odr, 'R', radius), max_odr);    
             C(:, n, :) = bsxfun(@times, squeeze(C(:, n, :)), exp(-1i * d_sec * omega) );   % Add bulk-delay to make responses causal    
         end
-        center = zeros(N, 3);
+        center = [];
         
     end
 
@@ -187,7 +187,7 @@ elseif any( strcmp(mode, {'spis_circ'}) ) % Piston on spherical baffle directivi
         C(:, n, :) = sh_rot(C_top, [phi_list(n), theta_list(n), 0], false);
     end
 
-    center = zeros(N, 3);
+    center = [];
 
 else
     error('Unknown mode');
@@ -209,9 +209,9 @@ if options.enable_disp && coder.target("MATLAB")
     constantplane("y", 0, 'FaceColor', 'r', 'FaceAlpha', 0.2);
     constantplane("x", 0, 'FaceColor', 'b', 'FaceAlpha', 0.2);
 
-    xlabel('X-axis', 'fontsize', fontsize);
-    ylabel('Y-axis', 'fontsize', fontsize);
-    zlabel('Z-axis', 'fontsize', fontsize);
+    xlabel('X-axis (meters)', 'fontsize', fontsize);
+    ylabel('Y-axis (meters)', 'fontsize', fontsize);
+    zlabel('Z-axis (meters)', 'fontsize', fontsize);
     title('Transducer 3D Coordinates', 'fontsize', fontsize + 1);
     xlim(1.25 * [-radius, radius]);
     ylim(1.25 * [-radius, radius]);
@@ -225,8 +225,15 @@ if options.enable_disp && coder.target("MATLAB")
 
     % Plot horizontal projections
     for n = 1:N
-        str_title_n = ['Trans. ', num2str(n), ' [', num2str(V(1,n),3), ' ,', num2str(V(2,n),3), ', ', num2str(V(3,n),3), ']'];        
-        h_n = sh_plt(C(:, n, freq > 0), 'horizontal', false, 'title_name', str_title_n, 'dB_lim', options.disp_dB_lim, 'hz', freq(freq > 0), 'disp_mag', options.disp_mag);
+        str_title_n = ['Trans. ', num2str(n), ' [', num2str(V(1,n),3), ' ,', num2str(V(2,n),3), ', ', num2str(V(3,n),3), ']'];
+        
+        if isempty(center)
+            center_wavnum = [];
+        else
+            center_wavnum = [repmat(center(n, :), [M, 1]), omega(:) / options.c];            
+        end
+        h_n = sh_plt(C(:, n, freq > 0), 'horizontal', false, 'center_wavnum', center_wavnum(freq > 0, :), ...
+            'title_name', str_title_n, 'dB_lim', options.disp_dB_lim, 'hz', freq(freq > 0), 'disp_mag', options.disp_mag);
         h_figs{end+1} = h_n{1};
     end    
 
