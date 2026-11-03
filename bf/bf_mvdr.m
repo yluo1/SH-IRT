@@ -17,6 +17,14 @@ function [W, fval, DI, WNG] = bf_mvdr(v, R, kappa, mode)
 % Solves for max_p  s.t.  (lambda_max / lambda_min)^p <= kappa,      0 <= p <= 1
 % =>    p = min(1, log(kappa) / (log(lambda_max) - log(lambda_min)) )
 
+% mode = 'sse'  (sum-of-squared spectral error) where  R(kappa) = V*D*V' for eigenvector matrix V s.t. cond(D) <= kappa 
+% Minimize squared difference of eigenvalues from original eigenvalues s.t. 
+% monotonicity and condition number contraint via quadratic programming
+
+% mode = 'ase'  (sum-of-absolute spectral error) where  R(kappa) = V*D*V' for eigenvector matrix V s.t. cond(D) <= kappa 
+% Minimize absolute difference of eigenvalues from original eigenvalues s.t. 
+% monotonicity and condition number contraint via linear programming with slack variables
+
 % Author: Yuancheng Luo, 2026
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -25,7 +33,7 @@ function [W, fval, DI, WNG] = bf_mvdr(v, R, kappa, mode)
 %R:         [N X N]     Rejection covariance matrix
 %kappa:                 Scalar, condition number constraint >= 1, inf = unconstrained
 %                       Choose kappa <= SNR
-%mode:                  String, condition number constraint method {'diag', 'thres', 'trunc'}
+%mode:                  String, condition number constraint method {'diag', 'thres', 'trunc', 'exp', 'sse', 'ase'}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
@@ -37,7 +45,7 @@ function [W, fval, DI, WNG] = bf_mvdr(v, R, kappa, mode)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: Plot condition number versus WNG tradeoff for poorly conditioned R
 
-% rng(4113);
+% rng(41113);
 % N = 6;
 % v = randn(N, 1) + randn(N, 1)*1i;;
 % R = randn(N) + randn(N)*1i; R = R*R';
@@ -47,10 +55,13 @@ function [W, fval, DI, WNG] = bf_mvdr(v, R, kappa, mode)
 % W_diag = zeros(N, N_kappa);   DI_diag = zeros(1, N_kappa);     WNG_diag = zeros(1, N_kappa);
 % W_thres = zeros(N, N_kappa);  DI_thres = zeros(1, N_kappa);    WNG_thres = zeros(1, N_kappa);
 % W_exp = zeros(N, N_kappa);    DI_exp = zeros(1, N_kappa);      WNG_exp = zeros(1, N_kappa);
+% W_sse = zeros(N, N_kappa);    DI_sse = zeros(1, N_kappa);      WNG_sse = zeros(1, N_kappa);
+
 % for n = 1:N_kappa
 %   [W_diag(:, n), ~, DI_diag(n), WNG_diag(n)]      = bf_mvdr(v, R, kappa_list(n), 'diag');
 %   [W_thres(:, n), ~, DI_thres(n), WNG_thres(n)]   = bf_mvdr(v, R, kappa_list(n), 'thres');
 %   [W_exp(:, n), ~, DI_exp(n), WNG_exp(n)]         = bf_mvdr(v, R, kappa_list(n), 'exp');
+%   [W_sse(:, n), ~, DI_sse(n), WNG_sse(n)]         = bf_mvdr(v, R, kappa_list(n), 'sse');
 % end
 % 
 % %Plotting
@@ -59,26 +70,26 @@ function [W, fval, DI, WNG] = bf_mvdr(v, R, kappa, mode)
 % h_fig.Position = [100, 100, 800, 600];
 % tiledlayout(2,1);
 % nexttile;
-% semilogx(kappa_list, pow2db(WNG_diag), kappa_list, pow2db(WNG_thres), kappa_list, pow2db(WNG_exp), 'linewidth', 1.5); 
+% semilogx(kappa_list, pow2db(WNG_diag), kappa_list, pow2db(WNG_thres), kappa_list, pow2db(WNG_exp), kappa_list, pow2db(WNG_sse),  'linewidth', 1.5); 
 % grid on; axis tight;
 % xlabel('Max Condition Number \kappa Constraint', 'fontsize', fontsize);
 % ylabel('White-noise Gain (dB)', 'fontsize', fontsize);
 % title('MVDR White-Noise Gain across Conditioning Methods', 'fontsize', fontsize + 1); set(gca, 'fontsize', fontsize - 1);
-% h_lg = legend('diag', 'thres', 'exp', 'location', 'best'); set(h_lg, 'fontsize', fontsize - 1);
+% h_lg = legend('diag', 'thres', 'exp', 'sse', 'location', 'best'); set(h_lg, 'fontsize', fontsize - 1);
 
 % nexttile;
-% semilogx(kappa_list, pow2db(DI_diag), kappa_list, pow2db(DI_thres), kappa_list, pow2db(DI_exp), 'linewidth', 1.5); 
+% semilogx(kappa_list, pow2db(DI_diag), kappa_list, pow2db(DI_thres), kappa_list, pow2db(DI_exp), kappa_list, pow2db(DI_sse), 'linewidth', 1.5); 
 % grid on; axis tight;
 % xlabel('Max Condition Number \kappa Constraint', 'fontsize', fontsize);
 % ylabel('Directivity Index (dB)', 'fontsize', fontsize);
 % title('MVDR Directivity Index across Conditioning Methods', 'fontsize', fontsize + 1); set(gca, 'fontsize', fontsize - 1);
-% h_lg = legend('diag', 'thres', 'exp', 'location', 'best'); set(h_lg, 'fontsize', fontsize - 1);
+% h_lg = legend('diag', 'thres', 'exp', 'sse', 'location', 'best'); set(h_lg, 'fontsize', fontsize - 1);
 
 arguments
     v (:,1) double {coder.mustBeComplex} = complex(1);
     R (:,:) double {coder.mustBeComplex} = complex(1);
     kappa (1,1) double {mustBePositive} = inf;
-    mode (1,:) char {mustBeMember(mode, {'diag', 'thres', 'exp'} )} = 'diag';
+    mode (1,:) char {mustBeMember(mode, {'diag', 'thres', 'exp', 'sse', 'ase'} )} = 'diag';
 end
 
 N = numel(v);
@@ -126,6 +137,90 @@ elseif strcmp(mode, 'exp') % Shape smoothing eigenvalues via soft-compression
     p = min(1, log(kappa) / (log(lambda_max) - log(lambda_min)));
 
     lambda_kappa = lambda.^p;
+
+    D_kappa = diag(lambda_kappa);
+    D_kappa_inv = diag( lambda_kappa.^(-1) );
+    R_kappa = V * D_kappa * V';
+    R_kappa_inv_v = (V * D_kappa_inv * V') * v;
+
+elseif strcmp(mode, 'sse') % Minimize squared spectral error in eigenvalues
+
+    [V, D] = eig(R);
+    d = diag(D);
+    [lambda, idx] = sort(d, 'descend');
+    V = V(:, idx);
+
+    H = eye(N);
+    f = -real(lambda(:));
+    A = [];
+    b = [];
+    % Monotonicity constraints: lambda_kappa(n) >= lambda_kappa(n+1)
+    for n = 2:N
+        A_n = zeros(1,N); A_n(n) = 1; A_n(n-1) = -1; 
+        A = [A; A_n];
+        b = [b; 0];
+    end
+    % Condition number constraint: lambda_kappa(1) / lambda_kappa(N) <= kappa
+    A_cond = zeros(1,N); A_cond(1) = 1; A_cond(N) = -kappa;
+    b_cond = 0;
+    A = [A; A_cond];
+    b = [b; b_cond];
+    
+    % Non-negative eigenvalues: lambda_kappa(n) >= 0
+    lb = zeros(N, 1);
+    
+    %Options
+    options_quadprog = optimoptions('quadprog', 'Display', 'none', 'MaxIterations', 10000, ...
+        'OptimalityTolerance', 1e-8, 'StepTolerance', 1e-8, 'ConstraintTolerance', 1e-8);
+    %Solve
+    [lambda_kappa, fval_lambda, exitflag_lambda] = quadprog(H, f, A, b, [], [], lb, [], [], options_quadprog);
+    
+    D_kappa = diag(lambda_kappa);
+    D_kappa_inv = diag( lambda_kappa.^(-1) );
+    R_kappa = V * D_kappa * V';
+    R_kappa_inv_v = (V * D_kappa_inv * V') * v;
+
+elseif strcmp(mode, 'ase') % Minimize absolute spectral error in eigenvalues
+
+    [V, D] = eig(R);
+    d = diag(D);
+    [lambda, idx] = sort(d, 'descend');
+    V = V(:, idx);
+
+    % variables order [lambda_kappa; slack] in [2 * N x 1]
+    f = [zeros(N, 1); ones(N, 1)];
+    A = [];
+    b = [];
+    % Monotonicity constraints: lambda_kappa(n) >= lambda_kappa(n+1)
+    for n = 2:N
+        A_n = zeros(1,2*N); A_n(n) = 1; A_n(n-1) = -1; 
+        A = [A; A_n];
+        b = [b; 0];
+    end
+    % Condition number constraint: lambda_kappa(1) / lambda_kappa(N) <= kappa
+    A_cond = zeros(1,2*N); A_cond(1) = 1; A_cond(N) = -kappa;
+    b_cond = 0;
+    A = [A; A_cond];
+    b = [b; b_cond];
+    % Slack variable constraints slack(n) >= |lambda_kappa(n) - lambda(n)|
+    for n = 1:N
+        A_n = zeros(1,2*N); A_n(n) = -1; A_n(N+n) = -1;
+        A = [A; A_n]; 
+        b = [b; -lambda(n)];
+
+        A_n = zeros(1,2*N); A_n(n) = 1; A_n(N+n) = -1;
+        A = [A; A_n]; 
+        b = [b; lambda(n)];
+    end
+    % Non-negative eigenvalues and slack: lambda_kappa(n) >= 0, slack(n) >= 0
+    lb = zeros(2 * N, 1);
+
+    %Options
+    options_linprog = optimoptions("linprog", 'Display', 'none', 'MaxIterations', 1000, ...
+        'ConstraintTolerance', 1e-10, 'OptimalityTolerance', 1e-10);   
+    %Solve
+    [lambda_kappa_slack, fval_lambda, exitflag_lambda] = linprog(f, A, b, [], [], lb, [], options_linprog);
+    lambda_kappa = lambda_kappa_slack(1:N);
 
     D_kappa = diag(lambda_kappa);
     D_kappa_inv = diag( lambda_kappa.^(-1) );
