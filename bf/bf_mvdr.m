@@ -1,4 +1,4 @@
-function [W, fval, WNG] = bf_mvdr(v, R, kappa, mode)
+function [W, fval, DI, WNG] = bf_mvdr(v, R, kappa, mode)
 % Minimum variance distortionless response beamformer design with condition number constraints
 % min_{W, sigma} W'*R(kappa)*W   s.t.    W'*v = 1,   
 
@@ -30,8 +30,9 @@ function [W, fval, WNG] = bf_mvdr(v, R, kappa, mode)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
 %W:         [N x 1]     Conjugate symmetric beamformer weights
-%fval                   Scalar, objective real(W'*R*W)
-%WNG:                   Scalar, white-noise gain W'*W
+%fval:                  Scalar, objective:          W'*R(kappa)*W
+%DI:                    Scalar, directivity index:  |W'*v|^2 / real(W'*R*W)
+%WNG:                   Scalar, white-noise gain:   W'*W
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: Plot condition number versus WNG tradeoff for poorly conditioned R
@@ -43,23 +44,34 @@ function [W, fval, WNG] = bf_mvdr(v, R, kappa, mode)
 % R = R - 0.999 * eigs(R, 1, 'smallestreal') * eye(N);
 % N_kappa = 32;
 % kappa_list = logspace(log10(1.1), log10(1000000), N_kappa);
-% W_diag = zeros(N, N_kappa);    WNG_diag = zeros(1, N_kappa);
-% W_thres = zeros(N, N_kappa);   WNG_thres = zeros(1, N_kappa);
-% W_exp = zeros(N, N_kappa);     WNG_exp = zeros(1, N_kappa);
+% W_diag = zeros(N, N_kappa);   DI_diag = zeros(1, N_kappa);     WNG_diag = zeros(1, N_kappa);
+% W_thres = zeros(N, N_kappa);  DI_thres = zeros(1, N_kappa);    WNG_thres = zeros(1, N_kappa);
+% W_exp = zeros(N, N_kappa);    DI_exp = zeros(1, N_kappa);      WNG_exp = zeros(1, N_kappa);
 % for n = 1:N_kappa
-%   [W_diag(:, n), ~, WNG_diag(n)]     = bf_mvdr(v, R, kappa_list(n), 'diag');
-%   [W_thres(:, n), ~, WNG_thres(n)]   = bf_mvdr(v, R, kappa_list(n), 'thres');
-%   [W_exp(:, n), ~, WNG_exp(n)]       = bf_mvdr(v, R, kappa_list(n), 'exp');
+%   [W_diag(:, n), ~, DI_diag(n), WNG_diag(n)]      = bf_mvdr(v, R, kappa_list(n), 'diag');
+%   [W_thres(:, n), ~, DI_thres(n), WNG_thres(n)]   = bf_mvdr(v, R, kappa_list(n), 'thres');
+%   [W_exp(:, n), ~, DI_exp(n), WNG_exp(n)]         = bf_mvdr(v, R, kappa_list(n), 'exp');
 % end
 % 
 % %Plotting
 % fontsize = 14;
-% figure;
-% semilogx(kappa_list, mag2db(WNG_diag), kappa_list, mag2db(WNG_thres), kappa_list, mag2db(WNG_exp), 'linewidth', 1.5); 
+% h_fig = figure;
+% h_fig.Position = [100, 100, 800, 600];
+% tiledlayout(2,1);
+% nexttile;
+% semilogx(kappa_list, pow2db(WNG_diag), kappa_list, pow2db(WNG_thres), kappa_list, pow2db(WNG_exp), 'linewidth', 1.5); 
 % grid on; axis tight;
 % xlabel('Max Condition Number \kappa Constraint', 'fontsize', fontsize);
 % ylabel('White-noise Gain (dB)', 'fontsize', fontsize);
 % title('MVDR White-Noise Gain across Conditioning Methods', 'fontsize', fontsize + 1); set(gca, 'fontsize', fontsize - 1);
+% h_lg = legend('diag', 'thres', 'exp', 'location', 'best'); set(h_lg, 'fontsize', fontsize - 1);
+
+% nexttile;
+% semilogx(kappa_list, pow2db(DI_diag), kappa_list, pow2db(DI_thres), kappa_list, pow2db(DI_exp), 'linewidth', 1.5); 
+% grid on; axis tight;
+% xlabel('Max Condition Number \kappa Constraint', 'fontsize', fontsize);
+% ylabel('Directivity Index (dB)', 'fontsize', fontsize);
+% title('MVDR Directivity Index across Conditioning Methods', 'fontsize', fontsize + 1); set(gca, 'fontsize', fontsize - 1);
 % h_lg = legend('diag', 'thres', 'exp', 'location', 'best'); set(h_lg, 'fontsize', fontsize - 1);
 
 arguments
@@ -81,7 +93,9 @@ if strcmp(mode, 'diag') % Shape preserving across entire eigenvalues by upwards 
     lambda_min = eigs(R, 1, 'smallestreal');
 
     sigma = (lambda_max - lambda_min) / (kappa - 1);
-    Rinv_v = (R + sigma * eye(N)) \ v; 
+
+    R_kappa = R + sigma * eye(N);
+    R_kappa_inv_v = R_kappa \ v; 
 
 elseif strcmp(mode, 'thres') % Shape preserving upto threshold, then brick-wall limit small eigenvalues
     % minimizes total difference between original and constrained eigenvalues
@@ -92,9 +106,12 @@ elseif strcmp(mode, 'thres') % Shape preserving upto threshold, then brick-wall 
     V = V(:, idx);
     
     lambda_max = lambda(1);
-    Dinv = diag( 1./ max(lambda, lambda_max/kappa) );
     
-    Rinv_v = (V * Dinv * V') * v;
+    lambda_kappa = max(lambda, lambda_max/kappa);
+    D_kappa = diag(lambda_kappa);
+    D_kappa_inv = diag( 1./ lambda_kappa );
+    R_kappa = V * D_kappa * V';
+    R_kappa_inv_v = (V * D_kappa_inv * V') * v;
 
 
 elseif strcmp(mode, 'exp') % Shape smoothing eigenvalues via soft-compression
@@ -108,15 +125,19 @@ elseif strcmp(mode, 'exp') % Shape smoothing eigenvalues via soft-compression
     lambda_min = lambda(end);
     p = min(1, log(kappa) / (log(lambda_max) - log(lambda_min)));
 
-    Dinv = diag( lambda.^(-p) );
-    
-    Rinv_v = (V * Dinv * V') * v;
+    lambda_kappa = lambda.^p;
+
+    D_kappa = diag(lambda_kappa);
+    D_kappa_inv = diag( lambda_kappa.^(-1) );
+    R_kappa = V * D_kappa * V';
+    R_kappa_inv_v = (V * D_kappa_inv * V') * v;
 
 else
     error('Unknown mode');
 end
 
 % Output
-W = Rinv_v / (v' * Rinv_v); % Normalize for distortionless constraint
-fval = real(W'*R*W);
+W = R_kappa_inv_v / (v' * R_kappa_inv_v); % Normalize for distortionless constraint
+fval = real(W'*R_kappa*W);
+DI = abs(W'*v)^2 / real(W'*R*W);
 WNG = W'*W;
