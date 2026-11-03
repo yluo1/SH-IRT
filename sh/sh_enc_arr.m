@@ -1,4 +1,4 @@
-function [C, h_figs] = sh_enc_arr(max_odr, mode, N, radius, delay_dist, freq, options)
+function [C, center, h_figs] = sh_enc_arr(max_odr, mode, N, radius, delay_dist, freq, options)
 % Encode planewave to analytic transducer (e.g. microphone, loudspeaker, antenna) array 
 % frequency responses in spherical harmonic domain
 
@@ -7,7 +7,7 @@ function [C, h_figs] = sh_enc_arr(max_odr, mode, N, radius, delay_dist, freq, op
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
 %max_odr:       Max SH order
-%mode:          String, array element type and topology {'uni_line', 'uni_circ', 'uni_sphere', 'uni_custom', 'pist_sphere'}
+%mode:          String, array element type and topology {'uni_line', 'uni_circ', 'uni_sphere', 'uni_custom', 'spis_circ'}
 %                   'uni_line':     Uniform (omni) directivity, line array on x=z=0 line
 %                                   equal spaced with first element on -y axis
 %                   'uni_circ':     Uniform (omni) directivity, circular topology on z=0 plane,
@@ -22,7 +22,8 @@ function [C, h_figs] = sh_enc_arr(max_odr, mode, N, radius, delay_dist, freq, op
 %freq:          [1 x M] Frequency in Hz
 
 %options.c:             Velocity of propagation meters / second
-%options.V_custom:      [3 x N] custom coordinates for mode = 'uni_custom'
+%options.custom_coords: [3 x N] custom coordinates for mode = 'uni_custom'
+%options.noncentered:   Logical, if true, use non-centered expansion center coordinates for mode = 'uni_{*}'
 
 %options.spis_arc_len:  Spherical piston's arc length in meters for mode = 'spis_circ'
 
@@ -33,6 +34,7 @@ function [C, h_figs] = sh_enc_arr(max_odr, mode, N, radius, delay_dist, freq, op
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
 %C:             [(max_odr + 1)^2 x N x M] SH expansions
+%center:        [N x 3] Center-of-expansion coordinates
 %h_figs:        [1 x (N + 1)] cell array of figure handles
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -91,6 +93,7 @@ arguments
     
     options.c (1,1) double {mustBePositive} = 343;
     options.custom_coords (3,:) double = [];
+    options.noncentered (1,1) logical = false;
 
     options.spis_arc_len (1,1) double {mustBePositive} = 0.0035;
 
@@ -137,11 +140,25 @@ if any(strcmp(mode, {'uni_line', 'uni_circ', 'uni_sphere', 'uni_custom'})) % Uni
     d_sec = delay_dist / options.c;  
     C_origin = repmat( sh_enc_uni(0), [1, M]); % uniform directivity at origin
 
-    % Translate expansion origin to transducer coordinates
-    for n = 1:N
-        C(:, n, :) = sh_resize(sh_translate(C_origin, omega, false, V(:, n)', 'max_odr_fit', max_odr, 'R', radius), max_odr);    
-        C(:, n, :) = bsxfun(@times, squeeze(C(:, n, :)), exp(-1i * d_sec * omega) );   % Add bulk-delay to make responses causal    
+    if options.noncentered % Omit SH translation
+
+        for n = 1:N
+            C(:, n, :) = sh_resize(C_origin, max_odr);    
+            C(:, n, :) = bsxfun(@times, squeeze(C(:, n, :)), exp(-1i * d_sec * omega) );   % Add bulk-delay to make responses causal    
+        end    
+        center = V';
+
+    else
+
+        % Translate expansion origin to transducer coordinates
+        for n = 1:N
+            C(:, n, :) = sh_resize(sh_translate(C_origin, omega, false, V(:, n)', 'max_odr_fit', max_odr, 'R', radius), max_odr);    
+            C(:, n, :) = bsxfun(@times, squeeze(C(:, n, :)), exp(-1i * d_sec * omega) );   % Add bulk-delay to make responses causal    
+        end
+        center = zeros(N, 3);
+        
     end
+
 
 elseif any( strcmp(mode, {'spis_circ'}) ) % Piston on spherical baffle directivity
    
@@ -169,6 +186,8 @@ elseif any( strcmp(mode, {'spis_circ'}) ) % Piston on spherical baffle directivi
     for n = 1:N
         C(:, n, :) = sh_rot(C_top, [phi_list(n), theta_list(n), 0], false);
     end
+
+    center = zeros(N, 3);
 
 else
     error('Unknown mode');
