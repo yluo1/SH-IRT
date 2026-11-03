@@ -18,11 +18,13 @@ function [W, fval, SINR, WNG] = bf_mvdr(v, R, kappa, mode)
 % =>    p = min(1, log(kappa) / (log(lambda_max) - log(lambda_min)) )
 
 % mode = 'sse'  (sum-of-squared spectral error) where  R(kappa) = V*D*V' for eigenvector matrix V s.t. cond(D) <= kappa 
-% Minimize squared difference of eigenvalues from original eigenvalues s.t. 
+% D = diag(lambda_kappa);
+% Minimize squared difference of eigenvalues lambda_kappa from original eigenvalues lambda s.t. 
 % monotonicity and condition number contraint via quadratic programming
 
 % mode = 'ase'  (sum-of-absolute spectral error) where  R(kappa) = V*D*V' for eigenvector matrix V s.t. cond(D) <= kappa 
-% Minimize absolute difference of eigenvalues from original eigenvalues s.t. 
+% D = diag(lambda_kappa);
+% Minimize absolute difference of eigenvalues lambda_kappa from original eigenvalues lambda s.t. 
 % monotonicity and condition number contraint via linear programming with slack variables
 
 % Author: Yuancheng Luo, 2026
