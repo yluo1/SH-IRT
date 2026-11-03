@@ -25,7 +25,7 @@ function [W, fval, WNG] = bf_mvdr(v, R, kappa, mode)
 %R:         [N X N]     Rejection covariance matrix
 %kappa:                 Scalar, condition number constraint >= 1, inf = unconstrained
 %                       Choose kappa <= SNR
-%mode:                  String, constraint method {'diag', 'thres', 'trunc'}
+%mode:                  String, condition number constraint method {'diag', 'thres', 'trunc'}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output

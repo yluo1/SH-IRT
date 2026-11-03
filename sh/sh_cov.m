@@ -7,7 +7,7 @@ function K = sh_cov(C, D_pdf, is_real, options)
 
 % mode = 'CGC':     Compute analytic covariance via Clebsch-Gordan coefficients (SH product operator) for common centers-of-expansions
 % mode = 'SHT':     Compute numeric covariance via quadrature over uniform spherical coordinate grid.
-%                   Supports non-common centers-of-expansion direction and delay compensation (require both options.SHT_centers and options.SHT_kappa)
+%                   Supports non-common centers-of-expansion direction and delay compensation (require both options.SHT_centers and options.SHT_wavnum)
 
 % Author: Yuancheng Luo, 2026
 
@@ -26,8 +26,8 @@ function K = sh_cov(C, D_pdf, is_real, options)
 %options.center_mean:       Logical, if true, subtract mean from covariance matrix
 %options.SHT_oversample:    Oversample  number of spherical coordinate direction by this factor for mode = 'SHT'
 
-%options.SHT_center:        [] or [N x 3]     Non-common centers-of-expansion coordinates [x, y, z]
-%options.SHT_kappa:         [] or [1 x M]     Angular wavenumber kappa (e.g. kappa = 2 * pi * hz / c for propagation velocity c)
+%options.SHT_center:        [] or [N x 3]   Non-common centers-of-expansion coordinates [x, y, z]
+%options.SHT_wavnum:        [] or [1 x M]   Angular wavenumber kappa (e.g. kappa = 2 * pi * hz / c for propagation velocity c)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
@@ -77,7 +77,7 @@ function K = sh_cov(C, D_pdf, is_real, options)
 % C_translate = sh_translate(C, omega, is_real, v, 'enable_disp', true, 'disp_dB_lim', [-20, 6]); % 1/2 ms in -x direction
 % C_resize = sh_resize(C, sqrt(size(C_translate, 1)) - 1 );
 % K_translate = sh_cov(permute(cat(3, C_resize, C_translate), [1, 3, 2]), D_pdf, is_real);
-% K_noncenter = sh_cov(permute(cat(3, C_resize, C_resize), [1, 3, 2]), D_pdf, is_real, 'SHT_center', [0 0 0; v], 'SHT_kappa', omega / 343);
+% K_noncenter = sh_cov(permute(cat(3, C_resize, C_resize), [1, 3, 2]), D_pdf, is_real, 'SHT_center', [0 0 0; v], 'SHT_wavnum', omega / 343);
 % err = err_NMSE(K_translate, K_noncenter)
 
 arguments
@@ -91,7 +91,7 @@ arguments
     options.SHT_oversample (1,1) double {mustBeInteger, mustBePositive} = 4;
 
     options.SHT_center (:,3) double = [];
-    options.SHT_kappa (1,:) double {mustBeNonnegative} = [];
+    options.SHT_wavnum (1,:) double {mustBeNonnegative} = [];
 
 end
 
@@ -146,7 +146,7 @@ elseif strcmp(options.mode, 'SHT')
 
     f_pdf = sh_dec(D_pdf, theta, phi, is_real) / N_C2 * (4 * pi); %[N_C2 x 1] or %[N_C2 x M]
 
-    assert( ~xor(isempty(options.SHT_center), isempty(options.SHT_kappa) ), 'options.SHT_center and options.SHT_kappa must be both empty or both non-empty');
+    assert( ~xor(isempty(options.SHT_center), isempty(options.SHT_wavnum) ), 'options.SHT_center and options.SHT_wavnum must be both empty or both non-empty');
 
     for m = 1:M % Iterate over functions
 
@@ -154,8 +154,8 @@ elseif strcmp(options.mode, 'SHT')
         if isempty(options.SHT_center)
             f_C = sh_dec(C(:, :, m), theta, phi, is_real); % [N_C2 x N] 
         else
-            center_kappa_m = [options.SHT_center, options.SHT_kappa(m) * ones(N, 1)]; % [N x 4]
-            f_C = sh_dec(C(:, :, m), theta, phi, is_real, 'eval', center_kappa_m); % [N_C2 x N]             
+            center_wavnum_m = [options.SHT_center, options.SHT_wavnum(m) * ones(N, 1)]; % [N x 4]
+            f_C = sh_dec(C(:, :, m), theta, phi, is_real, 'eval', center_wavnum_m); % [N_C2 x N]             
         end
 
         if size(f_pdf, 2) == 1 % Constant density over M functions

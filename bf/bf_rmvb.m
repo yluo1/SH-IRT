@@ -27,7 +27,7 @@ function [W, fval, exitflag] = bf_rmvb(v, R, P, options)
 %               Disable constraints if empty
 %options.WNG:   [], scalar, Maximum white-noise gain
 %               Disable constraints if empty
-%options.CG:    [], scalar, [N x 1]
+%options.CG:    [], scalar, [N x 1] channel gains
 %               Disable constraints if empty. Replcate across channels if scalar.
 
 %options.check_constraints: Logical, if true check for constraints satisfication of solution
