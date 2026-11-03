@@ -6,7 +6,7 @@ function D = sh_refl(C, mode, is_real)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
 %C:        [(P+1)^2 x M] SH coefficients (max order P of M number of functions)
-%mode:     String, plane type {'xz', 'median', 'sagittal', 'xy', 'transverse', 'yz', 'frontal'}
+%mode:     String, plane type {'xz', 'median', 'sagittal', 'xy', 'transverse', 'horizontal', 'yz', 'frontal', 'coronal'}
 %is_real:  Logical, if true, evaluate real SH
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -33,19 +33,19 @@ function D = sh_refl(C, mode, is_real)
 
 arguments
     C (:,:) double {coder.mustBeComplex} = complex(0);
-    mode (1,:) char {mustBeMember(mode, {'xz', 'median', 'sagittal', 'xy', 'transverse', 'yz', 'frontal'})} = 'median';
+    mode (1,:) char {mustBeMember(mode, {'xz', 'median', 'sagittal', 'xy', 'transverse', 'horizontal', 'yz', 'frontal', 'coronal'})} = 'median';
     is_real (1,1) logical = false;  
 end
 
-if strcmp(mode, 'xz') || strcmp(mode, 'median')  || strcmp(mode, 'sagittal')
+if any(strcmp(mode, {'xz', 'median', 'sagittal'}))
 
     D = conj(sh_conj(C));
 
-elseif strcmp(mode, 'xy')  || strcmp(mode, 'transverse')
+elseif any(strcmp(mode, {'xy', 'transverse', 'horizontal'})) 
 
     D = sh_rot(conj(sh_conj(sh_rot(C, [0 0 pi/2], is_real))), [0 0 -pi/2], is_real);
         
-elseif strcmp(mode, 'yz')  || strcmp(mode, 'frontal')
+elseif any(strcmp(mode, {'yz', 'frontal', 'coronal'}))
 
     D = sh_rot(conj(sh_conj(sh_rot(C, [pi/2 0 0], is_real))), [-pi/2 0 0], is_real);
     
