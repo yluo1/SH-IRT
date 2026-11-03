@@ -36,7 +36,7 @@ function [W, fval, exitflag] = bf_rmvb(v, R, P, options)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
-%W:         [N x 1]
+%W:         [N x 1] Beamformer weights (conjugated)
 %fval:      Scalar, W'*R*W
 %exitflag:  1 if success, otherwise see coneprog.m
 

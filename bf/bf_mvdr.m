@@ -37,7 +37,7 @@ function [W, fval, DI, WNG] = bf_mvdr(v, R, kappa, mode)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
-%W:         [N x 1]     Conjugate symmetric beamformer weights
+%W:         [N x 1]     Beamformer weights (conjugated)
 %fval:                  Scalar, objective:          W'*R(kappa)*W
 %DI:                    Scalar, directivity index:  |W'*v|^2 / real(W'*R*W)
 %WNG:                   Scalar, white-noise gain:   W'*W

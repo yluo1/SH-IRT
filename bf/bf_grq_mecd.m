@@ -36,7 +36,7 @@ function [W, fval] = bf_grq_mecd(C, A, R, tau, options)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
-%W:         [N x 1] Beamformer weights
+%W:         [N x 1] Beamformer weights (conjugated)
 %fval:      Scalar, objective W'*C*W
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

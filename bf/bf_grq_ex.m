@@ -28,7 +28,7 @@ function [W_min_max, tau_min_max] = bf_grq_ex(A, R, options)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
-%W_min_max:     [N x 2] Critical points [minimizer, maximizer] scaled to have unit norm
+%W_min_max:     [N x 2] Beamformer weights (conjugated): Critical points [minimizer, maximizer] scaled to have unit norm
 %tau_min_max:   [1 x 2] Extrema [min(w'*A*w / w'*R*w), max(w'*A*w / w'*R*w)]
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
