@@ -24,7 +24,8 @@ function K = sh_cov(C, D_pdf, is_real, options)
 %                           'SHT':   Spherical harmonic transform (inverse SHT -> numeric integration)
 
 %options.center_mean:       Logical, if true, subtract mean from covariance matrix
-%options.SHT_oversample:    Oversample  number of spherical coordinate direction by this factor for mode = 'SHT'
+%options.SHT_oversample:    Oversample number of spherical coordinate direction by this factor for mode = 'SHT'
+%options.SHT_maxsample:     Max number of spherical coordinate direction for mode = 'SHT'
 
 %options.SHT_center:        [] or [N x 3]   Non-common centers-of-expansion coordinates [x, y, z]
 %options.SHT_wavnum:        [] or [1 x M]   Angular wavenumber kappa (e.g. kappa = 2 * pi * hz / c for propagation velocity c)
@@ -89,6 +90,7 @@ arguments
     options.center_mean (1,1) logical = false;
 
     options.SHT_oversample (1,1) double {mustBeInteger, mustBePositive} = 4;
+    options.SHT_maxsample (1,1) double {mustBeInteger, mustBePositive} = inf;
 
     options.SHT_center (:,3) double = [];
     options.SHT_wavnum (1,:) double {mustBeNonnegative} = [];
@@ -140,11 +142,11 @@ if strcmp(options.mode, 'CGC')
         
 elseif strcmp(options.mode, 'SHT')
     
-    N_C2 = options.SHT_oversample * (2 * L_C + 1)^2;
+    N_C2 = min( options.SHT_maxsample, options.SHT_oversample * (2 * L_C + 1)^2 );
 
     [theta, phi] = sh_grd_fib(N_C2);
 
-    f_pdf = sh_dec(D_pdf, theta, phi, is_real) / N_C2 * (4 * pi); %[N_C2 x 1] or %[N_C2 x M]
+    f_pdf = sh_dec(D_pdf, theta, phi, is_real) / N_C2 * (4 * pi); % [N_C2 x 1] or %[N_C2 x M]
 
     assert( ~xor(isempty(options.SHT_center), isempty(options.SHT_wavnum) ), 'options.SHT_center and options.SHT_wavnum must be both empty or both non-empty');
 

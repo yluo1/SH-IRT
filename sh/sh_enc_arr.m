@@ -231,8 +231,9 @@ if options.enable_disp && coder.target("MATLAB")
             center_wavnum = [];
         else
             center_wavnum = [repmat(center(n, :), [M, 1]), omega(:) / options.c];            
+            center_wavnum = center_wavnum(freq > 0, :);
         end
-        h_n = sh_plt(C(:, n, freq > 0), 'horizontal', false, 'center_wavnum', center_wavnum(freq > 0, :), ...
+        h_n = sh_plt(C(:, n, freq > 0), 'horizontal', false, 'center_wavnum', center_wavnum, ...
             'title_name', str_title_n, 'dB_lim', options.disp_dB_lim, 'hz', freq(freq > 0), 'disp_mag', options.disp_mag);
         h_figs{end+1} = h_n{1};
     end    
