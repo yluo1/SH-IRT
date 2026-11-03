@@ -1,4 +1,4 @@
-function [W, fval, DI, WNG] = bf_mvdr(v, R, kappa, mode)
+function [W, fval, SINR, WNG] = bf_mvdr(v, R, kappa, mode)
 % Minimum variance distortionless response beamformer design with condition number constraints
 % min_{W, sigma} W'*R(kappa)*W   s.t.    W'*v = 1,   
 
@@ -39,51 +39,11 @@ function [W, fval, DI, WNG] = bf_mvdr(v, R, kappa, mode)
 %Output
 %W:         [N x 1]     Beamformer weights (conjugated)
 %fval:                  Scalar, objective:          W'*R(kappa)*W
-%DI:                    Scalar, directivity index:  |W'*v|^2 / real(W'*R*W)
+%SINR:                  Scalar, signal-to-interference-plus-noise ratio:  |W'*v|^2 / real(W'*R*W)
 %WNG:                   Scalar, white-noise gain:   W'*W
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Sample usage: Plot condition number versus WNG tradeoff for poorly conditioned R
-
-% rng(41113);
-% N = 6;
-% v = randn(N, 1) + randn(N, 1)*1i;;
-% R = randn(N) + randn(N)*1i; R = R*R';
-% R = R - 0.999 * eigs(R, 1, 'smallestreal') * eye(N);
-% N_kappa = 32;
-% kappa_list = logspace(log10(1.1), log10(1000000), N_kappa);
-% W_diag = zeros(N, N_kappa);   DI_diag = zeros(1, N_kappa);     WNG_diag = zeros(1, N_kappa);
-% W_thres = zeros(N, N_kappa);  DI_thres = zeros(1, N_kappa);    WNG_thres = zeros(1, N_kappa);
-% W_exp = zeros(N, N_kappa);    DI_exp = zeros(1, N_kappa);      WNG_exp = zeros(1, N_kappa);
-% W_sse = zeros(N, N_kappa);    DI_sse = zeros(1, N_kappa);      WNG_sse = zeros(1, N_kappa);
-
-% for n = 1:N_kappa
-%   [W_diag(:, n), ~, DI_diag(n), WNG_diag(n)]      = bf_mvdr(v, R, kappa_list(n), 'diag');
-%   [W_thres(:, n), ~, DI_thres(n), WNG_thres(n)]   = bf_mvdr(v, R, kappa_list(n), 'thres');
-%   [W_exp(:, n), ~, DI_exp(n), WNG_exp(n)]         = bf_mvdr(v, R, kappa_list(n), 'exp');
-%   [W_sse(:, n), ~, DI_sse(n), WNG_sse(n)]         = bf_mvdr(v, R, kappa_list(n), 'sse');
-% end
-% 
-% %Plotting
-% fontsize = 14;
-% h_fig = figure;
-% h_fig.Position = [100, 100, 800, 600];
-% tiledlayout(2,1);
-% nexttile;
-% semilogx(kappa_list, pow2db(WNG_diag), kappa_list, pow2db(WNG_thres), kappa_list, pow2db(WNG_exp), kappa_list, pow2db(WNG_sse),  'linewidth', 1.5); 
-% grid on; axis tight;
-% xlabel('Max Condition Number \kappa Constraint', 'fontsize', fontsize);
-% ylabel('White-noise Gain (dB)', 'fontsize', fontsize);
-% title('MVDR White-Noise Gain across Conditioning Methods', 'fontsize', fontsize + 1); set(gca, 'fontsize', fontsize - 1);
-% h_lg = legend('diag', 'thres', 'exp', 'sse', 'location', 'best'); set(h_lg, 'fontsize', fontsize - 1);
-
-% nexttile;
-% semilogx(kappa_list, pow2db(DI_diag), kappa_list, pow2db(DI_thres), kappa_list, pow2db(DI_exp), kappa_list, pow2db(DI_sse), 'linewidth', 1.5); 
-% grid on; axis tight;
-% xlabel('Max Condition Number \kappa Constraint', 'fontsize', fontsize);
-% ylabel('Directivity Index (dB)', 'fontsize', fontsize);
-% title('MVDR Directivity Index across Conditioning Methods', 'fontsize', fontsize + 1); set(gca, 'fontsize', fontsize - 1);
-% h_lg = legend('diag', 'thres', 'exp', 'sse', 'location', 'best'); set(h_lg, 'fontsize', fontsize - 1);
+%Sample usage: See tst_bf_mvdr.m
 
 arguments
     v (:,1) double {coder.mustBeComplex} = complex(1);
@@ -234,5 +194,5 @@ end
 % Output
 W = R_kappa_inv_v / (v' * R_kappa_inv_v); % Normalize for distortionless constraint
 fval = real(W'*R_kappa*W);
-DI = abs(W'*v)^2 / real(W'*R*W);
+SINR = abs(W'*v)^2 / real(W'*R*W);
 WNG = W'*W;

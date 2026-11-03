@@ -13,18 +13,18 @@ R = R - 0.999 * eigs(R, 1, 'smallestreal') * eye(N);
 %[v_max, d_max] = eigs(R, 1, 'largestreal');     R = R + 999 * v_max * (v_max');
 N_kappa = 64;
 kappa_list = logspace(log10(1.1), log10(100000), N_kappa);
-W_diag = zeros(N, N_kappa);   DI_diag = zeros(1, N_kappa);     WNG_diag = zeros(1, N_kappa);
-W_thres = zeros(N, N_kappa);  DI_thres = zeros(1, N_kappa);    WNG_thres = zeros(1, N_kappa);
-W_exp = zeros(N, N_kappa);    DI_exp = zeros(1, N_kappa);      WNG_exp = zeros(1, N_kappa);
-W_sse = zeros(N, N_kappa);    DI_sse = zeros(1, N_kappa);      WNG_sse = zeros(1, N_kappa);
-W_ase = zeros(N, N_kappa);    DI_ase = zeros(1, N_kappa);      WNG_ase = zeros(1, N_kappa);
+W_diag = zeros(N, N_kappa);   SINR_diag = zeros(1, N_kappa);     WNG_diag = zeros(1, N_kappa);
+W_thres = zeros(N, N_kappa);  SINR_thres = zeros(1, N_kappa);    WNG_thres = zeros(1, N_kappa);
+W_exp = zeros(N, N_kappa);    SINR_exp = zeros(1, N_kappa);      WNG_exp = zeros(1, N_kappa);
+W_sse = zeros(N, N_kappa);    SINR_sse = zeros(1, N_kappa);      WNG_sse = zeros(1, N_kappa);
+W_ase = zeros(N, N_kappa);    SINR_ase = zeros(1, N_kappa);      WNG_ase = zeros(1, N_kappa);
 
 for n = 1:N_kappa
-    [W_diag(:, n), ~, DI_diag(n), WNG_diag(n)]      = bf_mvdr(v, R, kappa_list(n), 'diag');
-    [W_thres(:, n), ~, DI_thres(n), WNG_thres(n)]   = bf_mvdr(v, R, kappa_list(n), 'thres');
-    [W_exp(:, n), ~, DI_exp(n), WNG_exp(n)]         = bf_mvdr(v, R, kappa_list(n), 'exp');
-    [W_sse(:, n), ~, DI_sse(n), WNG_sse(n)]         = bf_mvdr(v, R, kappa_list(n), 'sse');
-    [W_ase(:, n), ~, DI_ase(n), WNG_ase(n)]         = bf_mvdr(v, R, kappa_list(n), 'ase');
+    [W_diag(:, n), ~, SINR_diag(n), WNG_diag(n)]      = bf_mvdr(v, R, kappa_list(n), 'diag');
+    [W_thres(:, n), ~, SINR_thres(n), WNG_thres(n)]   = bf_mvdr(v, R, kappa_list(n), 'thres');
+    [W_exp(:, n), ~, SINR_exp(n), WNG_exp(n)]         = bf_mvdr(v, R, kappa_list(n), 'exp');
+    [W_sse(:, n), ~, SINR_sse(n), WNG_sse(n)]         = bf_mvdr(v, R, kappa_list(n), 'sse');
+    [W_ase(:, n), ~, SINR_ase(n), WNG_ase(n)]         = bf_mvdr(v, R, kappa_list(n), 'ase');
 end
 
 %Plotting
@@ -41,9 +41,9 @@ title('MVDR White-Noise Gain across Conditioning Methods', 'fontsize', fontsize 
 h_lg = legend('diag', 'thres', 'exp', 'sse', 'ase', 'location', 'best'); set(h_lg, 'fontsize', fontsize - 1);
 
 nexttile;
-semilogx(kappa_list, pow2db(DI_diag), kappa_list, pow2db(DI_thres), kappa_list, pow2db(DI_exp), kappa_list, pow2db(DI_sse), kappa_list, pow2db(DI_ase), 'linewidth', 1.5); 
+semilogx(kappa_list, pow2db(SINR_diag), kappa_list, pow2db(SINR_thres), kappa_list, pow2db(SINR_exp), kappa_list, pow2db(SINR_sse), kappa_list, pow2db(SINR_ase), 'linewidth', 1.5); 
 grid on; axis tight;
 xlabel('Max Condition Number \kappa Constraint', 'fontsize', fontsize);
 ylabel('Directivity Index (dB)', 'fontsize', fontsize);
-title('MVDR Directivity Index across Conditioning Methods', 'fontsize', fontsize + 1); set(gca, 'fontsize', fontsize - 1);
+title('MVDR Signal-to-interference-plus-noise across Conditioning Methods', 'fontsize', fontsize + 1); set(gca, 'fontsize', fontsize - 1);
 h_lg = legend('diag', 'thres', 'exp', 'sse', 'ase', 'location', 'best'); set(h_lg, 'fontsize', fontsize - 1);
