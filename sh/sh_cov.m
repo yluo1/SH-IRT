@@ -141,14 +141,23 @@ if strcmp(options.mode, 'CGC')
     end
         
 elseif strcmp(options.mode, 'SHT')
-    
-    N_C2 = min( options.SHT_maxsample, options.SHT_oversample * (2 * L_C + 1)^2 );
 
+    assert( ~xor(isempty(options.SHT_center), isempty(options.SHT_wavnum) ), 'options.SHT_center and options.SHT_wavnum must be both empty or both non-empty');
+
+    % Compute number of sampling directions
+    if isempty(options.SHT_wavnum) % Minimum twice max_odr due to SH product
+
+        N_C2 = min( options.SHT_maxsample, options.SHT_oversample * (2 * L_C + 1)^2 );
+
+    else % Translation requires higher max_odr expansion
+
+        L_T = floor(max(options.SHT_wavnum) * max(sqrt(sum(options.SHT_center.^2, 2)))  ); % Theoretical maximum expansion order
+        N_C2 = min( options.SHT_maxsample, options.SHT_oversample * (2 * L_C + L_T + 1)^2 );
+
+    end
     [theta, phi] = sh_grd_fib(N_C2);
 
     f_pdf = sh_dec(D_pdf, theta, phi, is_real) / N_C2 * (4 * pi); % [N_C2 x 1] or %[N_C2 x M]
-
-    assert( ~xor(isempty(options.SHT_center), isempty(options.SHT_wavnum) ), 'options.SHT_center and options.SHT_wavnum must be both empty or both non-empty');
 
     for m = 1:M % Iterate over functions
 
