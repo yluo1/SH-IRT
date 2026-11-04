@@ -169,7 +169,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 |[gp_cov.m](gp/gp_cov.m) | Covariance function selector |
 |[gp_t60_optimize.m](gp/gp_t60_optimize.m) | Hyper-parameter optimization of T60 model|
 |[gp_t60_sample.m](gp/gp_t60_sample.m) | T60 function sampling from GP prior or posterior|
-|[gp_plt.m](gp/gp_plt.m)| Plotting |
+|[gp_plt.m](gp/gp_plt.m)| Plotting prior mean and covariance functions|
 |[mu_pow.m](gp/mu_pow.m)| Power-law prior mean function |
 |[mu_lpf.m](gp/mu_lpf.m)| Low-pass prior mean function |
 |[mu_dwell.m](gp/mu_dwell.m)| Empirical dwelling (living/bedrooms) T60 fitted functions for varying volume sizes and furnished/unfurnished|
@@ -180,8 +180,10 @@ and is vectorized in the same format as the complex case. In such instances, the
 | File | Description |
 | :--- | :--- | 
 |[bf_mvdr.m](bf/bf_mvdr.m)| Minimum variance distortionless response (MVDR) with condition number constraints|
+|[bf_mvdr_sh.m](bf/bf_mvdr_sh.m)| MVDR integration with SH expansion arrays: Steering direction, spatial covariance density selection|
 |[bf_rmvb.m](bf/bf_rmvb.m)| Robust minimum variance beamformer (RMVB) with null space, white-noise gain, and channel gain constraints |
 |[bf_grq_ex.m](bf/bf_grq_ex.m)| Generalized Rayleigh quotient (GRQ) extrema with linear homogeneous constraints |
 |[bf_grq_proj.m](bf/bf_grq_proj.m)| Steering vector projection onto GRQ equality constraints |
 |[bf_grq_mscd.m](bf/bf_grq_mscd.m)| Maximum sensitivity constant directivity (MSCD): GRQ and linear constriants |
 |[bf_grq_mecd.m](bf/bf_grq_mecd.m)| Maximum efficiency constant directivity (MECD): GRQ and quadratic constriants |
+|[bf_plt_sh.m](bf/bf_plt_sh.m)| Plot planar projections of SH beam patterns,  and statistics (electrical gain, directivity index)|
