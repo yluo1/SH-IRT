@@ -168,11 +168,11 @@ elseif strcmp(mode, 'ase') % Minimize absolute spectral error in eigenvalues
     for n = 1:N
         A_n = zeros(1,2*N); A_n(n) = -1; A_n(N+n) = -1;
         A = [A; A_n]; 
-        b = [b; -lambda(n)];
+        b = [b; -real(lambda(n))];
 
         A_n = zeros(1,2*N); A_n(n) = 1; A_n(N+n) = -1;
         A = [A; A_n]; 
-        b = [b; lambda(n)];
+        b = [b; real(lambda(n))];
     end
     % Non-negative eigenvalues and slack: lambda_kappa(n) >= 0, slack(n) >= 0
     lb = zeros(2 * N, 1);

@@ -159,15 +159,26 @@ elseif strcmp(options.mode, 'SHT')
 
     f_pdf = sh_dec(D_pdf, theta, phi, is_real) / N_C2 * (4 * pi); % [N_C2 x 1] or %[N_C2 x M]
 
+    % Decode expansions along uniform grid
+    if isempty(options.SHT_center)
+
+        f_C_full = reshape(sh_dec(reshape(C, [N_C, N * M]), theta, phi, is_real), [N_C2, N, M]); % [N_C2 x N x M] 
+
+    else
+
+        center_wavnum = zeros([N, M, 4]);
+        for n = 1:N
+            for m = 1:M
+                center_wavnum(n, m, :) = [options.SHT_center(n, :), options.SHT_wavnum(m)];
+            end
+        end
+        f_C_full = reshape(sh_dec(reshape(C, [N_C, N * M]), theta, phi, is_real, 'eval', reshape(center_wavnum, [N * M, 4] )), [N_C2, N, M]); % [N_C2 x N x M]            
+
+    end
+
     for m = 1:M % Iterate over functions
 
-        % Decode expansions along uniform grid
-        if isempty(options.SHT_center)
-            f_C = sh_dec(C(:, :, m), theta, phi, is_real); % [N_C2 x N] 
-        else
-            center_wavnum_m = [options.SHT_center, options.SHT_wavnum(m) * ones(N, 1)]; % [N x 4]
-            f_C = sh_dec(C(:, :, m), theta, phi, is_real, 'eval', center_wavnum_m); % [N_C2 x N]             
-        end
+        f_C = f_C_full(:, :, m);
 
         if size(f_pdf, 2) == 1 % Constant density over M functions
             f_C_pdf = bsxfun(@times, f_C, f_pdf); % [N_C2 x N] 
