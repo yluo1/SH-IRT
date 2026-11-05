@@ -83,7 +83,7 @@ function K = sh_cov(C, D_pdf, is_real, options)
 
 arguments
     C (:,:,:) double {coder.mustBeComplex} = complex(0);
-    D_pdf (:,:) double {coder.mustBeComplex} = complex(0);
+    D_pdf (:,:) double {coder.mustBeComplex} = sh_pdf_preset('FwdCenter', 'Uniform', 0);
     is_real (1,1) logical = false;
     
     options.mode (1,:) char {mustBeMember(options.mode, {'CGC', 'SHT'})} = 'SHT';

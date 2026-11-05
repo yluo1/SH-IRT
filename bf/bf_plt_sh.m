@@ -571,41 +571,75 @@ elseif strcmp(mode, 'frontal')
 elseif strcmp(mode, 'stats')
 
     % Compute electrical power
-    EP_dB = pow2db(sum(W .* conj(W), 1));
+    EP_dB = pow2db(sum(W .* conj(W), 1)); % Total electrical power
+    CP_dB = pow2db(W .* conj(W));         % Channel power [N x M]
 
     % Compute directivity index
-    R = sh_cov(C_arr, sh_nrm(sh_enc_uni(0), 'Sum'), is_real, 'SHT_center', options.center, 'SHT_wavnum', options.wavnum, ...
+    R = sh_cov(C_arr, sh_pdf_preset('FwdCenter', 'Uniform', 0), is_real, 'SHT_center', options.center, 'SHT_wavnum', options.wavnum, ...
         'SHT_oversample', 1, 'SHT_maxsample', 1024); % [N x N x M] Spatial covariance integrated over uniform density
 
     theta = options.stats_DI_theta_phi(1);
     phi = options.stats_DI_theta_phi(2);    
     V = reshape(sh_dec(reshape(C_arr, [N_C, N * M]), theta, phi, is_real, 'eval', center_wavnum), [N, M] ); % [N x M] steering vectors
     DI_dB = zeros([1, M]);
+    CDI_dB = zeros([N, M]);
     for m = 1:M
-        DI_dB(m) = pow2db( abs(W(:, m)' * V(:, m) )^2 / real( W(:,m)' * R(:,:,m) * W(:,m) ) );
+        DI_dB(m) = pow2db( abs(W(:,m)' * V(:,m) )^2 / real( W(:,m)' * R(:,:,m) * W(:,m) ) );
+        for n = 1:N
+            CDI_dB(n, m) = pow2db( abs(W(n,m)' * V(n,m) )^2 / real( W(n,m)' * R(n,n,m) * W(n,m) ) );
+        end
     end
 
     % Display
     h_fig = figure;
-    h_fig.Position = [options.fig_pos, options.fig_size/2];
-            
-    semilogx(freq, EP_dB, 'r-', freq, DI_dB, 'b-', 'linewidth', 2); 
-    legend_str = {'Electrical Power', 'Directivity Index'}; hold on;
-
+    h_fig.Position = [options.fig_pos, options.fig_size];
+    h_tile = tiledlayout(2,1);
+        
+    % Plot electrical power
+    nexttile;
+    semilogx(freq, EP_dB, 'r-', 'linewidth', 3); 
+    legend_str = {'Total'}; hold on;
+    for n = 1:N
+        semilogx(freq, CP_dB(n,:), '-', 'linewidth', 1.5); 
+        legend_str{end+1} = ['Ch. ', num2str(n)];
+    end
     grid on; axis tight;
     xlabel('Frequency (Hz)', 'fontsize', options.fontsize);
     ylabel('Magnitude (dB)', 'fontsize', options.fontsize);
-    
-    title_str = 'Beamformer Statistics';
-    if isempty(options.title_name_override)
-        title(title_str, 'fontsize', options.fontsize + 1);  
-    else
-        title(options.title_name_override, 'fontsize', options.fontsize + 1);
-    end
-    
-    h_lg = legend(legend_str, 'location', 'best');
+        
+    h_lg = legend(legend_str, 'location', 'best', 'NumColumns', 8,  'Orientation', 'horizontal');
     set(h_lg, 'fontsize', options.fontsize - 1);
     set(gca, 'fontsize', options.fontsize - 1);
+    title('Electrical Power', 'fontsize', options.fontsize + 1);
+
+    % Plot directivity index
+    nexttile;
+    semilogx(freq, DI_dB, 'b-', 'linewidth', 3); 
+    legend_str = {'Array'}; hold on;
+    for n = 1:N
+        semilogx(freq, CDI_dB(n,:), '-', 'linewidth', 1.5); 
+        legend_str{end+1} = ['Ch. ', num2str(n)];
+    end
+    grid on; axis tight;
+    xlabel('Frequency (Hz)', 'fontsize', options.fontsize);
+    ylabel('Magnitude (dB)', 'fontsize', options.fontsize);
+
+    h_lg = legend(legend_str, 'location', 'best', 'NumColumns', 8, 'Orientation', 'horizontal');
+    set(h_lg, 'fontsize', options.fontsize - 1);
+    set(gca, 'fontsize', options.fontsize - 1);
+    title('Directivity Index', 'fontsize', options.fontsize + 1);
+
+    % Global title
+    title_str = 'Beamformer Statistics: ';
+    if ~isempty(options.title_name)
+        title_str = [title_str, ' ', options.title_name];
+    end
+    if isempty(options.title_name_override)
+        title(h_tile, title_str, 'fontsize', options.fontsize + 1);  
+    else
+        title(h_tile, options.title_name_override, 'fontsize', options.fontsize + 2);
+    end
+            
 
 else
     error('Unknown mode');

@@ -5,6 +5,7 @@ function [W, fval, SINR, WNG, h_figs] = bf_mvdr_sh(C_arr, is_real, freq, theta, 
 % mode = 'uniform'      Compute R over uniform density
 % mode = 'density'      Compute R over density options.R_pdf
 % mode = 'direction'    Compute R over steering-directions options.R_theta_phi 
+% mode = 'custom'       Specify R in options.R_custom
 
 % Author: Yuancheng Luo, 2026
 
@@ -19,7 +20,7 @@ function [W, fval, SINR, WNG, h_figs] = bf_mvdr_sh(C_arr, is_real, freq, theta, 
 %phi:       Steering azimuth (0, 2 * pi)
 
 %kappa:     Scalar, condition number constraint >= 1, inf = unconstrained
-%mode:      String, spatial covariance compute method {'uniform', 'density', 'direction'}
+%mode:      String, spatial covariance compute method {'uniform', 'density', 'direction', 'custom'}
 
 %options:               struct
 %options.mode_kappa:    String, condition number constraint method {'diag', 'thres', 'trunc', 'sse', 'ase'} (see bf_mvdr.m)
@@ -27,6 +28,7 @@ function [W, fval, SINR, WNG, h_figs] = bf_mvdr_sh(C_arr, is_real, freq, theta, 
 %options.R_pdf:         [(L_R + 1)^2 X 1] or [(L_R + 1)^2 X M]  SH density expansion of L_R max-order over M frequencies.
 %                                                               If second dimension is 1, duplicate expansions over M frequencies
 %options.R_theta_phi:   [N_theta_phi x 2]  Steering directions (theta, phi) to compute R for mode = 'direction'
+%options.R_custom:      [N x N x M] Custom covariance matrix over frequency for mode = 'custom'
 
 %options.center:    [] or [N x 3]   Center-of-expansion coordinates xyz per channel 
 %options.wavnum:    [] or [1 x M]   Angular wavenumber kappa (e.g. kappa = 2 * pi * hz / c for propagation velocity c)
@@ -103,12 +105,13 @@ arguments
     phi (1,1) double = 0;
 
     kappa (1,1) double {mustBePositive} = inf;
-    mode (1,:) char {mustBeMember(mode, {'uniform', 'density', 'direction'} )} = 'uniform';
+    mode (1,:) char {mustBeMember(mode, {'uniform', 'density', 'direction', 'custom'} )} = 'uniform';
 
     options.mode_kappa (1,:) char {mustBeMember(options.mode_kappa, {'diag', 'thres', 'exp', 'sse', 'ase'} )} = 'diag';
 
-    options.R_pdf (:,:) double {coder.mustBeComplex} = sh_enc_uni(0);
+    options.R_pdf (:,:) double {coder.mustBeComplex} = sh_pdf_preset('FwdCenter', 'Uniform', 0);
     options.R_theta_phi (:,2) double = [];
+    options.R_custom (:,:,:) double  {coder.mustBeComplex} = [];
 
     options.center (:,3) double = [];
     options.wavnum (1,:) double = [];
@@ -143,16 +146,19 @@ end
 % Compute spatial covariance matrix
 if strcmp(mode, 'uniform')
 
-    R = sh_cov(C_arr, sh_nrm(sh_enc_uni(0), 'Sum'), is_real, 'SHT_center', options.center, 'SHT_wavnum', options.wavnum, ...
+    R = sh_cov(C_arr, sh_pdf_preset('FwdCenter', 'Uniform', 0), is_real, 'SHT_center', options.center, 'SHT_wavnum', options.wavnum, ...
         'SHT_oversample', 1, 'SHT_maxsample', 4096); % [N x N x M] Spatial covariance integrated over uniform density
 
 elseif strcmp(mode, 'density')
+
+    assert(~isempty(options.R_pdf), 'options.R_pdf must be non-empty');
 
     R = sh_cov(C_arr, options.R_pdf, is_real, 'SHT_center', options.center, 'SHT_wavnum', options.wavnum, ...
         'SHT_oversample', 1, 'SHT_maxsample', 4096); % [N x N x M] Spatial covariance integrated over density function R_pdf
 
 elseif strcmp(mode, 'direction')
 
+    assert(~isempty(options.R_theta_phi), 'options.R_theta_phi must be non-empty');
     R = complex(zeros([N, N, M]));  % [N x N x M] Spatial covariance along directions options.R_theta_phi
 
     for m = 1:M
@@ -166,6 +172,11 @@ elseif strcmp(mode, 'direction')
 
         R(:,:,m) = V*V'; 
     end
+elseif strcmp(mode, 'custom')
+
+    assert(isequal(size(options.R_custom), [N, N, M]), 'options.R_custom size mismatch [N x N x M]');
+
+    R = options.R_custom;
 
 else
     error('Unknown mode');
@@ -221,7 +232,8 @@ if options.enable_disp && coder.target("MATLAB")
     end
 
     if options.disp_stats
-        h_fig_stats = bf_plt_sh(C_arr, false, W, freq, 'stats', varargin_bf_plt_sh{:});
+        title_name = ['mode = ', mode, ', \kappa = (', options.mode_kappa, ', ', num2str(kappa), '), direction (\theta = ', num2str(rad2deg(theta)), ', \phi = ', num2str(rad2deg(phi)), ')'];
+        h_fig_stats = bf_plt_sh(C_arr, false, W, freq, 'stats', varargin_bf_plt_sh{:}, 'title_name', title_name);
         h_figs{end+1} = h_fig_stats;
     end
     
