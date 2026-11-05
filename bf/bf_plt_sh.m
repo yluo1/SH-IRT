@@ -595,23 +595,6 @@ elseif strcmp(mode, 'stats')
     h_fig.Position = [options.fig_pos, options.fig_size];
     h_tile = tiledlayout(2,1);
         
-    % Plot electrical power
-    nexttile;
-    semilogx(freq, EP_dB, 'r-', 'linewidth', 3); 
-    legend_str = {'Total'}; hold on;
-    for n = 1:N
-        semilogx(freq, CP_dB(n,:), '-', 'linewidth', 1.5); 
-        legend_str{end+1} = ['Ch. ', num2str(n)];
-    end
-    grid on; axis tight;
-    xlabel('Frequency (Hz)', 'fontsize', options.fontsize);
-    ylabel('Magnitude (dB)', 'fontsize', options.fontsize);
-        
-    h_lg = legend(legend_str, 'location', 'best', 'NumColumns', 8,  'Orientation', 'horizontal');
-    set(h_lg, 'fontsize', options.fontsize - 1);
-    set(gca, 'fontsize', options.fontsize - 1);
-    title('Electrical Power', 'fontsize', options.fontsize + 1);
-
     % Plot directivity index
     nexttile;
     semilogx(freq, DI_dB, 'b-', 'linewidth', 3); 
@@ -624,10 +607,29 @@ elseif strcmp(mode, 'stats')
     xlabel('Frequency (Hz)', 'fontsize', options.fontsize);
     ylabel('Magnitude (dB)', 'fontsize', options.fontsize);
 
-    h_lg = legend(legend_str, 'location', 'best', 'NumColumns', 8, 'Orientation', 'horizontal');
+    h_lg = legend(legend_str, 'location', 'best', 'NumColumns', 6, 'Orientation', 'horizontal');
     set(h_lg, 'fontsize', options.fontsize - 1);
     set(gca, 'fontsize', options.fontsize - 1);
     title('Directivity Index', 'fontsize', options.fontsize + 1);
+
+    % Plot electrical power
+    nexttile;
+    semilogx(freq, EP_dB, 'r-', 'linewidth', 3); 
+    legend_str = {'Total'}; hold on;
+    for n = 1:N
+        semilogx(freq, CP_dB(n,:), '-', 'linewidth', 1.5); 
+        legend_str{end+1} = ['Ch. ', num2str(n)];
+    end
+    grid on; axis tight;
+    xlabel('Frequency (Hz)', 'fontsize', options.fontsize);
+    ylabel('Magnitude (dB)', 'fontsize', options.fontsize);
+        
+    h_lg = legend(legend_str, 'location', 'best', 'NumColumns', 6,  'Orientation', 'horizontal');
+    set(h_lg, 'fontsize', options.fontsize - 1);
+    set(gca, 'fontsize', options.fontsize - 1);
+    title('Electrical Power', 'fontsize', options.fontsize + 1);
+
+
 
     % Global title
     title_str = 'Beamformer Statistics: ';

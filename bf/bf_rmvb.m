@@ -13,7 +13,7 @@ function [W, fval, exitflag] = bf_rmvb(v, R, P, options)
 % White-noise gain:     W'*W <= WNG
 % Channel gains:        |W(n)|^2 <= CG(n)
 
-% Author: Yuancheng Luo, 2026
+% Author: Yuancheng Luo, 2026 (added optional constriants)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input

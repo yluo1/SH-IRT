@@ -23,7 +23,7 @@ function [W, fval, SINR, WNG, h_figs] = bf_mvdr_sh(C_arr, is_real, freq, theta, 
 %mode:      String, spatial covariance compute method {'uniform', 'density', 'direction', 'custom'}
 
 %options:               struct
-%options.mode_kappa:    String, condition number constraint method {'diag', 'thres', 'trunc', 'sse', 'ase'} (see bf_mvdr.m)
+%options.mode_kappa:    String, condition number constraint method {'diag', 'thres', 'exp', 'sse', 'ase'} (see bf_mvdr.m)
 
 %options.R_pdf:         [(L_R + 1)^2 X 1] or [(L_R + 1)^2 X M]  SH density expansion of L_R max-order over M frequencies.
 %                                                               If second dimension is 1, duplicate expansions over M frequencies

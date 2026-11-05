@@ -1,5 +1,5 @@
 function [W, fval, SINR, WNG] = bf_mvdr(v, R, kappa, mode)
-% Minimum variance distortionless response beamformer design with condition number constraints
+% Minimum variance distortionless response (MVDR) beamformer design with condition number constraints
 % min_{W, sigma} W'*R(kappa)*W   s.t.    W'*v = 1,   
 
 % mode = 'diag'   where R is diagonal loaded R(kappa) = R + sigma * I  s.t. cond(R + sigma * I) <= kappa 
@@ -27,7 +27,10 @@ function [W, fval, SINR, WNG] = bf_mvdr(v, R, kappa, mode)
 % Minimize absolute difference of eigenvalues lambda_kappa from original eigenvalues lambda s.t. 
 % monotonicity and condition number contraint via linear programming with slack variables
 
-% Author: Yuancheng Luo, 2026
+% Reference:
+% J. Capon, "High-resolution frequency-wavenumber spectrum analysis," in Proceedings of the IEEE, vol. 57, no. 8, pp. 1408-1418, Aug. 1969, doi: 10.1109/PROC.1969.7278.
+
+% Author: Yuancheng Luo, 2026 (added condition number constraints)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
