@@ -12,14 +12,16 @@ function [C, center, h_figs] = sh_enc_arr(max_odr, mode, N, radius, delay_dist, 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
 %max_odr:       Max SH order
-%mode:          String, array element type and topology {'uni_line', 'uni_circ', 'uni_sphere', 'uni_custom', 'spis_circ'}
+%mode:          String, array element type and topology {'uni_line', 'uni_circ', 'uni_sphere', 'uni_custom', 'spis_circ', 'spis_sphere', 'spis_custom'}
 %                   'uni_line':     Uniform (omni) directivity, line array on x=z=0 line
 %                                   equal spaced with first element on -y axis
 %                   'uni_circ':     Uniform (omni) directivity, circular topology on z=0 plane,
 %                                   equal angle element spacing with first element on +x axis
 %                   'uni_sphere':   Uniform (omni) directivity, Fibonacci sphere points
-%                   'uni_custom':   Uniform (omni) directivity, use options.custom_coords, ignore radius
+%                   'uni_custom':   Uniform (omni) directivity, use options.custom_cartesian, ignore radius
 %                   'spis_circ':    Piston on spherical baffle directivity, circular topology on z=0 plane
+%                   'spis_sphere':  Piston on spherical baffle directivity, Fibonacci sphere points
+%                   'spis_custom':  Piston on spherical baffle directivity, use options.custom_theta_phi
 
 %N:             Number of array elements
 %radius:        Array radius in meters
@@ -27,7 +29,10 @@ function [C, center, h_figs] = sh_enc_arr(max_odr, mode, N, radius, delay_dist, 
 %freq:          [1 x M] Frequency in Hz
 
 %options.c:             Velocity of propagation meters / second
-%options.custom_coords: [3 x N] custom coordinates for mode = 'uni_custom'
+
+%options.custom_cartesian:  [3 x N] custom cartesian coordinates for mode = 'uni_custom'
+%options.custom_theta_phi:  [2 x N] custom spherical coordinates for mode = 'spis_custom'
+
 %options.noncentered:   Logical, if true, use non-centered expansion center coordinates
 
 %options.spis_arc_len:  Spherical piston's arc length in meters for mode = 'spis_circ'
@@ -84,30 +89,34 @@ function [C, center, h_figs] = sh_enc_arr(max_odr, mode, N, radius, delay_dist, 
 % freq = linspace(0, Fs, M + 1); freq = freq(1:end-1);
 % spis_arc_len = 0.0035; % 3.5 mm
 % 
-% C = sh_enc_arr(max_odr, mode, N, radius, delay_dist, freq, 'spis_arc_len', spis_arc_len, 'enable_disp', true, 'disp_dB_lim', [-6, 6]);
+% C = sh_enc_arr(max_odr, mode, N, radius, delay_dist, freq, 'spis_arc_len', spis_arc_len, 'enable_disp', true, 'disp_dB_lim', [-24, 6]);
 % 
 % t = 0:(1/Fs):((M-1)/Fs);
 % for n = 1:N
 %     sh_plt(C(:, n, :), 'cardinal', false, 't', t, 'hz', freq, 'title_name', ['Trans. ', num2str(n)]);
 % end
 
-% %Compare to non-center expansions for larger spherical baffle
+% %Compare to non-center expansions for larger spherical baffle and piston size
 % radius = 0.1;
-% max_odr = 50;
+% max_odr = 40;
+% spis_arc_len = 0.035; % 3.5 cm
 % freq = logspace(log10(20), log10(Fs), M + 1); freq = freq(1:end-1);
-% C = sh_enc_arr(max_odr, mode, N, radius, delay_dist, freq, 'spis_arc_len', spis_arc_len, 'enable_disp', true, 'disp_dB_lim', [-12, 12]);
-% [C_noncenter, center] = sh_enc_arr(max_odr, mode, N, radius, delay_dist, freq, 'noncentered', true, 'spis_arc_len', spis_arc_len, 'enable_disp', true, 'disp_dB_lim', [-12, 12]);
+% C = sh_enc_arr(max_odr, mode, N, radius, delay_dist, freq, 'spis_arc_len', spis_arc_len, 'enable_disp', true, 'disp_dB_lim', [-24, 12]);
+% [C_noncenter, center] = sh_enc_arr(max_odr, mode, N, radius, delay_dist, freq, 'noncentered', true, 'spis_arc_len', spis_arc_len, 'enable_disp', true, 'disp_dB_lim', [-24, 12]);
 
 arguments
     max_odr (1,1) double {mustBeNonnegative, mustBeInteger} = 1;
-    mode (1,:) char {mustBeMember(mode, {'uni_line', 'uni_circ', 'uni_sphere', 'uni_custom', 'spis_circ'} )} = 'uni_circ'
+    mode (1,:) char {mustBeMember(mode, {'uni_line', 'uni_circ', 'uni_sphere', 'uni_custom', 'spis_circ', 'spis_sphere', 'spis_custom'} )} = 'uni_circ'
     N (1,1) double {mustBePositive, mustBeInteger} = 3;
     radius (1,1) double {mustBeNonnegative} = 0.1;
     delay_dist (1,1) double {mustBeNonnegative} = 1;
     freq (1,:) double {mustBeNonnegative} = 0;
     
     options.c (1,1) double {mustBePositive} = 343;
-    options.custom_coords (3,:) double = [];
+
+    options.custom_cartesian (3,:) double = [];
+    options.custom_theta_phi (2,:) double = [];
+
     options.noncentered (1,1) logical = false;
 
     options.spis_arc_len (1,1) double {mustBePositive} = 0.0035;
@@ -145,8 +154,8 @@ if any(strcmp(mode, {'uni_line', 'uni_circ', 'uni_sphere', 'uni_custom'})) % Uni
 
     elseif strcmp(mode, 'uni_custom')
 
-        assert(size(options.custom_coords, 2) == N, 'options.custom_coords size mismatch N');
-        V = options.custom_coords;
+        assert(size(options.custom_cartesian, 2) == N, 'options.custom_cartesian size mismatch N');
+        V = options.custom_cartesian;
 
     else
         error('Unknown mode');
@@ -174,7 +183,7 @@ if any(strcmp(mode, {'uni_line', 'uni_circ', 'uni_sphere', 'uni_custom'})) % Uni
     end
 
 
-elseif any( strcmp(mode, {'spis_circ'}) ) % Piston on spherical baffle directivity
+elseif any( strcmp(mode, {'spis_circ', 'spis_sphere', 'spis_custom'}) ) % Piston on spherical baffle directivity
    
     theta_breadth = options.spis_arc_len / radius;
     assert(theta_breadth <= 2 * pi, 'arc_len exceeds circumference of spherical baffle');
@@ -190,6 +199,23 @@ elseif any( strcmp(mode, {'spis_circ'}) ) % Piston on spherical baffle directivi
 
         % Equally distribute coordinates on z=0 plane circle
         [V(1,:), V(2,:), V(3,:)] = sph2cart( phi_list, pi/2 - theta_list, radius_list );        
+
+    elseif strcmp(mode, 'spis_sphere')
+        
+        % Fibonacci spherical grid
+        [theta_list, phi_list, V_transposed] = sh_grd_fib(N);
+        theta_list = theta_list';
+        phi_list = phi_list';
+        V = radius * V_transposed';
+
+    elseif strcmp(mode, 'spis_custom')
+
+        assert(size(options.custom_theta_phi, 2) == N, 'options.custom_theta_phi size mismatch N');
+        
+        theta_list = options.custom_theta_phi(1,:);
+        phi_list = options.custom_theta_phi(2,:);
+        
+        [V(1,:), V(2,:), V(3,:)] = sph2cart( phi_list, pi/2 - theta_list, radius * ones(1,N) );  
 
     else
         error('Unknown mode')
@@ -232,6 +258,16 @@ if options.enable_disp && coder.target("MATLAB")
     constantplane("y", 0, 'FaceColor', 'r', 'FaceAlpha', 0.2);
     constantplane("x", 0, 'FaceColor', 'b', 'FaceAlpha', 0.2);
 
+    if contains(mode, 'spis_')
+        [sx, sy, sz] = sphere(200);
+        surf(sx * radius, sy * radius, sz * radius, 'FaceAlpha', 0.2, 'FaceColor', 'interp', 'EdgeColor', 'none'); 
+        for n = 1:N
+            V_unit_n = V(:,n)' / radius;
+            radius_n = sin(theta_breadth) * radius;
+            plot_great_circle(V_unit_n, radius, radius_n); hold on;
+        end
+    end
+
     xlabel('X-axis (meters)', 'fontsize', fontsize);
     ylabel('Y-axis (meters)', 'fontsize', fontsize);
     zlabel('Z-axis (meters)', 'fontsize', fontsize);
@@ -263,3 +299,29 @@ if options.enable_disp && coder.target("MATLAB")
     end    
 
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function plot_great_circle(v, r_sphere, r_circle)
+% Plot great circle in direction of unit-vector v, of radius r_ricle in sphere of radius r_sphere
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Input
+% v:            [1 x 3] Unit-vector direction of great circle
+% r_sphere:     Radius of sphere
+% r_circle:     Radius of great circle
+
+arguments
+    v (1,3) double = [1 0 0];
+    r_sphere (1,1) double {mustBeNonnegative} = 1;
+    r_circle (1,1) double {mustBeNonnegative} = 0.1;
+end
+
+assert(r_circle <= r_sphere, 'r_circle must be <= r_sphere');
+
+theta = linspace(0, 2 * pi, 100);
+U = null(v);  % Unit-vectors orthogonal to v
+d = sqrt(r_sphere^2 - r_circle^2);
+coords = bsxfun(@plus, r_circle * (U(:,1) * cos(theta) + U(:,2) * sin(theta)), d * v(:));
+
+plot3( coords(1,:), coords(2,:), coords(3,:), 'r-', 'linewidth', 1.25 );
+
