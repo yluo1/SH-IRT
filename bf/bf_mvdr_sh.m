@@ -41,6 +41,7 @@ function [W, fval, SINR, WNG, h_figs] = bf_mvdr_sh(C_arr, is_real, freq, theta, 
 %options.disp_fplane:   Logical, if true, display frontal plane beam pattern
 %options.disp_stats:    Logical, if true, display stats
 %options.disp_dB_lim:   [1 x 2]  Display dB limits [min, max]
+%options.disp_freq:     [1 x M_f]   Display beampatterns at select frequencies if non-empty
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
@@ -124,6 +125,7 @@ arguments
     options.disp_fplane (1,1) logical = false;
     options.disp_stats (1,1) logical = true;
     options.disp_dB_lim (1,2) double = [-inf, inf];
+    options.disp_freq (1,:) double {mustBeNonnegative} = [];
 
 end
 
@@ -214,7 +216,8 @@ end
 h_figs = [];
 if options.enable_disp && coder.target("MATLAB")
 
-    varargin_bf_plt_sh = {'center', options.center, 'wavnum', options.wavnum, 'dB_lim', options.disp_dB_lim, 'title_name', 'MVDR'};
+    varargin_bf_plt_sh = {'center', options.center, 'wavnum', options.wavnum, 'dB_lim', options.disp_dB_lim, 'title_name', 'MVDR', ...
+        'disp_freq', options.disp_freq};
 
     if options.disp_hplane
         h_fig_bf = bf_plt_sh(C_arr, false, W, freq, 'horizontal', varargin_bf_plt_sh{:});

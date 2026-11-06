@@ -1,6 +1,8 @@
 function h_fig = bf_plt_sh(C_arr, is_real, W, freq, mode, options)
 % Plot spherical harmonic beamformer's beampattern response and statistics
 
+% Detailed beampatterns at select frequencies can be specified in options.disp_freq
+
 % Author: Yuancheng Luo, 2026
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -13,8 +15,8 @@ function h_fig = bf_plt_sh(C_arr, is_real, W, freq, mode, options)
 
 %mode:      String, display modes {'horizontal', 'median', 'frontal', 'stats'}
 %               'horizontal':   Beampattern in z = 0 plane
-%               'median':       Beampattern in  y = 0 plane
-%               'frontal:       Beampattern in  x = 0 plane
+%               'median':       Beampattern in y = 0 plane
+%               'frontal:       Beampattern in x = 0 plane
 %               'stats:         Statistics / frequency (white-noise gain, directivity index)
 
 %options:               struct
@@ -34,6 +36,8 @@ function h_fig = bf_plt_sh(C_arr, is_real, W, freq, mode, options)
 %options.disp_ylabel:   Logical, display yaxis label if true
 %options.disp_xticks:   Logical, display xaxis ticks if true
 %options.disp_yticks:   Logical, display yaxis ticks if true
+
+%options.disp_freq:     [1 x M_f]   Display beampatterns at select frequencies if non-empty
 
 %options.dB_lim:        [1 x 2] Magnitude dB range [min, max]
 %options.deg_lim:       [1 x 2] Phase degree range [min, max]
@@ -102,6 +106,8 @@ arguments
     options.disp_xticks (1,1) logical = true;
     options.disp_yticks (1,1) logical = true;
     
+    options.disp_freq (1,:) double {mustBeNonnegative} = [];
+
     options.dB_lim (1,2) double  = [-inf inf];
     options.deg_lim (1,2) double = [-180 180];
 
@@ -129,11 +135,38 @@ else
     center_wavnum = reshape(center_wavnum, [N * M, 4]);
 end
 
-if strcmp(mode, 'horizontal')
+if any(strcmp(mode, {'horizontal', 'median', 'frontal'}))
 
-    N_dir = options.resolution(2);
-    phi = linspace(-pi, pi, N_dir)';
-    theta = pi/2 * ones(N_dir, 1);
+    if strcmp(mode, 'horizontal')
+    
+        N_dir = options.resolution(2);
+        phi = linspace(-pi, pi, N_dir)';
+        theta = pi/2 * ones(N_dir, 1);
+        planar_label = 'Azimuth (Degrees)';
+        dir_deg = rad2deg(phi);
+
+    elseif strcmp(mode, 'median')
+
+        N_dir = options.resolution(1);
+        phi = zeros(N_dir, 1);
+        theta = pi/2 + linspace(-pi, pi, N_dir)';
+        planar_label = 'Elevation (Degrees)';
+        dir_deg = rad2deg(pi/2 - theta);
+
+    elseif strcmp(mode, 'frontal')
+
+        N_dir = options.resolution(1);
+        phi = pi/2 * ones(N_dir, 1);
+        theta = pi/2 + linspace(-pi, pi, N_dir)';
+        % First dir is along -y, then increases in elevation
+        planar_label = 'Elevation (Degrees)';
+        dir_deg = rad2deg(pi/2 - theta);
+
+    else
+
+        error('Unknown mode');
+
+    end
 
     % Compute array responses
     f_arr = reshape(sh_dec(reshape(C_arr, [N_C, N * M]), theta, phi, is_real, 'eval', center_wavnum), [N_dir, N, M] ); % [N_dir x N x M]
@@ -158,331 +191,85 @@ if strcmp(mode, 'horizontal')
         nexttile;
 
         assert(numel(freq) == M, 'freq size mismatch C');
-        h_pc = pcolor(freq, rad2deg(phi), mag2db(abs(f)) );
-        xscale("log");
 
-       % Plot grid
-        freq_lines = [10:10:90, 100:100:900, 1000:1000:9000, 10000:10000:20000];
-        freq_lines(freq_lines < min(freq)) = [];
-        freq_lines(freq_lines > max(freq)) = [];
-        for i = 1:numel(freq_lines)
-            xline(freq_lines(i), '--');
-        end
-        yline(0, 'r--'); 
-        yline(90, 'm--');
-        yline(-90, 'm--');
-        yline(45, 'g--');
-        yline(-45, 'g--');
-
-        set(h_pc, 'EdgeColor', 'none');
-        set(h_pc, 'FaceColor', options.FaceColor);
-
-        if options.disp_xlabel
-            xlabel('Frequency (Hz)', 'fontsize', options.fontsize);            
-        end
-        if ~options.disp_xticks
-            set(gca,'XTick', []);
-        end
-        if options.disp_ylabel
-            ylabel('Azimuth (Degrees)', 'fontsize', options.fontsize);
-            %ylabel('Azimuth', 'fontsize', options.fontsize);
-        end
-        if ~options.disp_yticks
-            set(gca,'YTick', []);
-        end
-
-        title_str = 'Magnitude Response';
-        if ~isempty(options.title_name)
-            title_str = [options.title_name, ' ', title_str];
-        end
-        if options.disp_title
-            if isempty(options.title_name_override)
-                title(title_str, 'fontsize', options.fontsize + 1);  
-            else
-                title(options.title_name_override, 'fontsize', options.fontsize + 1);
-            end  
-        end
-
-        set(gca, 'fontsize', options.fontsize - 1);
-
-        clim([options.dB_lim(1), options.dB_lim(2)]);
-        if options.disp_cb
-            h_cb = colorbar;
-            ylabel(h_cb, 'dB', 'fontsize', options.fontsize);
-        end
-        %xscale log;
-
-    end
-
-    if options.disp_phase % Plot phase response
-        nexttile;
-
-        assert(numel(freq) == M, 'freq size mismatch C');
-        h_pc = pcolor(freq, rad2deg(phi), rad2deg(angle(f)) ); hold on;
-        xscale("log");
-
-        % Plot grid
-        freq_lines = [10:10:90, 100:100:900, 1000:1000:9000, 10000:10000:20000];
-        freq_lines(freq_lines < min(freq)) = [];
-        freq_lines(freq_lines > max(freq)) = [];
-        for i = 1:numel(freq_lines)
-            xline(freq_lines(i), '--');
-        end
-        yline(0, 'r--'); 
-        yline(90, 'm--');
-        yline(-90, 'm--');
-        yline(45, 'g--');
-        yline(-45, 'g--');
-
-        set(h_pc, 'EdgeColor', 'none');
-        set(h_pc, 'FaceColor', options.FaceColor);
-
-        if options.disp_xlabel
-            xlabel('Frequency (Hz)', 'fontsize', options.fontsize);            
-        end
-        if ~options.disp_xticks
-            set(gca,'XTick', []);
-        end
-        if options.disp_ylabel
-            ylabel('Azimuth (Degrees)', 'fontsize', options.fontsize);
-        end
-        if ~options.disp_yticks
-            set(gca,'YTick', []);
-        end
-
-        title_str = 'Phase Response';
-        if ~isempty(options.title_name)
-            title_str = [options.title_name, ' ', title_str];
-        end
-        if options.disp_title            
-            if isempty(options.title_name_override)
-                title(title_str, 'fontsize', options.fontsize + 1);  
-            else
-                title(options.title_name_override, 'fontsize', options.fontsize + 1);
-            end
-        end
-
-        set(gca, 'fontsize', options.fontsize - 1);
-
-        clim([options.deg_lim(1), options.deg_lim(2)]);
-        if options.disp_cb
-            h_cb = colorbar;
-            ylabel(h_cb, 'Degrees', 'fontsize', options.fontsize);
-        end
-        colormap(gca, hsv);
-    end
-
-    % Set global title
-    title(h_tile, ['Beam Pattern Responses (', mode, ' plane)'], 'fontsize', options.fontsize + 2);
-
-elseif strcmp(mode, 'median')
-
-    N_dir = options.resolution(1);
-    phi = zeros(N_dir, 1);
-    theta = pi/2 + linspace(-pi, pi, N_dir)';
-    
-    % Compute array responses
-    f_arr = reshape(sh_dec(reshape(C_arr, [N_C, N * M]), theta, phi, is_real, 'eval', center_wavnum), [N_dir, N, M] ); % [N_dir x N x M]
-    
-    % Compute beampattern responses
-    f = complex(zeros([N_dir, M]));
-    for m = 1:M
-        f(:, m) = f_arr(:, :, m) * conj(W(:, m)); % [N_dir x 1]        
-    end
-    
-    h_fig = figure;
-    h_fig.Position = [options.fig_pos, options.fig_size];
-    if options.disp_mag && options.disp_phase
-        h_tile = tiledlayout(2,1);
-    elseif options.disp_mag || options.disp_phase
-        h_tile = tiledlayout(1,1);
-    else
-        error('options.disp_mag or options.disp_phase must be true');
-    end
-
-    if options.disp_mag % Plot magnitude response
-        nexttile;
-    
-        assert(numel(freq) == M, 'freq size mismatch C');
-        h_pc = pcolor(freq, rad2deg(pi/2 - theta), mag2db(abs(f)) );
-        xscale("log");
-    
-       % Plot grid
-        freq_lines = [10:10:90, 100:100:900, 1000:1000:9000, 10000:10000:20000];
-        freq_lines(freq_lines < min(freq)) = [];
-        freq_lines(freq_lines > max(freq)) = [];
-        for i = 1:numel(freq_lines)
-            xline(freq_lines(i), '--');
-        end
-        yline(0, 'r--'); 
-        yline(90, 'm--');
-        yline(-90, 'm--');
-        yline(45, 'g--');
-        yline(-45, 'g--');
-    
-        set(h_pc, 'EdgeColor', 'none');
-        set(h_pc, 'FaceColor', options.FaceColor);
-    
-        if options.disp_xlabel
-            xlabel('Frequency (Hz)', 'fontsize', options.fontsize);            
-        end
-        if ~options.disp_xticks
-            set(gca,'XTick', []);
-        end
-        if options.disp_ylabel
-            ylabel('Elevation (Degrees)', 'fontsize', options.fontsize);
-        end
-        if ~options.disp_yticks
-            set(gca,'YTick', []);
-        end
-    
-        title_str = 'Magnitude Response';
-        if ~isempty(options.title_name)
-            title_str = [options.title_name, ' ', title_str];
-        end
-        if options.disp_title
-            if isempty(options.title_name_override)
-                title(title_str, 'fontsize', options.fontsize + 1);  
-            else
-                title(options.title_name_override, 'fontsize', options.fontsize + 1);
-            end  
-        end
-    
-        set(gca, 'fontsize', options.fontsize - 1);
-    
-        clim([options.dB_lim(1), options.dB_lim(2)]);
-        if options.disp_cb
-            h_cb = colorbar;
-            ylabel(h_cb, 'dB', 'fontsize', options.fontsize);
-        end
-        %xscale log;
-    
-    end
-
-    if options.disp_phase % Plot phase response
-        nexttile;
-    
-        assert(numel(freq) == M, 'freq size mismatch C');
-        h_pc = pcolor(freq, rad2deg(pi/2 - theta), rad2deg(angle(f)) ); hold on;
-        xscale("log");
-    
-        % Plot grid
-        freq_lines = [10:10:90, 100:100:900, 1000:1000:9000, 10000:10000:20000];
-        freq_lines(freq_lines < min(freq)) = [];
-        freq_lines(freq_lines > max(freq)) = [];
-        for i = 1:numel(freq_lines)
-            xline(freq_lines(i), '--');
-        end
-        yline(0, 'r--'); 
-        yline(90, 'm--');
-        yline(-90, 'm--');
-        yline(45, 'g--');
-        yline(-45, 'g--');
-    
-        set(h_pc, 'EdgeColor', 'none');
-        set(h_pc, 'FaceColor', options.FaceColor);
-    
-        if options.disp_xlabel
-            xlabel('Frequency (Hz)', 'fontsize', options.fontsize);            
-        end
-        if ~options.disp_xticks
-            set(gca,'XTick', []);
-        end
-        if options.disp_ylabel
-            ylabel('Elevation (Degrees)', 'fontsize', options.fontsize);
-        end
-        if ~options.disp_yticks
-            set(gca,'YTick', []);
-        end
-    
-        title_str = 'Phase Response';
-        if ~isempty(options.title_name)
-            title_str = [options.title_name, ' ', title_str];
-        end
-        if options.disp_title            
-            if isempty(options.title_name_override)
-                title(title_str, 'fontsize', options.fontsize + 1);  
-            else
-                title(options.title_name_override, 'fontsize', options.fontsize + 1);
-            end
-        end
-    
-        set(gca, 'fontsize', options.fontsize - 1);
-    
-        clim([options.deg_lim(1), options.deg_lim(2)]);
-        if options.disp_cb
-            h_cb = colorbar;
-            ylabel(h_cb, 'Degrees', 'fontsize', options.fontsize);
-        end
-        colormap(gca, hsv);
+        if isempty(options.disp_freq) % Display all frequencies
         
-    end
+            h_pc = pcolor(freq, dir_deg, mag2db(abs(f)) );
+            xscale("log");
+    
+           % Plot grid
+            freq_lines = [10:10:90, 100:100:900, 1000:1000:9000, 10000:10000:20000];
+            freq_lines(freq_lines < min(freq)) = [];
+            freq_lines(freq_lines > max(freq)) = [];
+            for i = 1:numel(freq_lines)
+                xline(freq_lines(i), '--');
+            end
+            yline(0, 'r--'); 
+            yline(90, 'm--');
+            yline(-90, 'm--');
+            yline(45, 'g--');
+            yline(-45, 'g--');
+    
+            set(h_pc, 'EdgeColor', 'none');
+            set(h_pc, 'FaceColor', options.FaceColor);
+    
+            if options.disp_xlabel
+                xlabel('Frequency (Hz)', 'fontsize', options.fontsize);            
+            end
+            if ~options.disp_xticks
+                set(gca,'XTick', []);
+            end
+            if options.disp_ylabel
+                ylabel(planar_label, 'fontsize', options.fontsize);
+                %ylabel('Azimuth', 'fontsize', options.fontsize);
+            end
+            if ~options.disp_yticks
+                set(gca,'YTick', []);
+            end
+    
+            clim([options.dB_lim(1), options.dB_lim(2)]);
+            if options.disp_cb
+                h_cb = colorbar;
+                ylabel(h_cb, 'dB', 'fontsize', options.fontsize);
+            end
+            %xscale log;
 
-    % Set global title
-    title(h_tile, ['Beam Pattern Responses (', mode, ' plane)'], 'fontsize', options.fontsize + 2);
+        else % Display select frequencies
 
-elseif strcmp(mode, 'frontal')
+            xline(0, 'r--', 'linewidth', 1.5, 'HandleVisibility', 'off'); hold on;
+            xline(90, 'm--', 'linewidth', 1.5, 'HandleVisibility', 'off');
+            xline(-90, 'm--', 'linewidth', 1.5, 'HandleVisibility', 'off');
+            xline(45, 'g--', 'linewidth', 1.5, 'HandleVisibility', 'off');
+            xline(-45, 'g--', 'linewidth', 1.5, 'HandleVisibility', 'off');
 
-    N_dir = options.resolution(1);
-    phi = pi/2 * ones(N_dir, 1);
-    theta = pi/2 + linspace(-pi, pi, N_dir)';
-    % First dir is along -y, then increases in elevation
-    
-    % Compute array responses
-    f_arr = reshape(sh_dec(reshape(C_arr, [N_C, N * M]), theta, phi, is_real, 'eval', center_wavnum), [N_dir, N, M] ); % [N_dir x N x M]
-    
-    % Compute beampattern responses
-    f = complex(zeros([N_dir, M]));
-    for m = 1:M
-        f(:, m) = f_arr(:, :, m) * conj(W(:, m)); % [N_dir x 1]        
-    end
-    
-    h_fig = figure;
-    h_fig.Position = [options.fig_pos, options.fig_size];
-    if options.disp_mag && options.disp_phase
-        h_tile = tiledlayout(2,1);
-    elseif options.disp_mag || options.disp_phase
-        h_tile = tiledlayout(1,1);
-    else
-        error('options.disp_mag or options.disp_phase must be true');
-    end
+            M_f = numel(options.disp_freq);
+            legend_str = cell(1, M_f);
+            for m = 1:M_f
+                
+                [~, idx_m] = min(abs(freq - options.disp_freq(m))); idx_m = idx_m(1);
+                plot( dir_deg, mag2db(abs(f(:, idx_m))), 'linewidth', 2.5); hold on;
+                legend_str{m} = num2str(freq(idx_m));
 
-    if options.disp_mag % Plot magnitude response
-        nexttile;
-    
-        assert(numel(freq) == M, 'freq size mismatch C');
-        h_pc = pcolor(freq, rad2deg(pi/2 - theta), mag2db(abs(f)) );
-        xscale("log");
-    
-       % Plot grid
-        freq_lines = [10:10:90, 100:100:900, 1000:1000:9000, 10000:10000:20000];
-        freq_lines(freq_lines < min(freq)) = [];
-        freq_lines(freq_lines > max(freq)) = [];
-        for i = 1:numel(freq_lines)
-            xline(freq_lines(i), '--');
+            end
+            h_lg = legend(legend_str, 'location', 'best');
+            set(h_lg, 'fontsize', options.fontsize - 1); title(h_lg, 'Freq. (Hz)');
+            grid on; axis tight;
+
+            if options.disp_xlabel
+                xlabel(planar_label, 'fontsize', options.fontsize);
+            end
+            if ~options.disp_xticks
+                set(gca,'XTick', []);
+            end
+            if options.disp_ylabel
+                ylabel('Magnitude (dB)', 'fontsize', options.fontsize);
+            end
+            if ~options.disp_yticks
+                set(gca,'YTick', []);
+            end
+            
         end
-        yline(0, 'r--'); 
-        yline(90, 'm--');
-        yline(-90, 'm--');
-        yline(45, 'g--');
-        yline(-45, 'g--');
-    
-        set(h_pc, 'EdgeColor', 'none');
-        set(h_pc, 'FaceColor', options.FaceColor);
-    
-        if options.disp_xlabel
-            xlabel('Frequency (Hz)', 'fontsize', options.fontsize);            
-        end
-        if ~options.disp_xticks
-            set(gca,'XTick', []);
-        end
-        if options.disp_ylabel
-            ylabel('Elevation (Degrees)', 'fontsize', options.fontsize);
-        end
-        if ~options.disp_yticks
-            set(gca,'YTick', []);
-        end
-    
+
         title_str = 'Magnitude Response';
         if ~isempty(options.title_name)
             title_str = [options.title_name, ' ', title_str];
@@ -494,54 +281,93 @@ elseif strcmp(mode, 'frontal')
                 title(options.title_name_override, 'fontsize', options.fontsize + 1);
             end  
         end
-    
+
         set(gca, 'fontsize', options.fontsize - 1);
-    
-        clim([options.dB_lim(1), options.dB_lim(2)]);
-        if options.disp_cb
-            h_cb = colorbar;
-            ylabel(h_cb, 'dB', 'fontsize', options.fontsize);
-        end
-        %xscale log;
-    
+
     end
 
     if options.disp_phase % Plot phase response
         nexttile;
-    
+
         assert(numel(freq) == M, 'freq size mismatch C');
-        h_pc = pcolor(freq, rad2deg(pi/2 - theta), rad2deg(angle(f)) ); hold on;
-        xscale("log");
+
+        if isempty(options.disp_freq) % Display all frequencies
     
-        % Plot grid
-        freq_lines = [10:10:90, 100:100:900, 1000:1000:9000, 10000:10000:20000];
-        freq_lines(freq_lines < min(freq)) = [];
-        freq_lines(freq_lines > max(freq)) = [];
-        for i = 1:numel(freq_lines)
-            xline(freq_lines(i), '--');
-        end
-        yline(0, 'r--'); 
-        yline(90, 'm--');
-        yline(-90, 'm--');
-        yline(45, 'g--');
-        yline(-45, 'g--');
+            h_pc = pcolor(freq, dir_deg, rad2deg(angle(f)) ); hold on;
+            xscale("log");
     
-        set(h_pc, 'EdgeColor', 'none');
-        set(h_pc, 'FaceColor', options.FaceColor);
+            % Plot grid
+            freq_lines = [10:10:90, 100:100:900, 1000:1000:9000, 10000:10000:20000];
+            freq_lines(freq_lines < min(freq)) = [];
+            freq_lines(freq_lines > max(freq)) = [];
+            for i = 1:numel(freq_lines)
+                xline(freq_lines(i), '--');
+            end
+            yline(0, 'r--'); 
+            yline(90, 'm--');
+            yline(-90, 'm--');
+            yline(45, 'g--');
+            yline(-45, 'g--');
     
-        if options.disp_xlabel
-            xlabel('Frequency (Hz)', 'fontsize', options.fontsize);            
-        end
-        if ~options.disp_xticks
-            set(gca,'XTick', []);
-        end
-        if options.disp_ylabel
-            ylabel('Elevation (Degrees)', 'fontsize', options.fontsize);
-        end
-        if ~options.disp_yticks
-            set(gca,'YTick', []);
-        end
+            set(h_pc, 'EdgeColor', 'none');
+            set(h_pc, 'FaceColor', options.FaceColor);
     
+            if options.disp_xlabel
+                xlabel('Frequency (Hz)', 'fontsize', options.fontsize);            
+            end
+            if ~options.disp_xticks
+                set(gca,'XTick', []);
+            end
+            if options.disp_ylabel
+                ylabel(planar_label, 'fontsize', options.fontsize);
+            end
+            if ~options.disp_yticks
+                set(gca,'YTick', []);
+            end          
+    
+            clim([options.deg_lim(1), options.deg_lim(2)]);
+            if options.disp_cb
+                h_cb = colorbar;
+                ylabel(h_cb, 'Degrees', 'fontsize', options.fontsize);
+            end
+            colormap(gca, hsv);
+        
+        else % Display select frequencies
+
+            xline(0, 'r--', 'linewidth', 1.5, 'HandleVisibility', 'off'); hold on;
+            xline(90, 'm--', 'linewidth', 1.5, 'HandleVisibility', 'off');
+            xline(-90, 'm--', 'linewidth', 1.5, 'HandleVisibility', 'off');
+            xline(45, 'g--', 'linewidth', 1.5, 'HandleVisibility', 'off');
+            xline(-45, 'g--', 'linewidth', 1.5, 'HandleVisibility', 'off');
+
+            M_f = numel(options.disp_freq);
+            legend_str = cell(1, M_f);
+            for m = 1:M_f
+                
+                [~, idx_m] = min(abs(freq - options.disp_freq(m))); idx_m = idx_m(1);
+                plot( dir_deg, rad2deg(angle(f(:, idx_m))), 'linewidth', 2.5); hold on;
+                legend_str{m} = num2str(freq(idx_m));
+
+            end
+            h_lg = legend(legend_str, 'location', 'best');
+            set(h_lg, 'fontsize', options.fontsize - 1); title(h_lg, 'Freq. (Hz)');
+            grid on; axis tight;
+
+            if options.disp_xlabel
+                xlabel(planar_label, 'fontsize', options.fontsize);
+            end
+            if ~options.disp_xticks
+                set(gca,'XTick', []);
+            end
+            if options.disp_ylabel
+                ylabel('Phase (Degrees)', 'fontsize', options.fontsize);
+            end
+            if ~options.disp_yticks
+                set(gca,'YTick', []);
+            end
+
+        end
+
         title_str = 'Phase Response';
         if ~isempty(options.title_name)
             title_str = [options.title_name, ' ', title_str];
@@ -553,18 +379,11 @@ elseif strcmp(mode, 'frontal')
                 title(options.title_name_override, 'fontsize', options.fontsize + 1);
             end
         end
-    
+        
         set(gca, 'fontsize', options.fontsize - 1);
-    
-        clim([options.deg_lim(1), options.deg_lim(2)]);
-        if options.disp_cb
-            h_cb = colorbar;
-            ylabel(h_cb, 'Degrees', 'fontsize', options.fontsize);
-        end
-        colormap(gca, hsv);
 
     end
-    
+
     % Set global title
     title(h_tile, ['Beam Pattern Responses (', mode, ' plane)'], 'fontsize', options.fontsize + 2);
 
