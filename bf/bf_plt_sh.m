@@ -39,8 +39,10 @@ function h_fig = bf_plt_sh(C_arr, is_real, W, freq, mode, options)
 
 %options.disp_freq:     [1 x M_f]   Display beampatterns at select frequencies if non-empty
 
-%options.dB_lim:        [1 x 2] Magnitude dB range [min, max]
-%options.deg_lim:       [1 x 2] Phase degree range [min, max]
+%options.dB_lim:        [1 x 2] Beampattern magnitude dB range [min, max]
+%options.deg_lim:       [1 x 2] Beampattern phase degree range [min, max]
+%options.DI_dB_lim:     [1 x 2] Directivity index magnitude dB range [min, max]
+%options.EP_dB_lim:     [1 x 2] Electrical power magnitude dB range [min, max]
 
 %options.title_name:     String, custom title name
 %options.title_name_override:   String, custom title name override all names
@@ -110,6 +112,9 @@ arguments
 
     options.dB_lim (1,2) double  = [-inf inf];
     options.deg_lim (1,2) double = [-180 180];
+
+    options.DI_dB_lim (1,2) double  = [-inf inf];
+    options.EP_dB_lim (1,2) double  = [-inf inf];
 
     options.title_name (1,:) char = [];
     options.title_name_override (1,:) char = [];
@@ -267,6 +272,7 @@ if any(strcmp(mode, {'horizontal', 'median', 'frontal'}))
             if ~options.disp_yticks
                 set(gca,'YTick', []);
             end
+            ylim([options.dB_lim(1), options.dB_lim(2)]);
             
         end
 
@@ -365,6 +371,7 @@ if any(strcmp(mode, {'horizontal', 'median', 'frontal'}))
             if ~options.disp_yticks
                 set(gca,'YTick', []);
             end
+            ylim([options.deg_lim(1), options.deg_lim(2)]);
 
         end
 
@@ -431,6 +438,8 @@ elseif strcmp(mode, 'stats')
     set(gca, 'fontsize', options.fontsize - 1);
     title('Directivity Index', 'fontsize', options.fontsize + 1);
 
+    ylim([options.DI_dB_lim(1), options.DI_dB_lim(2)]);
+
     % Plot electrical power
     nexttile;
     semilogx(freq, EP_dB, 'r-', 'linewidth', 3); 
@@ -447,8 +456,8 @@ elseif strcmp(mode, 'stats')
     set(h_lg, 'fontsize', options.fontsize - 1);
     set(gca, 'fontsize', options.fontsize - 1);
     title('Electrical Power', 'fontsize', options.fontsize + 1);
-
-
+    
+    ylim([options.EP_dB_lim(1), options.EP_dB_lim(2)]);
 
     % Global title
     title_str = 'Beamformer Statistics: ';

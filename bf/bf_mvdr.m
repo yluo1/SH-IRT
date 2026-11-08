@@ -20,12 +20,14 @@ function [W, fval, SINR, WNG] = bf_mvdr(v, R, kappa, mode)
 % mode = 'sse'  (sum-of-squared spectral error) where  R(kappa) = V*D*V' for eigenvector matrix V s.t. cond(D) <= kappa 
 % D = diag(lambda_kappa);
 % Minimize squared difference of eigenvalues lambda_kappa from original eigenvalues lambda s.t. 
-% monotonicity and condition number contraint via quadratic programming
+% monotonicity and condition number contraint via quadratic programming. 
+% Equivalent to minimizing the matrix Frobenius norm ||R - R(kappa)||_{Fro}.
 
 % mode = 'ase'  (sum-of-absolute spectral error) where  R(kappa) = V*D*V' for eigenvector matrix V s.t. cond(D) <= kappa 
 % D = diag(lambda_kappa);
 % Minimize absolute difference of eigenvalues lambda_kappa from original eigenvalues lambda s.t. 
-% monotonicity and condition number contraint via linear programming with slack variables
+% monotonicity and condition number contraint via linear programming with slack variables.
+% Equivalent to minimizing the matrix Nuclear norm ||R - R(kappa)||_*.
 
 % Reference:
 % J. Capon, "High-resolution frequency-wavenumber spectrum analysis," in Proceedings of the IEEE, vol. 57, no. 8, pp. 1408-1418, Aug. 1969, doi: 10.1109/PROC.1969.7278.
