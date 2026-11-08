@@ -29,6 +29,13 @@ function [W, fval, SINR, WNG] = bf_mvdr(v, R, kappa, mode)
 % monotonicity and condition number contraint via linear programming with slack variables.
 % Equivalent to minimizing the matrix Nuclear norm ||R - R(kappa)||_*.
 
+% mode = 'minimax'  (minimize max absolute spectral error) where  R(kappa) = V*D*V' for eigenvector matrix V s.t. cond(D) <= kappa 
+% D = diag(lambda_kappa);
+% Minimize the maximum absolute difference of eigenvalues lambda_kappa from original eigenvalues lambda s.t. 
+% monotonicity and condition number contraint via linear programming with slack variables.
+% Equivalent to minimizing the matrix infinity norm ||R - R(kappa)||_{\infty}.
+
+
 % Reference:
 % J. Capon, "High-resolution frequency-wavenumber spectrum analysis," in Proceedings of the IEEE, vol. 57, no. 8, pp. 1408-1418, Aug. 1969, doi: 10.1109/PROC.1969.7278.
 
@@ -40,7 +47,7 @@ function [W, fval, SINR, WNG] = bf_mvdr(v, R, kappa, mode)
 %R:         [N X N]     Rejection covariance matrix
 %kappa:                 Scalar, condition number constraint >= 1, inf = unconstrained
 %                       Choose kappa <= SNR
-%mode:                  String, condition number constraint method {'diag', 'thres', 'trunc', 'exp', 'sse', 'ase'}
+%mode:                  String, condition number constraint method {'diag', 'thres', 'trunc', 'exp', 'sse', 'ase', 'minimax'}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
@@ -56,7 +63,7 @@ arguments
     v (:,1) double {coder.mustBeComplex} = complex(1);
     R (:,:) double {coder.mustBeComplex} = complex(1);
     kappa (1,1) double {mustBePositive} = inf;
-    mode (1,:) char {mustBeMember(mode, {'diag', 'thres', 'exp', 'sse', 'ase'} )} = 'diag';
+    mode (1,:) char {mustBeMember(mode, {'diag', 'thres', 'exp', 'sse', 'ase', 'minimax'} )} = 'diag';
 end
 
 N = numel(v);
@@ -155,7 +162,7 @@ elseif strcmp(mode, 'ase') % Minimize absolute spectral error in eigenvalues
     V = V(:, idx);
 
     % variables order [lambda_kappa; slack] in [2 * N x 1]
-    f = [zeros(N, 1); ones(N, 1)];
+    f = [zeros(N, 1); ones(N, 1)]; % Objective: minimize sum of slack variables
     A = [];
     b = [];
     % Monotonicity constraints: lambda_kappa(n) >= lambda_kappa(n+1)
@@ -181,6 +188,53 @@ elseif strcmp(mode, 'ase') % Minimize absolute spectral error in eigenvalues
     end
     % Non-negative eigenvalues and slack: lambda_kappa(n) >= 0, slack(n) >= 0
     lb = zeros(2 * N, 1);
+
+    %Options
+    options_linprog = optimoptions("linprog", 'Display', 'none', 'MaxIterations', 1000, ...
+        'ConstraintTolerance', 1e-10, 'OptimalityTolerance', 1e-10);   
+    %Solve
+    [lambda_kappa_slack, fval_lambda, exitflag_lambda] = linprog(f, A, b, [], [], lb, [], options_linprog);
+    lambda_kappa = lambda_kappa_slack(1:N);
+
+    D_kappa = diag(lambda_kappa);
+    D_kappa_inv = diag( lambda_kappa.^(-1) );
+    R_kappa = V * D_kappa * V';
+    R_kappa_inv_v = (V * D_kappa_inv * V') * v;
+
+elseif strcmp(mode, 'minimax') % Minimize the maximum absolute spectral error in eigenvalues
+
+    [V, D] = eig(R);
+    d = diag(D);
+    [lambda, idx] = sort(d, 'descend');
+    V = V(:, idx);
+    
+    % variables order [lambda_kappa; slack] in [N + 1 x 1]
+    f = [zeros(N, 1); 1];
+    A = [];
+    b = [];
+    % Monotonicity constraints: lambda_kappa(n) >= lambda_kappa(n+1)
+    for n = 2:N
+        A_n = zeros(1, N + 1); A_n(n) = 1; A_n(n-1) = -1; 
+        A = [A; A_n];
+        b = [b; 0];
+    end
+    % Condition number constraint: lambda_kappa(1) / lambda_kappa(N) <= kappa
+    A_cond = zeros(1, N + 1); A_cond(1) = 1; A_cond(N) = -kappa;
+    b_cond = 0;
+    A = [A; A_cond];
+    b = [b; b_cond];
+    % Slack variable constraints slack >= |lambda_kappa(n) - lambda(n)|
+    for n = 1:N
+        A_n = zeros(1, N + 1); A_n(n) = -1; A_n(N+1) = -1;
+        A = [A; A_n]; 
+        b = [b; -real(lambda(n))];
+
+        A_n = zeros(1, N + 1); A_n(n) = 1; A_n(N+1) = -1;
+        A = [A; A_n]; 
+        b = [b; real(lambda(n))];
+    end
+    % Non-negative eigenvalues and slack: lambda_kappa(n) >= 0, slack >= 0
+    lb = zeros(N + 1, 1);
 
     %Options
     options_linprog = optimoptions("linprog", 'Display', 'none', 'MaxIterations', 1000, ...

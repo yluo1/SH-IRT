@@ -23,7 +23,7 @@ function [W, fval, SINR, WNG, h_figs] = bf_mvdr_sh(C_arr, is_real, freq, theta, 
 %mode:      String, spatial covariance compute method {'uniform', 'density', 'direction', 'custom'}
 
 %options:               struct
-%options.mode_kappa:    String, condition number constraint method {'diag', 'thres', 'exp', 'sse', 'ase'} (see bf_mvdr.m)
+%options.mode_kappa:    String, condition number constraint method {'diag', 'thres', 'exp', 'sse', 'ase', 'minimax'} (see bf_mvdr.m)
 
 %options.R_pdf:         [(L_R + 1)^2 X 1] or [(L_R + 1)^2 X M]  SH density expansion of L_R max-order over M frequencies.
 %                                                               If second dimension is 1, duplicate expansions over M frequencies
@@ -108,7 +108,7 @@ arguments
     kappa (1,1) double {mustBePositive} = inf;
     mode (1,:) char {mustBeMember(mode, {'uniform', 'density', 'direction', 'custom'} )} = 'uniform';
 
-    options.mode_kappa (1,:) char {mustBeMember(options.mode_kappa, {'diag', 'thres', 'exp', 'sse', 'ase'} )} = 'diag';
+    options.mode_kappa (1,:) char {mustBeMember(options.mode_kappa, {'diag', 'thres', 'exp', 'sse', 'ase', 'minimax'} )} = 'diag';
 
     options.R_pdf (:,:) double {coder.mustBeComplex} = sh_pdf_preset('FwdCenter', 'Uniform', 0);
     options.R_theta_phi (:,2) double = [];
