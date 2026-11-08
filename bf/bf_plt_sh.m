@@ -410,9 +410,9 @@ elseif strcmp(mode, 'stats')
     DI_dB = zeros([1, M]);
     CDI_dB = zeros([N, M]);
     for m = 1:M
-        DI_dB(m) = pow2db( abs(W(:,m)' * V(:,m) )^2 / real( W(:,m)' * R(:,:,m) * W(:,m) ) );
+        DI_dB(m) = pow2db( abs(W(:,m)' * V(:,m) )^2 / abs( W(:,m)' * R(:,:,m) * W(:,m) ) );
         for n = 1:N
-            CDI_dB(n, m) = pow2db( abs(W(n,m)' * V(n,m) )^2 / real( W(n,m)' * R(n,n,m) * W(n,m) ) );
+            CDI_dB(n, m) = pow2db( abs(W(n,m)' * V(n,m) )^2 / abs( W(n,m)' * R(n,n,m) * W(n,m) ) );
         end
     end
 
