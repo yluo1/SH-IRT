@@ -183,7 +183,8 @@ and is vectorized in the same format as the complex case. In such instances, the
 |[bf_mvdr_sh.m](bf/bf_mvdr_sh.m)| MVDR integration with SH expansion arrays: Steering direction, spatial covariance density selection|
 |[bf_rmvb.m](bf/bf_rmvb.m)| Robust minimum variance beamformer (RMVB) with null space, white-noise gain, and channel gain constraints |
 |[bf_grq_ex.m](bf/bf_grq_ex.m)| Generalized Rayleigh quotient (GRQ) extrema with linear homogeneous constraints |
-|[bf_grq_proj.m](bf/bf_grq_proj.m)| Steering vector projection onto GRQ equality constraints |
-|[bf_grq_mscd.m](bf/bf_grq_mscd.m)| Maximum sensitivity constant directivity (MSCD): GRQ and linear constriants |
-|[bf_grq_mecd.m](bf/bf_grq_mecd.m)| Maximum efficiency constant directivity (MECD): GRQ and quadratic constriants |
+|[bf_grq_spec.m](bf/bf_grq_spec.m)| Minimum spectral norm solutions subject to generalized directivity index (GDI) constraint|
+|[bf_grq_proj.m](bf/bf_grq_proj.m)| Steering vector projection onto GDI constraints |
+|[bf_grq_mscd.m](bf/bf_grq_mscd.m)| Maximum sensitivity constant directivity (MSCD): GDI and linear constriants |
+|[bf_grq_mecd.m](bf/bf_grq_mecd.m)| Maximum efficiency constant directivity (MECD): GDI and quadratic constriants |
 |[bf_plt_sh.m](bf/bf_plt_sh.m)| Plot planar projections of SH beam patterns,  and statistics (electrical gain, directivity index)|
