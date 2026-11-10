@@ -123,10 +123,17 @@ elseif strcmp(options.mode, 'gev')
 
         A_null = P' * A * P;
         R_null = P' * R * P;
-                
-        [V_min, d_min] = eigs(A_null, R_null, 1, 'smallestreal');
-        [V_max, d_max] = eigs(A_null, R_null, 1, 'largestreal');
-    
+
+        % [V_min, d_min] = eigs(A_null, R_null, 1, 'smallestreal');
+        % [V_max, d_max] = eigs(A_null, R_null, 1, 'largestreal');
+
+        % Filter out non-real eigenvalues
+        [V, D] = eig(A_null, R_null);
+        d = diag(D);
+        d(abs(imag(d)) >= 1e-10) = nan;
+        [d_min, idx_min] = min(d); V_min = V(:, idx_min);
+        [d_max, idx_max] = max(d); V_max = V(:, idx_max);
+        
         assert( isfinite(d_min) && isfinite(d_max), 'R is not positive definite');
         tau_min_max = real([d_min, d_max]);
         W_min_max = P * [V_min, V_max];
