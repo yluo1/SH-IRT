@@ -26,6 +26,8 @@ function [W_min_max, tau_min_max] = bf_grq_ex(A, R, options)
 %options.U:     Empty or [N x N_U]  Null space vectors
 %               Disable constraints if empty
 
+%options.check_constraints: Logical, if true check for constraints satisfication of solution
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
 %W_min_max:     [N x 2] Beamformer weights (conjugated): Critical points [minimizer, maximizer] scaled to have unit norm
@@ -53,12 +55,10 @@ function [W_min_max, tau_min_max] = bf_grq_ex(A, R, options)
 % R = randn(N) + randn(N) * 1i;     R = R * R';
 % U = randn(N,1) + randn(N,1) * 1i;
 
-% [W_min_max_chol, tau_min_max_chol] = bf_grq_ex(A, R, 'mode', 'chol', 'U', U);
-% U' * W_min_max_chol
+% [W_min_max_chol, tau_min_max_chol] = bf_grq_ex(A, R, 'mode', 'chol', 'U', U, 'check_constraints', true);
 % tau_min_max_chol 
 
-% [W_min_max_gev, tau_min_max_gev] = bf_grq_ex(A, R, 'mode', 'gev', 'U', U);
-% U' * W_min_max_gev
+% [W_min_max_gev, tau_min_max_gev] = bf_grq_ex(A, R, 'mode', 'gev', 'U', U, 'check_constraints', true);
 % tau_min_max_gev
 
 % err = norm(bsxfun(@rdivide, W_min_max_chol, W_min_max_chol(2, :)) - bsxfun(@rdivide, W_min_max_gev, W_min_max_gev(2, :))) 
@@ -69,6 +69,7 @@ arguments
 
     options.mode (1,:) char {mustBeMember(options.mode, {'chol', 'gev'} )} = 'chol';
     options.U (:,:) double {coder.mustBeComplex} = [];
+    options.check_constraints (1,1) logical = false;
 end
 
 assert(isequal(size(A), size(R)), 'A, R size mismatch');
@@ -140,6 +141,13 @@ end
 % Normalize
 W_min_max = bsxfun(@rdivide, W_min_max, sqrt(sum(W_min_max .* conj(W_min_max), 1)));
 
-% Check
-% real( W_min_max(:, 1)' * A * W_min_max(:, 1) / ( W_min_max(:, 1)' * R * W_min_max(:, 1) ) ) - tau_min_max(1)
-% real( W_min_max(:, 2)' * A * W_min_max(:, 2) / ( W_min_max(:, 2)' * R * W_min_max(:, 2) ) ) - tau_min_max(2)
+% Check constraints of solution
+if options.check_constraints
+    tol = 1e-6;
+    pass_min_tau = abs(real( W_min_max(:, 1)' * A * W_min_max(:, 1) / ( W_min_max(:, 1)' * R * W_min_max(:, 1) ) ) - tau_min_max(1)) <= tol
+    pass_max_tau = abs(real( W_min_max(:, 2)' * A * W_min_max(:, 2) / ( W_min_max(:, 2)' * R * W_min_max(:, 2) ) ) - tau_min_max(2)) <= tol
+
+    if ~isempty(options.U)
+        pass_U = abs(options.U' * W_min_max) <= tol
+    end
+end
