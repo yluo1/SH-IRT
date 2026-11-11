@@ -52,15 +52,18 @@ function [W, fval, SINR, WNG, h_figs] = bf_mvdr_sh(C_arr, is_real, freq, theta, 
 %h_figs:    [1 x *]     Cell array figure handles
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Sample usage: Design MVDR beamformer over circular omni-directivity transducer array
+% Sample usage: Design MVDR beamformer over circular omni-directivity transducer array
+% Note: Uniform line and circular arrays yield for phased arrays have real responses for all and even N respectively
 
 % Fs = 16000;
 % M = 256;
-% N = 3;
+% N = 4;
 % radius = 0.1;
 % delay_dist = 1;
 % max_odr = 36;
+% % mode = 'uni_sphere';
 % mode = 'uni_circ';
+% % mode = 'uni_line';
 % freq = logspace(log10(20), log10(Fs), M + 1); freq = freq(1:end-1);
 
 % theta = pi/2;
@@ -68,10 +71,34 @@ function [W, fval, SINR, WNG, h_figs] = bf_mvdr_sh(C_arr, is_real, freq, theta, 
 % kappa = inf;
 % mode_mvdr = 'uniform';
 
-% C_arr = sh_enc_arr(max_odr, mode, N, radius, delay_dist, freq, 'enable_disp', true, 'disp_dB_lim', [-3, 3]);
-% bf_mvdr_sh(C_arr, false, freq, theta, phi, kappa, mode_mvdr, 'enable_disp', true, 'disp_dB_lim', [-48, 14]);
+% %C_arr = sh_enc_arr(max_odr, mode, N, radius, delay_dist, freq, 'enable_disp', true, 'disp_dB_lim', [-3, 3]);
+% %bf_mvdr_sh(C_arr, false, freq, theta, phi, kappa, mode_mvdr, 'enable_disp', true, 'disp_dB_lim', [-48, 14]);
 
 % [C_arr_noncenter, center] = sh_enc_arr(0, mode, N, radius, delay_dist, freq, 'noncentered', true, 'enable_disp', true, 'disp_dB_lim', [-3, 3]);
+% bf_mvdr_sh(C_arr_noncenter, false, freq, theta, phi, kappa, mode_mvdr, 'center', center, 'wavnum', 2 * pi * freq / 343, 'enable_disp', true, 'disp_dB_lim', [-48, 14]);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Sample usage: Design MVDR beamformer over non-uniform planar omni-directivity transducer array
+% Fs = 16000;
+% M = 256;
+% N = 4;
+% radius = 0.1;
+% delay_dist = 1;
+% max_odr = 36;
+% mode = 'uni_custom';
+% freq = logspace(log10(20), log10(Fs), M + 1); freq = freq(1:end-1);
+
+% theta = pi/2;
+% phi = 0;
+% kappa = inf;
+% mode_mvdr = 'uniform';
+
+% rng(234);
+% custom_cartesian = [randn(2,N); zeros(1,N)]; % Planar
+% custom_cartesian = [randn(1,N); zeros(2,N)] * radius; % Line
+% % custom_cartesian = bsxfun(@rdivide, custom_cartesian, sqrt(sum(custom_cartesian.^2)));  % Circular
+
+% [C_arr_noncenter, center] = sh_enc_arr(0, mode, N, radius, delay_dist, freq, 'noncentered', true, 'enable_disp', true, 'disp_dB_lim', [-3, 3], 'custom_cartesian', custom_cartesian);
 % bf_mvdr_sh(C_arr_noncenter, false, freq, theta, phi, kappa, mode_mvdr, 'center', center, 'wavnum', 2 * pi * freq / 343, 'enable_disp', true, 'disp_dB_lim', [-48, 14]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

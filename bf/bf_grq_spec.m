@@ -10,7 +10,7 @@ function [W] = bf_grq_spec(A, R, tau, mode, options)
 % \sum_n wsq_n * lambda_n = tau,      GDI constraints
 % Rayleigh quotient solution: Weighted eigenvectors y = V * sqrt(wsq)
 
-% mode = 'max':        Minimax squared barycenter weights (infinity norm) of GRQ generalized eigenvalues
+% mode = 'max':         Minimax squared barycenter weights (infinity norm) of GRQ generalized eigenvalues
 % min_wsq max_n wsq_n,       
 
 % mode = 'sq'           Minimize quintic barycenter weights (spectral norm) of GRQ generalized eigenvalues
@@ -40,8 +40,7 @@ function [W] = bf_grq_spec(A, R, tau, mode, options)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
-%W_min_max:     [N x 2] Beamformer weights (conjugated), scaled to have unit norm
-%tau_min_max:   [1 x 2] Extrema [min(w'*A*w / w'*R*w), max(w'*A*w / w'*R*w)]
+%W:     [N x 1] Beamformer weights (conjugated), scaled to have unit norm
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: Compute generalized Rayleigh quotient for varied modes
