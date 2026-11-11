@@ -1,4 +1,4 @@
-function [W, fval, SINR, WNG] = bf_mvdr(v, R, kappa, mode)
+function [W, fval, SINR, G] = bf_mvdr(v, R, kappa, mode)
 % Minimum variance distortionless response (MVDR) beamformer design with condition number constraints
 % min_{W, sigma} W'*R(kappa)*W   s.t.    W'*v = 1,   
 
@@ -35,7 +35,6 @@ function [W, fval, SINR, WNG] = bf_mvdr(v, R, kappa, mode)
 % monotonicity and condition number contraint via linear programming with slack variables.
 % Equivalent to minimizing the matrix infinity norm ||R - R(kappa)||_{\infty}.
 
-
 % Reference:
 % J. Capon, "High-resolution frequency-wavenumber spectrum analysis," in Proceedings of the IEEE, vol. 57, no. 8, pp. 1408-1418, Aug. 1969, doi: 10.1109/PROC.1969.7278.
 
@@ -54,7 +53,7 @@ function [W, fval, SINR, WNG] = bf_mvdr(v, R, kappa, mode)
 %W:         [N x 1]     Beamformer weights (conjugated)
 %fval:                  Scalar, objective:          W'*R(kappa)*W
 %SINR:                  Scalar, signal-to-interference-plus-noise ratio:  |W'*v|^2 / real(W'*R*W)
-%WNG:                   Scalar, white-noise gain:   W'*W
+%G:                     Scalar, electrical gain:    W'*W
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: See tst_bf_mvdr.m
@@ -71,189 +70,198 @@ N = numel(v);
 assert(N == size(R, 1) && N == size(R, 2), 'v and R size mismatch');
 assert(kappa >= 1, 'Require condition number kappa >= 1');
 
-if strcmp(mode, 'diag') % Shape preserving across entire eigenvalues by upwards shifting all eigenvalues
-    % minimizes total difference of normalized cumulative eigenvalues and constrained eigenvalues
+if isfinite(kappa) && kappa <= 1e10
 
-    lambda_max = eigs(R, 1, 'largestreal');
-    lambda_min = eigs(R, 1, 'smallestreal');
+    if strcmp(mode, 'diag') % Shape preserving across entire eigenvalues by upwards shifting all eigenvalues
+        % minimizes total difference of normalized cumulative eigenvalues and constrained eigenvalues
+    
+        lambda_max = eigs(R, 1, 'largestreal');
+        lambda_min = eigs(R, 1, 'smallestreal');
+    
+        sigma = (lambda_max - lambda_min) / (kappa - 1);
+    
+        R_kappa = R + sigma * eye(N);
+        R_kappa_inv_v = R_kappa \ v; 
+    
+    elseif strcmp(mode, 'thres') % Shape preserving upto threshold, then brick-wall limit small eigenvalues
+        % minimizes total difference between original and constrained eigenvalues
+    
+        [V, D] = eig(R);
+        d = diag(D);
+        [lambda, idx] = sort(d, 'descend');
+        V = V(:, idx);
+        
+        lambda_max = lambda(1);
+        
+        lambda_kappa = max(lambda, lambda_max/kappa);
+        D_kappa = diag(lambda_kappa);
+        D_kappa_inv = diag( 1./ lambda_kappa );
+        R_kappa = V * D_kappa * V';
+        R_kappa_inv_v = (V * D_kappa_inv * V') * v;
+    
+    
+    elseif strcmp(mode, 'exp') % Shape smoothing eigenvalues via soft-compression
+    
+        [V, D] = eig(R);
+        d = diag(D);
+        [lambda, idx] = sort(d, 'descend');
+        V = V(:, idx);
+        
+        lambda_max = lambda(1);
+        lambda_min = lambda(end);
+        p = min(1, log(kappa) / (log(lambda_max) - log(lambda_min)));
+    
+        lambda_kappa = lambda.^p;
+    
+        D_kappa = diag(lambda_kappa);
+        D_kappa_inv = diag( lambda_kappa.^(-1) );
+        R_kappa = V * D_kappa * V';
+        R_kappa_inv_v = (V * D_kappa_inv * V') * v;
+    
+    elseif strcmp(mode, 'sse') % Minimize squared spectral error in eigenvalues
+    
+        [V, D] = eig(R);
+        d = diag(D);
+        [lambda, idx] = sort(d, 'descend');
+        V = V(:, idx);
+    
+        H = eye(N);
+        f = -real(lambda(:));
+        A = [];
+        b = [];
+        % Monotonicity constraints: lambda_kappa(n) >= lambda_kappa(n+1)
+        for n = 2:N
+            A_n = zeros(1,N); A_n(n) = 1; A_n(n-1) = -1; 
+            A = [A; A_n];
+            b = [b; 0];
+        end
+        % Condition number constraint: lambda_kappa(1) / lambda_kappa(N) <= kappa
+        A_cond = zeros(1,N); A_cond(1) = 1; A_cond(N) = -kappa;
+        b_cond = 0;
+        A = [A; A_cond];
+        b = [b; b_cond];
+        
+        % Non-negative eigenvalues: lambda_kappa(n) >= 0
+        lb = zeros(N, 1);
+        
+        %Options
+        options_quadprog = optimoptions('quadprog', 'Display', 'none', 'MaxIterations', 10000, ...
+            'OptimalityTolerance', 1e-8, 'StepTolerance', 1e-8, 'ConstraintTolerance', 1e-8);
+        %Solve
+        [lambda_kappa, fval_lambda, exitflag_lambda] = quadprog(H, f, A, b, [], [], lb, [], [], options_quadprog);
+        
+        D_kappa = diag(lambda_kappa);
+        D_kappa_inv = diag( lambda_kappa.^(-1) );
+        R_kappa = V * D_kappa * V';
+        R_kappa_inv_v = (V * D_kappa_inv * V') * v;
+    
+    elseif strcmp(mode, 'ase') % Minimize absolute spectral error in eigenvalues
+    
+        [V, D] = eig(R);
+        d = diag(D);
+        [lambda, idx] = sort(d, 'descend');
+        V = V(:, idx);
+    
+        % variables order [lambda_kappa; slack] in [2 * N x 1]
+        f = [zeros(N, 1); ones(N, 1)]; % Objective: minimize sum of slack variables
+        A = [];
+        b = [];
+        % Monotonicity constraints: lambda_kappa(n) >= lambda_kappa(n+1)
+        for n = 2:N
+            A_n = zeros(1,2*N); A_n(n) = 1; A_n(n-1) = -1; 
+            A = [A; A_n];
+            b = [b; 0];
+        end
+        % Condition number constraint: lambda_kappa(1) / lambda_kappa(N) <= kappa
+        A_cond = zeros(1,2*N); A_cond(1) = 1; A_cond(N) = -kappa;
+        b_cond = 0;
+        A = [A; A_cond];
+        b = [b; b_cond];
+        % Slack variable constraints slack(n) >= |lambda_kappa(n) - lambda(n)|
+        for n = 1:N
+            A_n = zeros(1,2*N); A_n(n) = -1; A_n(N+n) = -1;
+            A = [A; A_n]; 
+            b = [b; -real(lambda(n))];
+    
+            A_n = zeros(1,2*N); A_n(n) = 1; A_n(N+n) = -1;
+            A = [A; A_n]; 
+            b = [b; real(lambda(n))];
+        end
+        % Non-negative eigenvalues and slack: lambda_kappa(n) >= 0, slack(n) >= 0
+        lb = zeros(2 * N, 1);
+    
+        %Options
+        options_linprog = optimoptions("linprog", 'Display', 'none', 'MaxIterations', 1000, ...
+            'ConstraintTolerance', 1e-10, 'OptimalityTolerance', 1e-10);   
+        %Solve
+        [lambda_kappa_slack, fval_lambda, exitflag_lambda] = linprog(f, A, b, [], [], lb, [], options_linprog);
+        lambda_kappa = lambda_kappa_slack(1:N);
+    
+        D_kappa = diag(lambda_kappa);
+        D_kappa_inv = diag( lambda_kappa.^(-1) );
+        R_kappa = V * D_kappa * V';
+        R_kappa_inv_v = (V * D_kappa_inv * V') * v;
+    
+    elseif strcmp(mode, 'minimax') % Minimize the maximum absolute spectral error in eigenvalues
+    
+        [V, D] = eig(R);
+        d = diag(D);
+        [lambda, idx] = sort(d, 'descend');
+        V = V(:, idx);
+        
+        % variables order [lambda_kappa; slack] in [N + 1 x 1]
+        f = [zeros(N, 1); 1];
+        A = [];
+        b = [];
+        % Monotonicity constraints: lambda_kappa(n) >= lambda_kappa(n+1)
+        for n = 2:N
+            A_n = zeros(1, N + 1); A_n(n) = 1; A_n(n-1) = -1; 
+            A = [A; A_n];
+            b = [b; 0];
+        end
+        % Condition number constraint: lambda_kappa(1) / lambda_kappa(N) <= kappa
+        A_cond = zeros(1, N + 1); A_cond(1) = 1; A_cond(N) = -kappa;
+        b_cond = 0;
+        A = [A; A_cond];
+        b = [b; b_cond];
+        % Slack variable constraints slack >= |lambda_kappa(n) - lambda(n)|
+        for n = 1:N
+            A_n = zeros(1, N + 1); A_n(n) = -1; A_n(N+1) = -1;
+            A = [A; A_n]; 
+            b = [b; -real(lambda(n))];
+    
+            A_n = zeros(1, N + 1); A_n(n) = 1; A_n(N+1) = -1;
+            A = [A; A_n]; 
+            b = [b; real(lambda(n))];
+        end
+        % Non-negative eigenvalues and slack: lambda_kappa(n) >= 0, slack >= 0
+        lb = zeros(N + 1, 1);
+    
+        %Options
+        options_linprog = optimoptions("linprog", 'Display', 'none', 'MaxIterations', 1000, ...
+            'ConstraintTolerance', 1e-10, 'OptimalityTolerance', 1e-10);   
+        %Solve
+        [lambda_kappa_slack, fval_lambda, exitflag_lambda] = linprog(f, A, b, [], [], lb, [], options_linprog);
+        lambda_kappa = lambda_kappa_slack(1:N);
+    
+        D_kappa = diag(lambda_kappa);
+        D_kappa_inv = diag( lambda_kappa.^(-1) );
+        R_kappa = V * D_kappa * V';
+        R_kappa_inv_v = (V * D_kappa_inv * V') * v;
+    
+    else
+        error('Unknown mode');
+    end
 
-    sigma = (lambda_max - lambda_min) / (kappa - 1);
+else % No condition number constraint
 
-    R_kappa = R + sigma * eye(N);
+    R_kappa = R;
     R_kappa_inv_v = R_kappa \ v; 
 
-elseif strcmp(mode, 'thres') % Shape preserving upto threshold, then brick-wall limit small eigenvalues
-    % minimizes total difference between original and constrained eigenvalues
-
-    [V, D] = eig(R);
-    d = diag(D);
-    [lambda, idx] = sort(d, 'descend');
-    V = V(:, idx);
-    
-    lambda_max = lambda(1);
-    
-    lambda_kappa = max(lambda, lambda_max/kappa);
-    D_kappa = diag(lambda_kappa);
-    D_kappa_inv = diag( 1./ lambda_kappa );
-    R_kappa = V * D_kappa * V';
-    R_kappa_inv_v = (V * D_kappa_inv * V') * v;
-
-
-elseif strcmp(mode, 'exp') % Shape smoothing eigenvalues via soft-compression
-
-    [V, D] = eig(R);
-    d = diag(D);
-    [lambda, idx] = sort(d, 'descend');
-    V = V(:, idx);
-    
-    lambda_max = lambda(1);
-    lambda_min = lambda(end);
-    p = min(1, log(kappa) / (log(lambda_max) - log(lambda_min)));
-
-    lambda_kappa = lambda.^p;
-
-    D_kappa = diag(lambda_kappa);
-    D_kappa_inv = diag( lambda_kappa.^(-1) );
-    R_kappa = V * D_kappa * V';
-    R_kappa_inv_v = (V * D_kappa_inv * V') * v;
-
-elseif strcmp(mode, 'sse') % Minimize squared spectral error in eigenvalues
-
-    [V, D] = eig(R);
-    d = diag(D);
-    [lambda, idx] = sort(d, 'descend');
-    V = V(:, idx);
-
-    H = eye(N);
-    f = -real(lambda(:));
-    A = [];
-    b = [];
-    % Monotonicity constraints: lambda_kappa(n) >= lambda_kappa(n+1)
-    for n = 2:N
-        A_n = zeros(1,N); A_n(n) = 1; A_n(n-1) = -1; 
-        A = [A; A_n];
-        b = [b; 0];
-    end
-    % Condition number constraint: lambda_kappa(1) / lambda_kappa(N) <= kappa
-    A_cond = zeros(1,N); A_cond(1) = 1; A_cond(N) = -kappa;
-    b_cond = 0;
-    A = [A; A_cond];
-    b = [b; b_cond];
-    
-    % Non-negative eigenvalues: lambda_kappa(n) >= 0
-    lb = zeros(N, 1);
-    
-    %Options
-    options_quadprog = optimoptions('quadprog', 'Display', 'none', 'MaxIterations', 10000, ...
-        'OptimalityTolerance', 1e-8, 'StepTolerance', 1e-8, 'ConstraintTolerance', 1e-8);
-    %Solve
-    [lambda_kappa, fval_lambda, exitflag_lambda] = quadprog(H, f, A, b, [], [], lb, [], [], options_quadprog);
-    
-    D_kappa = diag(lambda_kappa);
-    D_kappa_inv = diag( lambda_kappa.^(-1) );
-    R_kappa = V * D_kappa * V';
-    R_kappa_inv_v = (V * D_kappa_inv * V') * v;
-
-elseif strcmp(mode, 'ase') % Minimize absolute spectral error in eigenvalues
-
-    [V, D] = eig(R);
-    d = diag(D);
-    [lambda, idx] = sort(d, 'descend');
-    V = V(:, idx);
-
-    % variables order [lambda_kappa; slack] in [2 * N x 1]
-    f = [zeros(N, 1); ones(N, 1)]; % Objective: minimize sum of slack variables
-    A = [];
-    b = [];
-    % Monotonicity constraints: lambda_kappa(n) >= lambda_kappa(n+1)
-    for n = 2:N
-        A_n = zeros(1,2*N); A_n(n) = 1; A_n(n-1) = -1; 
-        A = [A; A_n];
-        b = [b; 0];
-    end
-    % Condition number constraint: lambda_kappa(1) / lambda_kappa(N) <= kappa
-    A_cond = zeros(1,2*N); A_cond(1) = 1; A_cond(N) = -kappa;
-    b_cond = 0;
-    A = [A; A_cond];
-    b = [b; b_cond];
-    % Slack variable constraints slack(n) >= |lambda_kappa(n) - lambda(n)|
-    for n = 1:N
-        A_n = zeros(1,2*N); A_n(n) = -1; A_n(N+n) = -1;
-        A = [A; A_n]; 
-        b = [b; -real(lambda(n))];
-
-        A_n = zeros(1,2*N); A_n(n) = 1; A_n(N+n) = -1;
-        A = [A; A_n]; 
-        b = [b; real(lambda(n))];
-    end
-    % Non-negative eigenvalues and slack: lambda_kappa(n) >= 0, slack(n) >= 0
-    lb = zeros(2 * N, 1);
-
-    %Options
-    options_linprog = optimoptions("linprog", 'Display', 'none', 'MaxIterations', 1000, ...
-        'ConstraintTolerance', 1e-10, 'OptimalityTolerance', 1e-10);   
-    %Solve
-    [lambda_kappa_slack, fval_lambda, exitflag_lambda] = linprog(f, A, b, [], [], lb, [], options_linprog);
-    lambda_kappa = lambda_kappa_slack(1:N);
-
-    D_kappa = diag(lambda_kappa);
-    D_kappa_inv = diag( lambda_kappa.^(-1) );
-    R_kappa = V * D_kappa * V';
-    R_kappa_inv_v = (V * D_kappa_inv * V') * v;
-
-elseif strcmp(mode, 'minimax') % Minimize the maximum absolute spectral error in eigenvalues
-
-    [V, D] = eig(R);
-    d = diag(D);
-    [lambda, idx] = sort(d, 'descend');
-    V = V(:, idx);
-    
-    % variables order [lambda_kappa; slack] in [N + 1 x 1]
-    f = [zeros(N, 1); 1];
-    A = [];
-    b = [];
-    % Monotonicity constraints: lambda_kappa(n) >= lambda_kappa(n+1)
-    for n = 2:N
-        A_n = zeros(1, N + 1); A_n(n) = 1; A_n(n-1) = -1; 
-        A = [A; A_n];
-        b = [b; 0];
-    end
-    % Condition number constraint: lambda_kappa(1) / lambda_kappa(N) <= kappa
-    A_cond = zeros(1, N + 1); A_cond(1) = 1; A_cond(N) = -kappa;
-    b_cond = 0;
-    A = [A; A_cond];
-    b = [b; b_cond];
-    % Slack variable constraints slack >= |lambda_kappa(n) - lambda(n)|
-    for n = 1:N
-        A_n = zeros(1, N + 1); A_n(n) = -1; A_n(N+1) = -1;
-        A = [A; A_n]; 
-        b = [b; -real(lambda(n))];
-
-        A_n = zeros(1, N + 1); A_n(n) = 1; A_n(N+1) = -1;
-        A = [A; A_n]; 
-        b = [b; real(lambda(n))];
-    end
-    % Non-negative eigenvalues and slack: lambda_kappa(n) >= 0, slack >= 0
-    lb = zeros(N + 1, 1);
-
-    %Options
-    options_linprog = optimoptions("linprog", 'Display', 'none', 'MaxIterations', 1000, ...
-        'ConstraintTolerance', 1e-10, 'OptimalityTolerance', 1e-10);   
-    %Solve
-    [lambda_kappa_slack, fval_lambda, exitflag_lambda] = linprog(f, A, b, [], [], lb, [], options_linprog);
-    lambda_kappa = lambda_kappa_slack(1:N);
-
-    D_kappa = diag(lambda_kappa);
-    D_kappa_inv = diag( lambda_kappa.^(-1) );
-    R_kappa = V * D_kappa * V';
-    R_kappa_inv_v = (V * D_kappa_inv * V') * v;
-
-else
-    error('Unknown mode');
 end
 
 % Output
 W = R_kappa_inv_v / (v' * R_kappa_inv_v); % Normalize for distortionless constraint
 fval = real(W'*R_kappa*W);
 SINR = abs(W'*v)^2 / real(W'*R*W);
-WNG = W'*W;
+G = W'*W;

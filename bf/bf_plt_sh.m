@@ -469,7 +469,6 @@ elseif strcmp(mode, 'stats')
     else
         title(h_tile, options.title_name_override, 'fontsize', options.fontsize + 2);
     end
-            
 
 else
     error('Unknown mode');

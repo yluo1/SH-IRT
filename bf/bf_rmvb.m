@@ -10,7 +10,7 @@ function [W, fval, exitflag] = bf_rmvb(v, R, P, options)
 
 % Optional constraints:
 % Null space:           U'*W = 0
-% White-noise gain:     W'*W <= WNG
+% Electrical gain:      W'*W <= G
 % Channel gains:        |W(n)|^2 <= CG(n)
 
 % Author: Yuancheng Luo, 2026 (added optional constriants)
@@ -25,7 +25,7 @@ function [W, fval, exitflag] = bf_rmvb(v, R, P, options)
 
 %options.U:     Empty or [N x N_U]  Null space vectors
 %               Disable constraints if empty
-%options.WNG:   [], scalar, Maximum white-noise gain
+%options.G:     [], scalar, Maximum electrical gain
 %               Disable constraints if empty
 %options.CG:    [], scalar, [N x 1] channel gains
 %               Disable constraints if empty. Replcate across channels if scalar.
@@ -69,13 +69,13 @@ function [W, fval, exitflag] = bf_rmvb(v, R, P, options)
 % R = R - 0.999 * eigs(R, 1, 'smallestreal') * eye(N);
 % P = randn(N) + randn(N)*1i; P = P*P'; P = 1e-3 * P;
 % U = randn(N, N_U) + randn(N, N_U) * 1i;
-% WNG = 0.4;
+% G = 0.4;
 % CG = 0.06 * ones(N, 1);
-% [W_rmvb, fval_rmvb, exitflag_rmvb] = bf_rmvb(v, R, P, 'U', U, 'WNG', WNG, 'CG', CG, 'check_constraints', true)
+% [W_rmvb, fval_rmvb, exitflag_rmvb] = bf_rmvb(v, R, P, 'U', U, 'G', G, 'CG', CG, 'check_constraints', true)
 
 % test_pri_c = W_rmvb' * v
 % test_u_c = U' * W_rmvb
-% test_wng_c = W_rmvb' * W_rmvb
+% test_g_c = W_rmvb' * W_rmvb
 % test_cg_c = abs(W_rmvb).^2
 
 arguments
@@ -86,7 +86,7 @@ arguments
     options.mode_sqrt (1,:) char {mustBeMember(options.mode_sqrt, {'eig', 'chol'})} = 'eig';
     
     options.U (:,:) double {coder.mustBeComplex} = [];
-    options.WNG (:,1) double = [];
+    options.G (:,1) double = [];
     options.CG (:,1) double = [];
 
     options.check_constraints (1,1) logical = false;
@@ -160,13 +160,13 @@ else
 end
 
 % White-noise gain constraints
-if ~isempty(options.WNG)
+if ~isempty(options.G)
 
-    assert(isscalar(options.WNG), 'WNG must be scalar');
+    assert(isscalar(options.G), 'G must be scalar');
     Asoc = [ eye(2 * N), zeros(2 * N, 1) ];
     bsoc = zeros(2 * N, 1);
     dsoc = zeros(2 * N + 1, 1);
-    gamma = -sqrt(options.WNG);
+    gamma = -sqrt(options.G);
     socConstraints(end+1) = secondordercone(Asoc,bsoc,dsoc,gamma);
 end
 
@@ -212,8 +212,8 @@ if exitflag == 1
         if ~isempty(options.U)
             pass_null_c = all(abs(options.U' * W) <= tol)
         end
-        if ~isempty(options.WNG)
-            pass_WNG_c = real(W'*W) <= options.WNG + tol
+        if ~isempty(options.G)
+            pass_G_c = real(W'*W) <= options.G + tol
         end
         if ~isempty(options.CG)
             pass_CG_c = all( abs(W .* conj(W)) <= options.CG + tol )

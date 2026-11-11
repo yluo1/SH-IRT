@@ -1,11 +1,18 @@
-function [W, fval, SINR, WNG, h_figs] = bf_mvdr_sh(C_arr, is_real, freq, theta, phi, kappa, mode, options)
+function [W, fval, SINR, G, h_figs] = bf_mvdr_sh(C_arr, is_real, freq, theta, phi, kappa, mode, options)
 % Minimum variance distortionless response beamformer designs (bf_mvdr.m)
-% with steering vectors and spatial covariances R computed from spherical harmonic expansions C
+% with steering vectors in direction (theta, phi) and regularized 
+% spatial covariances R computed from spherical harmonic expansions C
+% subject to maximum condition number kappa
 
 % mode = 'uniform'      Compute R over uniform density
 % mode = 'density'      Compute R over density options.R_pdf
 % mode = 'direction'    Compute R over steering-directions options.R_theta_phi 
 % mode = 'custom'       Specify R in options.R_custom
+
+% Optional constraints:
+% Array gain bound:  1 <= |v_m'*v_m| * (W_m'*W_m) <= options.max_arr_gain
+%                    for steering vectors v_m, weights W_m at frequency bin m.
+%                    If finite, maximizes kappa (minimize regularization) s.t. array gain bounds
 
 % Author: Yuancheng Luo, 2026
 
@@ -24,6 +31,11 @@ function [W, fval, SINR, WNG, h_figs] = bf_mvdr_sh(C_arr, is_real, freq, theta, 
 
 %options:               struct
 %options.mode_kappa:    String, condition number constraint method {'diag', 'thres', 'exp', 'sse', 'ase', 'minimax'} (see bf_mvdr.m)
+
+%options.max_arr_gain:  Scalar, 1 <= |v_m'*v_m| * (W_m'*W_m) <= options.max_arr_gain.
+%                       If finite, maximizes kappa (minimize regularization) s.t. array gain bounds
+%options.max_arr_gain_iters: Maximum array gain iterations for finite options.max_arr_gain
+%options.max_arr_gain_tol:   Tolerance for converged array gain iterations
 
 %options.R_pdf:         [(L_R + 1)^2 X 1] or [(L_R + 1)^2 X M]  SH density expansion of L_R max-order over M frequencies.
 %                                                               If second dimension is 1, duplicate expansions over M frequencies
@@ -48,7 +60,7 @@ function [W, fval, SINR, WNG, h_figs] = bf_mvdr_sh(C_arr, is_real, freq, theta, 
 %W:         [N x M]     Beamformer weights (conjugated)
 %fval       [1 x M]     Objective:           fval(m) = real(W(:,m)' * R_kappa(:,:,m) * W(:,m))
 %SINR:      [1 x M]     Signal-to-interference-plus-noise ratio:   SINR(m) = |W(:,m)' * v_m|^2 / real(W(:,m)' * R_m * W(:,m))
-%WNG:       [1 x M]     White-noise gain:    WNG(m) = W(:,m)' * W(:,m)
+%G:         [1 x M]     Electrical gain:     G(m) = W(:,m)' * W(:,m)
 %h_figs:    [1 x *]     Cell array figure handles
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -137,6 +149,10 @@ arguments
 
     options.mode_kappa (1,:) char {mustBeMember(options.mode_kappa, {'diag', 'thres', 'exp', 'sse', 'ase', 'minimax'} )} = 'diag';
 
+    options.max_arr_gain (1,1) double {mustBePositive} = inf;
+    options.max_arr_gain_iters (1,1) double {mustBePositive} = 100;
+    options.max_arr_gain_tol (1,1) double {mustBeNonnegative} = 1e-6;
+
     options.R_pdf (:,:) double {coder.mustBeComplex} = sh_pdf_preset('FwdCenter', 'Uniform', 0);
     options.R_theta_phi (:,2) double = [];
     options.R_custom (:,:,:) double  {coder.mustBeComplex} = [];
@@ -171,6 +187,9 @@ end
 if ~isempty(options.wt)
     assert( isequal(size(options.wt), [N, M]), 'options.wt mismatch [N, M]');
 end
+
+assert(options.max_arr_gain >= 1, 'options.max_arr_gain must be >= 1');
+AG = options.max_arr_gain;
 
 % Compute spatial covariance matrix
 if strcmp(mode, 'uniform')
@@ -215,7 +234,7 @@ end
 W = complex(zeros(N, M));
 fval = zeros(1,M);
 SINR = zeros(1,M);
-WNG = zeros(1,M);
+G = zeros(1,M);
 
 for m = 1:M
 
@@ -235,7 +254,35 @@ for m = 1:M
     v_m = sh_dec(C_arr(:, :, m), theta, phi, is_real, 'eval', center_wavnum).';  % [N x 1] Steering vector
 
     % MVDR solver
-    [W(:, m), fval(m), SINR(m), WNG(m)] = bf_mvdr(v_m, R_m, kappa, options.mode_kappa);
+    if isfinite(AG) % Bounded array gain
+   
+        kappa_lb = 2 * AG - 1 + sqrt( AG * (AG - 1) ); % Kantorovich bound
+        kappa_ub = inf;
+        kappa_m = kappa_lb;
+
+        for i = 1:options.max_arr_gain_iters % Bisection method
+            
+            [W(:, m), fval(m), SINR(m), G(m)] = bf_mvdr(v_m, R_m, kappa_m, options.mode_kappa);
+            AG_m = abs(v_m'*v_m * G(m));
+            
+            if AG_m > AG % Overshot
+                kappa_ub = kappa_m;   
+            elseif AG - AG_m > options.max_arr_gain_tol % Undershot
+                kappa_lb = kappa_m;
+            else % Converged
+                break;
+            end
+
+            if isfinite(kappa_ub)
+                kappa_m = (kappa_lb + kappa_ub) / 2;
+            else
+                kappa_m = kappa_m * 2;
+            end
+        end
+
+    else % Unbounded array gain
+        [W(:, m), fval(m), SINR(m), G(m)] = bf_mvdr(v_m, R_m, kappa, options.mode_kappa);
+    end
 
 end
 

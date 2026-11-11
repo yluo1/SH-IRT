@@ -70,7 +70,7 @@ else
     error('Unsupported mode');
 end
 
-[W, fval, SINR, WNG, h_bf_figs] = bf_mvdr_sh(C_arr, false, freq, theta, phi, kappa, mode_mvdr, ...
+[W, fval, SINR, G, h_bf_figs] = bf_mvdr_sh(C_arr, false, freq, theta, phi, kappa, mode_mvdr, ...
     'mode_kappa', mode_kappa, 'center', center, 'wavnum', wavnum, 'enable_disp', true, 'disp_dB_lim', [-48, 14]);
 
 h_figs = [h_arr_figs, h_bf_figs];
