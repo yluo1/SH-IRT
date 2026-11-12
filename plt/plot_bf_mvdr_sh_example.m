@@ -5,9 +5,14 @@ function plot_bf_mvdr_sh_example(mode, N, kappa, options)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Input
-%mode:          String, array type {'uni_circ', 'spis_circ'}
+%mode:          String, array type {'uni_line', 'uni_circ', 'spis_circ', 'spis_custom'}
 %N:             Number of array elements
 %kappa:         Max condition number
+
+%options:       struct
+
+%options.max_arr_gain_pow_dB:      Max array gain bounds in dB power
+%options.enable_export:            Logical, if true, export figure
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: Compare omni-directivity transducer to spherical piston
@@ -26,12 +31,13 @@ function plot_bf_mvdr_sh_example(mode, N, kappa, options)
 %plot_bf_mvdr_sh_example('spis_circ', 4, 100);
 
 arguments
-    mode (1,:) char {mustBeMember(mode, {'uni_line', 'uni_circ', 'spis_circ'})} = 'uni_circ';
+    mode (1,:) char {mustBeMember(mode, {'uni_line', 'uni_circ', 'spis_circ', 'spis_custom'})} = 'uni_circ';
     N (1,1) double {mustBePositive, mustBeInteger} = 4;
     kappa (1,1) double {mustBePositive} = inf;
 
     options.enable_export (1,1) logical = false;
-    options.export_name (1,:) char = [mode, '_N_', num2str(N), '_kappa_', num2str(kappa)];
+    
+    options.max_arr_gain_pow_dB (1,1) double {mustBePositive} = inf;
 end
 
 Fs = 24000;
@@ -66,12 +72,21 @@ elseif strcmp(mode, 'spis_circ')
         'spis_arc_len', spis_arc_len, 'enable_disp', true, 'disp_dB_lim', [-36, 12]);
     wavnum = [];
 
+elseif strcmp(mode, 'spis_custom') % Small array element size
+
+    max_odr = 50;
+    [C_arr, center, h_arr_figs] = sh_enc_arr(max_odr, mode, N, radius, delay_dist, freq, ...
+        'spis_arc_len', 0.004, 'custom_theta_phi', [deg2rad(10) * ones(1,N); deg2rad(0:(360/N):(360 - 360/N))], ...
+        'enable_disp', true, 'disp_dB_lim', [-36, 12]);
+    wavnum = [];
+
 else
     error('Unsupported mode');
 end
 
 [W, fval, SINR, G, h_bf_figs] = bf_mvdr_sh(C_arr, false, freq, theta, phi, kappa, mode_mvdr, ...
-    'mode_kappa', mode_kappa, 'center', center, 'wavnum', wavnum, 'enable_disp', true, 'disp_dB_lim', [-48, 14]);
+    'mode_kappa', mode_kappa, 'max_arr_gain', db2pow(options.max_arr_gain_pow_dB), ...
+    'center', center, 'wavnum', wavnum, 'enable_disp', true, 'disp_dB_lim', [-48, 14]);
 
 h_figs = [h_arr_figs, h_bf_figs];
 
@@ -83,8 +98,15 @@ if options.enable_export
     if ~isfolder(out_dir)
         mkdir(out_dir);
     end
+
+    export_name = [mode, '_N_', num2str(N), '_kappa_', num2str(kappa)];
+
+    if isfinite(options.max_arr_gain_pow_dB)   % Augment with finite array gain
+        export_name = [export_name, '_arrgain_', num2str(options.max_arr_gain_pow_dB)];
+    end
     
     for n = 1:numel(h_figs)
-        exportgraphics(h_figs{n}, fullfile(out_dir,  [options.export_name, '_', num2str(n), '.png'] ));
+        f_name = [export_name, '_', num2str(n)];
+        exportgraphics(h_figs{n}, fullfile(out_dir, [f_name, '.png'] ));
     end
 end

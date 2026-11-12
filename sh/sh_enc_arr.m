@@ -18,10 +18,14 @@ function [C, center, h_figs] = sh_enc_arr(max_odr, mode, N, radius, delay_dist, 
 %                   'uni_circ':     Uniform (omni) directivity, circular topology on z=0 plane,
 %                                   equal angle element spacing with first element on +x axis
 %                   'uni_sphere':   Uniform (omni) directivity, Fibonacci sphere points
-%                   'uni_custom':   Uniform (omni) directivity, use options.custom_cartesian, ignore radius
+%                   'uni_custom':   Uniform (omni) directivity, specify cartesian coordinates in options.custom_cartesian, ignore radius
 %                   'spis_circ':    Piston on spherical baffle directivity, circular topology on z=0 plane
 %                   'spis_sphere':  Piston on spherical baffle directivity, Fibonacci sphere points
-%                   'spis_custom':  Piston on spherical baffle directivity, use options.custom_theta_phi
+%                   'spis_custom':  Piston on spherical baffle directivity, specify spherical coordinates options.custom_theta_phi
+
+%                   'fit_rot_custom':   Rotate (intrinsic Tait-Bryan) fitted expansions, specify expansion in options.custom_C, 
+%                                       spherical coordinates options.custom_theta_phi, and rotation angles options.custom_rot_zyx.
+%                                       Expansion center cshould be at rotationally invariant coordinate (e.g. center of a spherical baffle).
 
 %N:             Number of array elements
 %radius:        Array radius in meters
@@ -31,7 +35,8 @@ function [C, center, h_figs] = sh_enc_arr(max_odr, mode, N, radius, delay_dist, 
 %options.c:             Velocity of propagation meters / second
 
 %options.custom_cartesian:  [3 x N] custom cartesian coordinates for mode = 'uni_custom'
-%options.custom_theta_phi:  [2 x N] custom spherical coordinates for mode = 'spis_custom'
+%options.custom_theta_phi:  [2 x N] custom spherical coordinates (radians) for mode = 'spis_custom'
+%options.custom_rot_zyx:    [3 x N] custom zyx intrinsic Tait-Bryan rotation angles (radians) for mode = 'fit_rot_custom'
 
 %options.noncentered:   Logical, if true, use non-centered expansion center coordinates
 
@@ -106,7 +111,7 @@ function [C, center, h_figs] = sh_enc_arr(max_odr, mode, N, radius, delay_dist, 
 
 arguments
     max_odr (1,1) double {mustBeNonnegative, mustBeInteger} = 1;
-    mode (1,:) char {mustBeMember(mode, {'uni_line', 'uni_circ', 'uni_sphere', 'uni_custom', 'spis_circ', 'spis_sphere', 'spis_custom'} )} = 'uni_circ'
+    mode (1,:) char {mustBeMember(mode, {'uni_line', 'uni_circ', 'uni_sphere', 'uni_custom', 'spis_circ', 'spis_sphere', 'spis_custom', 'fit_rot_custom'} )} = 'uni_circ'
     N (1,1) double {mustBePositive, mustBeInteger} = 3;
     radius (1,1) double {mustBeNonnegative} = 0.1;
     delay_dist (1,1) double {mustBeNonnegative} = 1;
@@ -116,7 +121,9 @@ arguments
 
     options.custom_cartesian (3,:) double = [];
     options.custom_theta_phi (2,:) double = [];
-
+    options.custom_rot_zyx (3,:) double = [];
+    options.custom_C (:,:) double {coder.mustBeComplex} = [0];
+ 
     options.noncentered (1,1) logical = false;
 
     options.spis_arc_len (1,1) double {mustBePositive} = 0.0035;
@@ -237,6 +244,44 @@ elseif any( strcmp(mode, {'spis_circ', 'spis_sphere', 'spis_custom'}) ) % Piston
     for n = 1:N
         C(:, n, :) = sh_rot(C_top, [phi_list(n), theta_list(n), 0], false);
     end 
+
+elseif any( strcmp(mode, {'fit_rot_custom'}) ) % Fitted expansions
+
+    if strcmp(mode, 'fit_rot_custom') % Rotate fitted expansions
+        
+        assert(size(options.custom_C, 2) == M, 'options.custom_C size mismatch M');
+        assert(size(options.custom_theta_phi, 2) == N, 'options.custom_theta_phi size mismatch N');
+        assert(size(options.custom_rot_zyx, 2) == N, 'options.custom_rot_zyx size mismatch N');
+
+        theta_list = options.custom_theta_phi(1,:);
+        phi_list = options.custom_theta_phi(2,:);        
+        [V(1,:), V(2,:), V(3,:)] = sph2cart( phi_list, pi/2 - theta_list, radius * ones(1,N) );  
+
+        C_res = sh_resize(options.custom_C, max_odr);
+
+        if options.noncentered % expansion center is already at origin, translate in inverse direction
+
+            C_res = sh_resize(sh_translate(C_res, omega, false, [0, 0, -radius], 'max_odr_fit', max_odr, 'R', radius), max_odr);
+            center = V';
+
+        else
+
+            center = [];
+
+        end
+
+        d_sec = delay_dist / options.c; 
+        C_res = bsxfun(@times, C_res, exp(-1i * d_sec * omega) );   % Add bulk-delay to make responses causal 
+
+        % Duplicate and rotate expansions
+        C = repmat(reshape(C_res, [size(C_res, 1), 1, M] ), [1, N, 1]);        
+        for n = 1:N
+            C(:, n, :) = sh_rot(options.custom_C, options.custom_rot_zyx(:, n)', false);
+        end
+
+    else
+        error('Unknown mode');
+    end
 
 else
     error('Unknown mode');
