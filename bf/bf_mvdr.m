@@ -144,12 +144,19 @@ if isfinite(kappa) && kappa <= 1e10
         % Non-negative eigenvalues: lambda_kappa(n) >= 0
         lb = zeros(N, 1);
         
+        % %Options
+        % options_quadprog = optimoptions('quadprog', 'Display', 'none', 'MaxIterations', 10000, ...
+        %     'OptimalityTolerance', 1e-8, 'StepTolerance', 1e-8, 'ConstraintTolerance', 1e-8);
+        % %Solve
+        % [lambda_kappa, fval_lambda, exitflag_lambda] = quadprog(H, f, A, b, [], [], lb, [], [], options_quadprog);
+        
         %Options
         options_quadprog = optimoptions('quadprog', 'Display', 'none', 'MaxIterations', 10000, ...
-            'OptimalityTolerance', 1e-8, 'StepTolerance', 1e-8, 'ConstraintTolerance', 1e-8);
+            'OptimalityTolerance', 1e-8, 'StepTolerance', 1e-8, 'ConstraintTolerance', 1e-8, 'algorithm', 'active-set');
         %Solve
-        [lambda_kappa, fval_lambda, exitflag_lambda] = quadprog(H, f, A, b, [], [], lb, [], [], options_quadprog);
-        
+        [lambda_kappa, fval_lambda, exitflag_lambda] = quadprog(H, f, A, b, [], [], lb, [], ones(N,1), options_quadprog);
+
+
         D_kappa = diag(lambda_kappa);
         D_kappa_inv = diag( lambda_kappa.^(-1) );
         R_kappa = V * D_kappa * V';

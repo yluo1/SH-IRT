@@ -32,21 +32,24 @@ h_figs_cb = sh_plt(C(:, 3:end), 'horizontal', is_real, 'hz', dat.freq(3:end), 'd
 % Duplicate and array three expansions rotated in the frontal half-space
 delay_dist = 0;
 radius = abs(dat.loc(1));
-custom_theta_phi = deg2rad([90, -30; 90, 30; 90 0])';
-custom_rot_zyx   = deg2rad([-30 0 0; 30 0 0; 0 0 0])';
+custom_theta_phi = deg2rad([90, -60; 90, 60; 90 0])';
+custom_rot_zyx   = deg2rad([-60 0 0; 60 0 0; 0 0 0])';
 [C_arr, center, h_figs_arr] = sh_enc_arr(P+1, 'fit_rot_custom', 3, radius, delay_dist, dat.freq, ...
     'custom_C', C,  'custom_theta_phi', custom_theta_phi,  'custom_rot_zyx', custom_rot_zyx, ...
     'enable_disp', true, 'disp_dB_lim', dB_lim);
 
-% Design MVDR beam at 0, 30, 45 degrees
+% Design MVDR beam with and without array gain constraint and steering vector normalization
 theta_steer = deg2rad(90);
-phi_steer_list = deg2rad([0, 30, 45]);
+phi_steer = 0;
 kappa = inf;
 mode_mvdr = 'uniform';
 
-bf_mvdr_sh(C_arr(:, :, 3:end), false, dat.freq(3:end), theta_steer, phi_steer_list(1), kappa, mode_mvdr,...
+[~, ~, ~, ~, h_figs_MVDR_unconstr] = bf_mvdr_sh(C_arr(:, :, 4:end), false, dat.freq(4:end), theta_steer, phi_steer, kappa, mode_mvdr, ...
     'enable_disp', true, 'disp_dB_lim', dB_lim);
 
+[~, ~, ~, ~, h_figs_MVDR_constr] = bf_mvdr_sh(C_arr(:, :, 4:end), false, dat.freq(4:end), theta_steer, phi_steer, kappa, mode_mvdr, ...
+    'max_arr_gain', db2pow(12), 'norm_steer_vec', true, ...
+    'enable_disp', true, 'disp_dB_lim', dB_lim);
 
 ;
 
@@ -66,3 +69,9 @@ end
 % exportgraphics(h_figs_arr{2}, fullfile(out_dir, 'fit_pist_arr_N_3_1.png' ));
 % exportgraphics(h_figs_arr{3}, fullfile(out_dir, 'fit_pist_arr_N_3_2.png' ));
 % exportgraphics(h_figs_arr{4}, fullfile(out_dir, 'fit_pist_arr_N_3_3.png' ));
+
+exportgraphics(h_figs_MVDR_unconstr{1}, fullfile(out_dir, 'fit_pist_MVDR_N_3_unconstr_bp.png' ));
+exportgraphics(h_figs_MVDR_unconstr{2}, fullfile(out_dir, 'fit_pist_MVDR_N_3_unconstr_bs.png' ));
+
+exportgraphics(h_figs_MVDR_constr{1}, fullfile(out_dir, 'fit_pist_MVDR_N_3_constr_bp.png' ));
+exportgraphics(h_figs_MVDR_constr{2}, fullfile(out_dir, 'fit_pist_MVDR_N_3_constr_bs.png' ));

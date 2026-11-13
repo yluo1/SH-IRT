@@ -1,4 +1,4 @@
-function plot_bf_mvdr_sh_example(mode, N, kappa, options)
+function plot_bf_mvdr_sh_example(mode, N, kappa, mode_kappa, options)
 % Plot examples of bf_mvdr_sh.m
 
 % Author: Yuancheng Luo, 2026
@@ -8,6 +8,7 @@ function plot_bf_mvdr_sh_example(mode, N, kappa, options)
 %mode:          String, array type {'uni_line', 'uni_circ', 'spis_circ', 'spis_custom'}
 %N:             Number of array elements
 %kappa:         Max condition number
+%mode_kappa:    String, condition number constraint method {'diag', 'thres', 'exp', 'sse', 'ase', 'minimax'}
 
 %options:       struct
 
@@ -34,10 +35,12 @@ arguments
     mode (1,:) char {mustBeMember(mode, {'uni_line', 'uni_circ', 'spis_circ', 'spis_custom'})} = 'uni_circ';
     N (1,1) double {mustBePositive, mustBeInteger} = 4;
     kappa (1,1) double {mustBePositive} = inf;
+    mode_kappa (1,:) char {mustBeMember(mode_kappa, {'diag', 'thres', 'exp', 'sse', 'ase', 'minimax'} )} = 'diag';
 
     options.enable_export (1,1) logical = false;
     
     options.max_arr_gain_pow_dB (1,1) double {mustBePositive} = inf;
+
 end
 
 Fs = 24000;
@@ -52,12 +55,6 @@ theta = pi/2;
 phi = 0;
 
 mode_mvdr = 'uniform';
-
-mode_kappa = 'diag';
-%mode_kappa = 'thres';
-%mode_kappa = 'exp';
-%mode_kappa = 'sse';
-%mode_kappa = 'ase';
 
 if any(strcmp(mode, {'uni_line', 'uni_circ'}))
 

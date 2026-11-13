@@ -5,8 +5,8 @@ function [W, fval, SINR, G, h_figs] = bf_mvdr_sh(C_arr, is_real, freq, theta, ph
 % subject to maximum condition number kappa
 
 % mode = 'uniform'      Compute R over uniform density
-% mode = 'density'      Compute R over density options.R_pdf
-% mode = 'direction'    Compute R over steering-directions options.R_theta_phi 
+% mode = 'density'      Compute R over SH density expansion in options.R_pdf
+% mode = 'direction'    Compute R over spherical coordinates in options.R_theta_phi 
 % mode = 'custom'       Specify R in options.R_custom
 
 % Optional constraints:
@@ -36,6 +36,8 @@ function [W, fval, SINR, G, h_figs] = bf_mvdr_sh(C_arr, is_real, freq, theta, ph
 %                       If finite, maximizes kappa (minimize regularization) s.t. array gain bounds
 %options.max_arr_gain_iters: Maximum array gain iterations for finite options.max_arr_gain
 %options.max_arr_gain_tol:   Tolerance for converged array gain iterations
+
+%options.norm_steer_vec:    Logical, if true, normalize steering vector power to unity
 
 %options.R_pdf:         [(L_R + 1)^2 X 1] or [(L_R + 1)^2 X M]  SH density expansion of L_R max-order over M frequencies.
 %                                                               If second dimension is 1, duplicate expansions over M frequencies
@@ -153,10 +155,12 @@ arguments
     options.max_arr_gain_iters (1,1) double {mustBePositive} = 100;
     options.max_arr_gain_tol (1,1) double {mustBeNonnegative} = 1e-6;
 
+    options.norm_steer_vec (1,1) logical = false;
+
     options.R_pdf (:,:) double {coder.mustBeComplex} = sh_pdf_preset('FwdCenter', 'Uniform', 0);
     options.R_theta_phi (:,2) double = [];
     options.R_custom (:,:,:) double  {coder.mustBeComplex} = [];
-
+    
     options.center (:,3) double = [];
     options.wavnum (1,:) double = [];
 
@@ -253,6 +257,10 @@ for m = 1:M
     end
     v_m = sh_dec(C_arr(:, :, m), theta, phi, is_real, 'eval', center_wavnum).';  % [N x 1] Steering vector
 
+    if options.norm_steer_vec % Normalize steering vector power to unity
+        v_m = v_m / norm(v_m);
+    end
+
     % MVDR solver
     if isfinite(AG) % Bounded array gain
    
@@ -291,7 +299,7 @@ h_figs = [];
 if options.enable_disp && coder.target("MATLAB")
 
     varargin_bf_plt_sh = {'center', options.center, 'wavnum', options.wavnum, 'dB_lim', options.disp_dB_lim, 'title_name', 'MVDR', ...
-        'disp_freq', options.disp_freq};
+        'disp_freq', options.disp_freq, 'stats_DI_theta_phi', [theta, phi]};
 
     if options.disp_hplane
         h_fig_bf = bf_plt_sh(C_arr, false, W, freq, 'horizontal', varargin_bf_plt_sh{:});
