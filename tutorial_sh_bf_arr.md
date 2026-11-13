@@ -24,7 +24,7 @@ In a phased array, the transfer function $H_n(\omega, \bf{u} )$ at angular frequ
 
 $$ H_n(\omega, \bf{u} ) = e^{ j \omega \frac{\bf{u}^T \bf{x}_n}{c} }, $$
 
-where $c$ is the velocity of sound (m/s). For convenience, we can omit to omit $c$ by expressing the transfer function $ H_n(\kappa, \bf{u} ) = e^{j \kappa \bf{u}^T \bf{x}_n } $ in terms of angular wavenumber $\kappa = \omega / c$. Array elements orthogonal to the incident wave direction $\bf{u}$ have zero-delay. Elements in the direction of the planewave propagation are delayed by $\lVert \bf{x}_n \rVert$. For example, the $N=3$ element circular planar array topology and each element’s frequency responses over the horizontal plane are shown below:
+where $c$ is the velocity of sound (m/s). For convenience, we can omit to omit $c$ by expressing the transfer function $` H_n(\kappa, \bf{u} ) = e^{j \kappa \bf{u}^T \bf{x}_n }`$ in terms of angular wavenumber $\kappa = \omega / c$. Array elements orthogonal to the incident wave direction $\bf{u}$ have zero-delay. Elements in the direction of the planewave propagation are delayed by $\lVert \bf{x}_n \rVert$. For example, the $N=3$ element circular planar array topology and each element’s frequency responses over the horizontal plane are shown below:
 
  | Topology|  Element 1 |  Element 2  |  Element 3 |
  | :---: |  :---: |  :---:  |  :---: |
@@ -149,7 +149,7 @@ Next, we cover sampling and integration methods of the array element's frequency
 
 ## Minimum Variance Distortionless Response
 
-Capon’s minimum variance distortionless response (MVDR) beamformer finds the weight vector $\bf{w} \in \mathbb{C}^{N \times 1} $ that minimizes the power response over a spatial domain with covariance matrix $\bf{R} \in \mathbb{C}^{N \times N}$  given by
+Capon’s minimum variance distortionless response (MVDR) beamformer finds the weight vector $`\bf{w} \in \mathbb{C}^{N \times 1}`$ that minimizes the power response over a spatial domain with covariance matrix $\bf{R} \in \mathbb{C}^{N \times N}$  given by
 
 $$ \bf{w}_{\ast} = \textrm{arg min}_{\bf{w}} \bf{w}^H \bf{R} \bf{w}, \quad s.t. \quad \bf{w}^H \bf{v} = 1, $$
 
@@ -161,7 +161,7 @@ which represents the expected covariance between array element’s responses int
 
 Once the steering direction $\bf{u}$ in spherical coordinates, and density function $`f_R(\bf{u})`$ are specified, the analytic MVDR solution or minimizer yields the conjugated beamformer weights given by 
 
-$$ \bf{w}_{\ast} = \frac{\bf{R}^{-1} \bf{v} }{ \bf{v}^H \bf{R}^{-1} \bf{v}},$$
+$$\bf{w}_{\ast} = \frac{\bf{R}^{-1} \bf{v} }{ \bf{v}^H \bf{R}^{-1} \bf{v}},$$
 
 which typically forms a hyper-directive beam in the direction of $\bf{u}$ whilst simultaneously rejecting the output domain power in the directions sampled from $`f_R(\bf{u})`$. Such beamformer designs are well studied for phased-array topologies which yield solutions with useful properties. For example, MVDR beamformer responses for lined and circular uniform spaced phase arrays are strictly real for arbitrary and even order $N$ respectively. The following MVDR beam patterns for spatial covariances sampled over a uniform density are computed in the function [plot_bf_mvdr_sh_example.m](plt/plot_bf_mvdr_sh_example.m):
 
@@ -180,6 +180,7 @@ plot_bf_mvdr_sh_example('uni_circ', 4);
 where we see that $N=3$ line array and $N=4$ circular array’s main lobe are in-phase, and the side-lobes alternate in phase. For circular uniform arrays of odd number of elements such as, the phase responses are not as regular as seen in the $N=3$ element example.
 
 The beamformer statistics plot the directivity index $\textrm{DI}(\bf{w})$, and electrical gain $\textrm{G}(\bf{w})$  given by
+
 $$\textrm{DI}(\bf{w}) = \frac{\lVert \bf{w}^H \bf{v} \rVert^2}{ \bf{w}^H \bf{R}_{omni} \bf{w}}, \quad
 \textrm{G}(\bf{w}) =\bf{w}^H \bf{w},$$
 
