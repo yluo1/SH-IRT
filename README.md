@@ -56,6 +56,9 @@ startup
 * [Spherical Harmonic Basis Fitting Tutorial](tutorial_sh_fit.md)
 * [Spatial Room Impulse Response (SRIR) T60 Augmentation Tutorial](tutorial_t60_aug.md)
 
+ Spherical Harmonic Arrays and Beamforming
+  * [Part I: Setup, specifications, and Capon Beamformer Designs](tutorial_sh_bf_arr.md)
+
 ## References
 
 This library was developed from methods in the following works:

@@ -31,6 +31,15 @@ function plot_bf_mvdr_sh_example(mode, N, kappa, mode_kappa, options)
 %plot_bf_mvdr_sh_example('uni_circ', 4, 100);
 %plot_bf_mvdr_sh_example('spis_circ', 4, 100);
 
+% enable_export = true;
+% plot_bf_mvdr_sh_example('uni_circ', 5, inf, 'diag', 'max_arr_gain_pow_dB', 6, 'enable_export', enable_export);
+% plot_bf_mvdr_sh_example('uni_circ', 5, inf, 'thres', 'max_arr_gain_pow_dB', 6, 'enable_export', enable_export);
+% plot_bf_mvdr_sh_example('uni_circ', 5, inf, 'exp', 'max_arr_gain_pow_dB', 6, 'enable_export', enable_export);
+% plot_bf_mvdr_sh_example('uni_circ', 5, inf, 'sse', 'max_arr_gain_pow_dB', 6, 'enable_export', enable_export);
+% plot_bf_mvdr_sh_example('uni_circ', 5, inf, 'ase', 'max_arr_gain_pow_dB', 6, 'enable_export', enable_export);
+% plot_bf_mvdr_sh_example('uni_circ', 5, inf, 'minimax', 'max_arr_gain_pow_dB', 6, 'enable_export', enable_export);
+
+
 arguments
     mode (1,:) char {mustBeMember(mode, {'uni_line', 'uni_circ', 'spis_circ', 'spis_custom'})} = 'uni_circ';
     N (1,1) double {mustBePositive, mustBeInteger} = 4;
@@ -96,7 +105,7 @@ if options.enable_export
         mkdir(out_dir);
     end
 
-    export_name = [mode, '_N_', num2str(N), '_kappa_', num2str(kappa)];
+    export_name = [mode, '_N_', num2str(N), '_', mode_kappa, '_kappa_', num2str(kappa)];
 
     if isfinite(options.max_arr_gain_pow_dB)   % Augment with finite array gain
         export_name = [export_name, '_arrgain_', num2str(options.max_arr_gain_pow_dB)];

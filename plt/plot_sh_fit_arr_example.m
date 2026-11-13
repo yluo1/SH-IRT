@@ -57,10 +57,10 @@ mode_mvdr = 'uniform';
 % Export figures
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-out_dir = 'figs/figs_bf/arr';
-if ~isfolder(out_dir)
-    mkdir(out_dir);
-end
+% out_dir = 'figs/figs_bf/arr';
+% if ~isfolder(out_dir)
+%     mkdir(out_dir);
+% end
 
 % exportgraphics(h_figs_cp{1}, fullfile(out_dir, 'fit_pist_center_pist.png' ));
 % exportgraphics(h_figs_cb{1}, fullfile(out_dir, 'fit_pist_center_baffle.png' ));
@@ -70,8 +70,8 @@ end
 % exportgraphics(h_figs_arr{3}, fullfile(out_dir, 'fit_pist_arr_N_3_2.png' ));
 % exportgraphics(h_figs_arr{4}, fullfile(out_dir, 'fit_pist_arr_N_3_3.png' ));
 
-exportgraphics(h_figs_MVDR_unconstr{1}, fullfile(out_dir, 'fit_pist_MVDR_N_3_unconstr_bp.png' ));
-exportgraphics(h_figs_MVDR_unconstr{2}, fullfile(out_dir, 'fit_pist_MVDR_N_3_unconstr_bs.png' ));
-
-exportgraphics(h_figs_MVDR_constr{1}, fullfile(out_dir, 'fit_pist_MVDR_N_3_constr_bp.png' ));
-exportgraphics(h_figs_MVDR_constr{2}, fullfile(out_dir, 'fit_pist_MVDR_N_3_constr_bs.png' ));
+% exportgraphics(h_figs_MVDR_unconstr{1}, fullfile(out_dir, 'fit_pist_MVDR_N_3_unconstr_bp.png' ));
+% exportgraphics(h_figs_MVDR_unconstr{2}, fullfile(out_dir, 'fit_pist_MVDR_N_3_unconstr_bs.png' ));
+% 
+% exportgraphics(h_figs_MVDR_constr{1}, fullfile(out_dir, 'fit_pist_MVDR_N_3_constr_bp.png' ));
+% exportgraphics(h_figs_MVDR_constr{2}, fullfile(out_dir, 'fit_pist_MVDR_N_3_constr_bs.png' ));
