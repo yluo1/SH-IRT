@@ -102,7 +102,7 @@ where larger piston sizes are more directive in high frequency. Unlike the free-
 
 ### Empirical Spherical Harmonic Arrays
 
-The [SH fitting](tutorial_sh_fit.md) tutorial covers several methods for fitting SH basis functions to empirical complex frequency responses. Let us consider a sample SH fitting of a loudspeaker piston mounted on a rotationally invariant baffle that is resting on a stand, with expansion center coincident to the piston surface. We wish to array several such pistons under rotation on the horizontal plane as to steer a beam in frontal half-space. The first step is to translate the expansion center to a rotationally invariant coordinate within the baffle’s interior as in the following code snippet:
+The [SH fitting](tut/tutorial_sh_fit.md) tutorial covers several methods for fitting SH basis functions to empirical complex frequency responses. Let us consider a sample SH fitting of a loudspeaker piston mounted on a rotationally invariant baffle that is resting on a stand, with expansion center coincident to the piston surface. We wish to array several such pistons under rotation on the horizontal plane as to steer a beam in frontal half-space. The first step is to translate the expansion center to a rotationally invariant coordinate within the baffle’s interior as in the following code snippet:
 ```
 dat = load('dat/sample_exp_centered.mat');
 
@@ -157,7 +157,7 @@ where the linear equality constraint ensures that the response is undistorted w.
 
 $$\bf{R} = \mathbb{E}_{\bf{u} \sim f_R(\bf{u}) } \left [ \bf{v}(\bf{u})  \bf{v}^H(\bf{u})  \right ],$$
 
-which represents the expected covariance between array element’s responses integrated over a user defined density function $`f_R(\bf{u})`$ on the unit-sphere or in spherical coordinates. Common density functions such as the squared exponential and Matérn family are covariance functions that can be expanded and mixed along the SH bases[^LUO_COV], and further manipulated via the [SH operators](tutorial_sh_ops.md). A preset of SH density function expansions are available in the function [sh_pdf_preset.m](sh/sh_pdf_preset.m), and SH densities can be fitted to empirical distributions following [SH basis fit tutorial](tutorial_sh_fit.md). Discrete densities for finite directions are also supported. 
+which represents the expected covariance between array element’s responses integrated over a user defined density function $`f_R(\bf{u})`$ on the unit-sphere or in spherical coordinates. Common density functions such as the squared exponential and Matérn family are covariance functions that can be expanded and mixed along the SH bases[^LUO_COV], and further manipulated via the [SH operators](tut/tutorial_sh_ops.md). A preset of SH density function expansions are available in the function [sh_pdf_preset.m](sh/sh_pdf_preset.m), and SH densities can be fitted to empirical distributions following [SH basis fit tutorial](tut/tutorial_sh_fit.md). Discrete densities for finite directions are also supported. 
 
 Once the steering direction $\bf{u}$ in spherical coordinates, and density function $`f_R(\bf{u})`$ are specified, the analytic MVDR solution or minimizer yields the conjugated beamformer weights given by 
 

@@ -37,6 +37,7 @@ startup
 | plt | Plotting Examples |
 | err | Error Metrics|
 | figs | Figures | 
+| tut | Tutorials | 
 
 ### Software Requirements
 * Implemented in Matlab (2024b) with the following toolboxes:
@@ -54,12 +55,12 @@ startup
 ## Guides and Tutorials
 
 * [Functions Guide](guide_func.md)
-* [Spherical Harmonic Operators Tutorial](tutorial_sh_ops.md)
-* [Spherical Harmonic Basis Fitting Tutorial](tutorial_sh_fit.md)
-* [Spatial Room Impulse Response (SRIR) T60 Augmentation Tutorial](tutorial_t60_aug.md)
+* [Spherical Harmonic Operators Tutorial](tut/tutorial_sh_ops.md)
+* [Spherical Harmonic Basis Fitting Tutorial](tut/tutorial_sh_fit.md)
+* [Spatial Room Impulse Response (SRIR) T60 Augmentation Tutorial](tut/tutorial_t60_aug.md)
 
  Spherical Harmonic Arrays and Beamforming
-  * [Part I: Setup, specifications, and Capon Beamformer Designs](tutorial_sh_bf_arr.md)
+  * [Part I: Setup, specifications, and Capon Beamformer Designs](tut/tutorial_sh_bf_arr.md)
 
 ## References
 
