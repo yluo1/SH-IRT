@@ -2,7 +2,7 @@
 
 This open-source library provides tools for modifying, generating, and analyzing spatial room impulse responses (SRIRs) in the spherical harmonics (SH) domain. SH-IRT supports the following features: 
 
-<img align="right" src="./figs/logo/logo_polar_hplane.png" width="320"/>
+<img align="right" src="./figs/logo/logo_polar_hplane.png" width="250"/>
 
 * **Operations**:  Rotation, reflection, addition, multiplication, conjugation, magnitude square, convolution, normalization, translation, complex-real conversion
 * **Evaluations**: SH basis, expansion, integral (sum, power), covariance
