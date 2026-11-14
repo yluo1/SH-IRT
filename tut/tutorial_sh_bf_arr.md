@@ -16,7 +16,7 @@ In part I of this tutorial, we cover formulations of several array designs with 
 
 ## Spherical Harmonic Arrays
  
-Arrays of both analytic and fitted SH expansions of various transfer function models are assembled in the function [sh_enc_arr.m](sh/sh_enc_arr.m). Common array element topologies include uniform line, circular, and spherical placements. Custom topologies are supported via optional inputs. We cover several transfer function model cases in the following sub-sections.
+Arrays of both analytic and fitted SH expansions of various transfer function models are assembled in the function [sh_enc_arr.m](../sh/sh_enc_arr.m). Common array element topologies include uniform line, circular, and spherical placements. Custom topologies are supported via optional inputs. We cover several transfer function model cases in the following sub-sections.
 
 ### Free-field Phased Array
 
@@ -28,9 +28,9 @@ where $c$ is the velocity of sound (m/s). For convenience, we can omit to omit $
 
  | Topology|  Element 1 |  Element 2  |  Element 3 |
  | :---: |  :---: |  :---:  |  :---: |
-  | <img src="./figs/figs_bf/arr/uni_circ_N_3_kappa_Inf_1.png" width="400"/> |  <img src="./figs/figs_bf/arr/uni_circ_N_3_kappa_Inf_2.png" width="400"/> |  <img src="./figs/figs_bf/arr/uni_circ_N_3_kappa_Inf_3.png" width="400"/>  |  <img src="./figs/figs_bf/arr/uni_circ_N_3_kappa_Inf_4.png" width="400"/> |
+  | <img src="../figs/figs_bf/arr/uni_circ_N_3_kappa_Inf_1.png" width="400"/> |  <img src="../figs/figs_bf/arr/uni_circ_N_3_kappa_Inf_2.png" width="400"/> |  <img src="../figs/figs_bf/arr/uni_circ_N_3_kappa_Inf_3.png" width="400"/>  |  <img src="../figs/figs_bf/arr/uni_circ_N_3_kappa_Inf_4.png" width="400"/> |
 
-where the +x axis direction corresponds to the spherical coordinates $(\theta = 90^{\circ}, \phi = 0)$ plane wave direction. In the far-field, the magnitude is assumed to be constant for all plane wave incident directions as the distance from a planewave source to any two elements at distance $r$ and $r + \delta$ has unity relative magnitude ratio $\lim_{r \rightarrow \infty} \frac{r}{r+\delta} = 1$ at the limit. Moreover, if the element is centered at the origin, then the phase responses become constant ($0$  radians). We simply use the 0th order SH basis to encode this omni-directional directivity. Therefore, frequency responses of off-centered elements rotate only the phase ponses w.r.t. the planewave direction in the function [sh_translate.m](sh/sh_translate.m), and therefore require higher-order SH expansions.
+where the +x axis direction corresponds to the spherical coordinates $(\theta = 90^{\circ}, \phi = 0)$ plane wave direction. In the far-field, the magnitude is assumed to be constant for all plane wave incident directions as the distance from a planewave source to any two elements at distance $r$ and $r + \delta$ has unity relative magnitude ratio $\lim_{r \rightarrow \infty} \frac{r}{r+\delta} = 1$ at the limit. Moreover, if the element is centered at the origin, then the phase responses become constant ($0$  radians). We simply use the 0th order SH basis to encode this omni-directional directivity. Therefore, frequency responses of off-centered elements rotate only the phase ponses w.r.t. the planewave direction in the function [sh_translate.m](../sh/sh_translate.m), and therefore require higher-order SH expansions.
 
 In practice, we see that SH expansions of functions near their physical center locations require lower-order expansions. Subsequent calculations of an array’s spatial covariance, steering vectors, and downstream beamformer designs can be managed without explicit SH translation of each element’s location. The following example specifies two MVDR beamformers over the phased array:
 
@@ -63,7 +63,7 @@ where `C_arr` and  ``C_arr_noncenter`` are $36^{th}$ and $0^{th}$ max-order SH e
 
 ### Piston on Spherical Baffle Arrays
 
-While free-field phased-array elements are idealized point sources and receivers, real-world world arrays may be baffled and their elements occupy a physical space. Realistic arrays require numerical simulations or measurements to compute their transfer functions. One exception is a piston on a spherical baffle[^ANSOL] which has an analytic solution in the spherical harmonic domain that we implement in the function [sh_enc_pist_sphere.m](sh/sh_enc_pist_sphere.m). An exterior piston spans the positive half-space intersection of a great circle slice of a rigid sphere. The negative half-space acts as the spherical baffle.
+While free-field phased-array elements are idealized point sources and receivers, real-world world arrays may be baffled and their elements occupy a physical space. Realistic arrays require numerical simulations or measurements to compute their transfer functions. One exception is a piston on a spherical baffle[^ANSOL] which has an analytic solution in the spherical harmonic domain that we implement in the function [sh_enc_pist_sphere.m](../sh/sh_enc_pist_sphere.m). An exterior piston spans the positive half-space intersection of a great circle slice of a rigid sphere. The negative half-space acts as the spherical baffle.
 
 Multiple pistons (2.54 cm, 4 mm diameters) can be arrayed over a spherical baffle (10 cm radius) as seen in the following loudspeaker and microphone array examples respectively:
 
@@ -94,15 +94,15 @@ custom_theta_phi = [deg2rad(10) * ones(1,N); deg2rad(0:(360/N):(360 - 360/N))];
 
  | Topology|  Element 1 |  Element 2  |  Element 3 |
  | :---: |  :---: |  :---:  |  :---: |
-  | <img src="./figs/figs_bf/arr/spis_circ_N_3_kappa_Inf_1.png" width="400"/> |  <img src="./figs/figs_bf/arr/spis_circ_N_3_kappa_Inf_2.png" width="400"/> |  <img src="./figs/figs_bf/arr/spis_circ_N_3_kappa_Inf_3.png" width="400"/>  |  <img src="./figs/figs_bf/arr/spis_circ_N_3_kappa_Inf_4.png" width="400"/> |
-  | <img src="./figs/figs_bf/arr/spis_custom_N_3_kappa_Inf_1.png" width="400"/> |  <img src="./figs/figs_bf/arr/spis_custom_N_3_kappa_Inf_2.png" width="400"/> |  <img src="./figs/figs_bf/arr/spis_custom_N_3_kappa_Inf_3.png" width="400"/>  |  <img src="./figs/figs_bf/arr/spis_custom_N_3_kappa_Inf_4.png" width="400"/> |
+  | <img src="../figs/figs_bf/arr/spis_circ_N_3_kappa_Inf_1.png" width="400"/> |  <img src="../figs/figs_bf/arr/spis_circ_N_3_kappa_Inf_2.png" width="400"/> |  <img src="../figs/figs_bf/arr/spis_circ_N_3_kappa_Inf_3.png" width="400"/>  |  <img src="../figs/figs_bf/arr/spis_circ_N_3_kappa_Inf_4.png" width="400"/> |
+  | <img src="../figs/figs_bf/arr/spis_custom_N_3_kappa_Inf_1.png" width="400"/> |  <img src="../figs/figs_bf/arr/spis_custom_N_3_kappa_Inf_2.png" width="400"/> |  <img src="../figs/figs_bf/arr/spis_custom_N_3_kappa_Inf_3.png" width="400"/>  |  <img src="../figs/figs_bf/arr/spis_custom_N_3_kappa_Inf_4.png" width="400"/> |
 
 where larger piston sizes are more directive in high frequency. Unlike the free-field phased-arrays, high max-order SH expansions are required regardless of centering the expansion centers at the piston locations.
 
 
 ### Empirical Spherical Harmonic Arrays
 
-The [SH fitting](tut/tutorial_sh_fit.md) tutorial covers several methods for fitting SH basis functions to empirical complex frequency responses. Let us consider a sample SH fitting of a loudspeaker piston mounted on a rotationally invariant baffle that is resting on a stand, with expansion center coincident to the piston surface. We wish to array several such pistons under rotation on the horizontal plane as to steer a beam in frontal half-space. The first step is to translate the expansion center to a rotationally invariant coordinate within the baffle’s interior as in the following code snippet:
+The [SH fitting](../tut/tutorial_sh_fit.md) tutorial covers several methods for fitting SH basis functions to empirical complex frequency responses. Let us consider a sample SH fitting of a loudspeaker piston mounted on a rotationally invariant baffle that is resting on a stand, with expansion center coincident to the piston surface. We wish to array several such pistons under rotation on the horizontal plane as to steer a beam in frontal half-space. The first step is to translate the expansion center to a rotationally invariant coordinate within the baffle’s interior as in the following code snippet:
 ```
 dat = load('dat/sample_exp_centered.mat');
 
@@ -121,11 +121,11 @@ h_figs_cb = sh_plt(C(:, 3:end), 'horizontal', is_real, 'hz', dat.freq(3:end), 'd
 ```
  | Expansion Center at Piston's Location|  Expansion Center at Baffle's Interior |
  | :---: |  :---: |  
-  | <img src="./figs/figs_bf/arr/fit_pist_center_pist.png" width="400"/> |  <img src="./figs/figs_bf/arr/fit_pist_center_baffle.png" width="400"/> |  
+  | <img src="../figs/figs_bf/arr/fit_pist_center_pist.png" width="400"/> |  <img src="../figs/figs_bf/arr/fit_pist_center_baffle.png" width="400"/> |  
 
 where the SH expansion centered on the piston surface is translated to its physical cartesian coordinates w.r.t. a new center of rotation within the baffle’s interior. As a result, the translated expansion’s phase responses over the spherical coordinates increase in variance as the piston’s radiating components have moved away from the new origin. The magnitude responses remain unchanged as the frequency responses are distance invariant in the far-field.
 
-Next, we setup an array of $N=3$ pistons oriented at `[-60, 0, 60]` degrees azimuth on the horizontal plane via the `fit_rot_custom` mode in the function [sh_enc_arr.m](sh/sh_enc_arr.m):
+Next, we setup an array of $N=3$ pistons oriented at `[-60, 0, 60]` degrees azimuth on the horizontal plane via the `fit_rot_custom` mode in the function [sh_enc_arr.m](../sh/sh_enc_arr.m):
 
 ```
 % Duplicate and array three expansions rotated in the frontal half-space
@@ -140,7 +140,7 @@ C_arr = sh_enc_arr(P+1, 'fit_rot_custom', 3, radius, delay_dist, dat.freq, ...
 
  | Topology|  Element 1 |  Element 2  |  Element 3 |
  | :---: |  :---: |  :---:  |  :---: |
-  | <img src="./figs/figs_bf/arr/fit_pist_arr_N_3_topology.png" width="400"/> |  <img src="./figs/figs_bf/arr/fit_pist_arr_N_3_1.png" width="400"/> |  <img src="./figs/figs_bf/arr/fit_pist_arr_N_3_2.png" width="400"/>  |  <img src="./figs/figs_bf/arr/fit_pist_arr_N_3_3.png" width="400"/> |
+  | <img src="../figs/figs_bf/arr/fit_pist_arr_N_3_topology.png" width="400"/> |  <img src="../figs/figs_bf/arr/fit_pist_arr_N_3_1.png" width="400"/> |  <img src="../figs/figs_bf/arr/fit_pist_arr_N_3_2.png" width="400"/>  |  <img src="../figs/figs_bf/arr/fit_pist_arr_N_3_3.png" width="400"/> |
 
 whereby rotating the SH expansions via Tait-Bryan intrinsic rotation angles in `custom_rot_zyx` coincides with rotating the +x axis facing piston on the baffle w.r.t. a common origin in the baffle’s interior. The spherical coordinates of the rotated pistons are specified in the `custom_theta_phi` variable.
 
@@ -157,13 +157,13 @@ where the linear equality constraint ensures that the response is undistorted w.
 
 $$\bf{R} = \mathbb{E}_{\bf{u} \sim f_R(\bf{u}) } \left [ \bf{v}(\bf{u})  \bf{v}^H(\bf{u})  \right ],$$
 
-which represents the expected covariance between array element’s responses integrated over a user defined density function $`f_R(\bf{u})`$ on the unit-sphere or in spherical coordinates. Common density functions such as the squared exponential and Matérn family are covariance functions that can be expanded and mixed along the SH bases[^LUO_COV], and further manipulated via the [SH operators](tut/tutorial_sh_ops.md). A preset of SH density function expansions are available in the function [sh_pdf_preset.m](sh/sh_pdf_preset.m), and SH densities can be fitted to empirical distributions following [SH basis fit tutorial](tut/tutorial_sh_fit.md). Discrete densities for finite directions are also supported. 
+which represents the expected covariance between array element’s responses integrated over a user defined density function $`f_R(\bf{u})`$ on the unit-sphere or in spherical coordinates. Common density functions such as the squared exponential and Matérn family are covariance functions that can be expanded and mixed along the SH bases[^LUO_COV], and further manipulated via the [SH operators](../tut/tutorial_sh_ops.md). A preset of SH density function expansions are available in the function [sh_pdf_preset.m](../sh/sh_pdf_preset.m), and SH densities can be fitted to empirical distributions following [SH basis fit tutorial](../tut/tutorial_sh_fit.md). Discrete densities for finite directions are also supported. 
 
 Once the steering direction $\bf{u}$ in spherical coordinates, and density function $`f_R(\bf{u})`$ are specified, the analytic MVDR solution or minimizer yields the conjugated beamformer weights given by 
 
 $$\bf{w}_{\ast} = \frac{\bf{R}^{-1} \bf{v} }{ \bf{v}^H \bf{R}^{-1} \bf{v}},$$
 
-which typically forms a hyper-directive beam in the direction of $\bf{u}$ whilst simultaneously rejecting the output domain power in the directions sampled from $`f_R(\bf{u})`$. Such beamformer designs are well studied for phased-array topologies which yield solutions with useful properties. For example, MVDR beamformer responses for lined and circular uniform spaced phase arrays are strictly real for arbitrary and even order $N$ respectively. The following MVDR beam patterns for spatial covariances sampled over a uniform density are computed in the function [plot_bf_mvdr_sh_example.m](plt/plot_bf_mvdr_sh_example.m):
+which typically forms a hyper-directive beam in the direction of $\bf{u}$ whilst simultaneously rejecting the output domain power in the directions sampled from $`f_R(\bf{u})`$. Such beamformer designs are well studied for phased-array topologies which yield solutions with useful properties. For example, MVDR beamformer responses for lined and circular uniform spaced phase arrays are strictly real for arbitrary and even order $N$ respectively. The following MVDR beam patterns for spatial covariances sampled over a uniform density are computed in the function [plot_bf_mvdr_sh_example.m](../plt/plot_bf_mvdr_sh_example.m):
 
 ```
 plot_bf_mvdr_sh_example('uni_line', 3);
@@ -173,9 +173,9 @@ plot_bf_mvdr_sh_example('uni_circ', 4);
 
 | Topology|  Beamformer Response |  Beamformer Statistics  |  
 | :---: |  :---: |  :---:  | 
-| <img src="./figs/figs_bf/arr/uni_line_N_3_kappa_Inf_1.png" width="320"/> |  <img src="./figs/figs_bf/arr/uni_line_N_3_kappa_Inf_5.png" width="400"/> |  <img src="./figs/figs_bf/arr/uni_line_N_3_kappa_Inf_6.png" width="400"/>
-| <img src="./figs/figs_bf/arr/uni_circ_N_3_kappa_Inf_1.png" width="320"/> |  <img src="./figs/figs_bf/arr/uni_circ_N_3_kappa_Inf_5.png" width="400"/> |  <img src="./figs/figs_bf/arr/uni_circ_N_3_kappa_Inf_6.png" width="400"/>
-| <img src="./figs/figs_bf/arr/uni_circ_N_4_kappa_Inf_1.png" width="320"/> |  <img src="./figs/figs_bf/arr/uni_circ_N_4_kappa_Inf_6.png" width="400"/> |  <img src="./figs/figs_bf/arr/uni_circ_N_4_kappa_Inf_7.png" width="400"/>  |
+| <img src="../figs/figs_bf/arr/uni_line_N_3_kappa_Inf_1.png" width="320"/> |  <img src="../figs/figs_bf/arr/uni_line_N_3_kappa_Inf_5.png" width="400"/> |  <img src="../figs/figs_bf/arr/uni_line_N_3_kappa_Inf_6.png" width="400"/>
+| <img src="../figs/figs_bf/arr/uni_circ_N_3_kappa_Inf_1.png" width="320"/> |  <img src="../figs/figs_bf/arr/uni_circ_N_3_kappa_Inf_5.png" width="400"/> |  <img src="../figs/figs_bf/arr/uni_circ_N_3_kappa_Inf_6.png" width="400"/>
+| <img src="../figs/figs_bf/arr/uni_circ_N_4_kappa_Inf_1.png" width="320"/> |  <img src="../figs/figs_bf/arr/uni_circ_N_4_kappa_Inf_6.png" width="400"/> |  <img src="../figs/figs_bf/arr/uni_circ_N_4_kappa_Inf_7.png" width="400"/>  |
 
 where we see that $N=3$ line array and $N=4$ circular array’s main lobe are in-phase, and the side-lobes alternate in phase. For circular uniform arrays of odd number of elements such as, the phase responses are not as regular as seen in the $N=3$ element example.
 
@@ -198,7 +198,7 @@ whereby the upper-bound of the overall array gain $`1 \leq \textrm{AG} = (\bf{v}
 
 $$\kappa_{min} = 2 \textrm{AG} - 1 + \sqrt{\textrm{AG} (\textrm{AG} - 1) }.$$ 
 
-Several regularization methods that precisely constrain the condition number $\kappa$ of the regularized covariance matrix $\hat{\bf{R}} = \bf{R}(\kappa)$  are considered in the MVDR design function [bf_mvdr.m](bf/bf_mvdr.m):
+Several regularization methods that precisely constrain the condition number $\kappa$ of the regularized covariance matrix $\hat{\bf{R}} = \bf{R}(\kappa)$  are considered in the MVDR design function [bf_mvdr.m](../bf/bf_mvdr.m):
 
 The first three regularizers (diagonal, threshold, and exponential) apply shape-preserving modifications to the spectra of $\bf{R}$.
 * `diag`: 	Minimally shift all eigenvalues upwards by  $`\frac{\lambda_{max} - \lambda_{min} }{\kappa - 1}`$
@@ -210,7 +210,7 @@ The remaining three regularizers (sum-of-squared, sum-of-absolute, max absolute 
 * `ase`: Minimize nuclear norm given by  $`\min_{\hat{\lambda}}  \sum_{n=1}^N \lvert \hat{\lambda}_n - \lambda_n \rvert`$
 * `minimax`: Minimize infinity norm given by $`\textrm{min max}_{\hat{\lambda}}  \sum_{n=1}^N \lvert \hat{\lambda}_n - \lambda_n \rvert`$
 
-Larger $\kappa$ reduces the amount of regularization at the cost of larger electrical and array gains. Smaller $\kappa$ introduces bias but reduces the latter. Therefore, it is desirable to minimize the amount of regularization (maximize $\kappa$) subject to a design’s array gain upper-bound $`\textrm{AG} \leq \textrm{AG}_{max}`$. For example, we can initialize $\kappa$ to $`\kappa_{min}`$, compute one of the several regularized MVDR solution weights $`\bf{w}_{\ast}`$, increase $\kappa$ and then re-compute the weights until $`\textrm{AG} \rightarrow \textrm{AG}_{max}`$. This is implemented in the spherical harmonic MVDR function [bf_mvdr_sh.m](bf/bf_mvdr_sh.m) where it’s desirable that the  solutions also smoothly vary over frequency. The following script computes beamformer weights for the previous $N=4$ element uniform circular phased-array with $6$ and $24$ dB max array gain power under `diag` regularization respectively:
+Larger $\kappa$ reduces the amount of regularization at the cost of larger electrical and array gains. Smaller $\kappa$ introduces bias but reduces the latter. Therefore, it is desirable to minimize the amount of regularization (maximize $\kappa$) subject to a design’s array gain upper-bound $`\textrm{AG} \leq \textrm{AG}_{max}`$. For example, we can initialize $\kappa$ to $`\kappa_{min}`$, compute one of the several regularized MVDR solution weights $`\bf{w}_{\ast}`$, increase $\kappa$ and then re-compute the weights until $`\textrm{AG} \rightarrow \textrm{AG}_{max}`$. This is implemented in the spherical harmonic MVDR function [bf_mvdr_sh.m](../bf/bf_mvdr_sh.m) where it’s desirable that the  solutions also smoothly vary over frequency. The following script computes beamformer weights for the previous $N=4$ element uniform circular phased-array with $6$ and $24$ dB max array gain power under `diag` regularization respectively:
 
 ```
 plot_bf_mvdr_sh_example('uni_circ', 4, inf, 'diag', 'max_arr_gain_pow_dB', 6);
@@ -218,8 +218,8 @@ plot_bf_mvdr_sh_example('uni_circ', 4, inf, 'diag', 'max_arr_gain_pow_dB', 24);
 ```
 | Max Array Gain Power (dB)|  Beamformer Response |  Beamformer Statistics  |  
 | :---: |  :---: |  :---:  | 
-| 6|  <img src="./figs/figs_bf/arr/uni_circ_N_4_kappa_Inf_arrgain_6_6.png" width="400"/> |  <img src="./figs/figs_bf/arr/uni_circ_N_4_kappa_Inf_arrgain_6_7.png" width="400"/>  |
-| 24|  <img src="./figs/figs_bf/arr/uni_circ_N_4_kappa_Inf_arrgain_24_6.png" width="400"/> |  <img src="./figs/figs_bf/arr/uni_circ_N_4_kappa_Inf_arrgain_24_7.png" width="400"/>  |
+| 6|  <img src="../figs/figs_bf/arr/uni_circ_N_4_kappa_Inf_arrgain_6_6.png" width="400"/> |  <img src="../figs/figs_bf/arr/uni_circ_N_4_kappa_Inf_arrgain_6_7.png" width="400"/>  |
+| 24|  <img src="../figs/figs_bf/arr/uni_circ_N_4_kappa_Inf_arrgain_24_6.png" width="400"/> |  <img src="../figs/figs_bf/arr/uni_circ_N_4_kappa_Inf_arrgain_24_7.png" width="400"/>  |
 
 whereby decreasing the max array gain flattens the low frequency electrical gains, and reverts the directivity to being omni-directional compared to constant directivity in the unconstrained array gain solution. At 6 dB array gain upper-bound, the beam pattern widens below 550 Hz; increasing upper-bound to 24 dB lowers the widening frequency to 170 Hz. The other non-diagonal regularization methods also produce solutions of similar DI with varied smoothness over frequency:
 
@@ -235,11 +235,11 @@ plot_bf_mvdr_sh_example('uni_circ', 5, inf, 'minimax', 'max_arr_gain_pow_dB', 6,
 
 | `diag` |  `thres` |  `exp`  | 
 | :---: |  :---: |  :---:  |
-|  <img src="./figs/figs_bf/arr/uni_circ_N_5_diag_kappa_Inf_arrgain_6_8.png" width="400"/>  | <img src="./figs/figs_bf/arr/uni_circ_N_5_thres_kappa_Inf_arrgain_6_8.png" width="400"/>  | <img src="./figs/figs_bf/arr/uni_circ_N_5_exp_kappa_Inf_arrgain_6_8.png" width="400"/>  |
+|  <img src="../figs/figs_bf/arr/uni_circ_N_5_diag_kappa_Inf_arrgain_6_8.png" width="400"/>  | <img src="../figs/figs_bf/arr/uni_circ_N_5_thres_kappa_Inf_arrgain_6_8.png" width="400"/>  | <img src="../figs/figs_bf/arr/uni_circ_N_5_exp_kappa_Inf_arrgain_6_8.png" width="400"/>  |
 
 | `sse`  |  `ase`  |  `minimax` |
 | :---: |  :---: | :---: |
-<img src="./figs/figs_bf/arr/uni_circ_N_5_sse_kappa_Inf_arrgain_6_8.png" width="400"/>  | <img src="./figs/figs_bf/arr/uni_circ_N_5_ase_kappa_Inf_arrgain_6_8.png" width="400"/>  | <img src="./figs/figs_bf/arr/uni_circ_N_5_minimax_kappa_Inf_arrgain_6_8.png" width="400"/>  | 
+<img src="../figs/figs_bf/arr/uni_circ_N_5_sse_kappa_Inf_arrgain_6_8.png" width="400"/>  | <img src="../figs/figs_bf/arr/uni_circ_N_5_ase_kappa_Inf_arrgain_6_8.png" width="400"/>  | <img src="../figs/figs_bf/arr/uni_circ_N_5_minimax_kappa_Inf_arrgain_6_8.png" width="400"/>  | 
 
 * `diag`: Good compromise between low bias (large DI) and smooth electrical channel powers.
 * `exp`: Produces high bias (lowest DI) and smoothest electrical channel power until the lowest frequencies where the smallest eigenvalues are sensitive to noise.
@@ -247,7 +247,7 @@ plot_bf_mvdr_sh_example('uni_circ', 5, inf, 'minimax', 'max_arr_gain_pow_dB', 6,
 
 ### Spherical Harmonic MVDR Beamforming
 
-In far-field MVDR beamformer designs, the steering vectors are normally sampled from the array element’s far-field responses in spherical coordinate directions $(\theta, \phi)$, which are already parameterized in the output matrix `C` of the SH expansions of [sh_enc_arr.m](sh/sh_enc_arr.m). The far-field SH MVDR function [bf_mvdr_sh.m](bf/bf_mvdr_sh.m) solves for the beamformer weights that steers a beam in the aforementioned `theta`, `phi` input direction, while minimizing the output power in the domain as defined by the spatial covariance matrix $\bf{R}$. The latter constructs `R` via different sampling schemes for integration:
+In far-field MVDR beamformer designs, the steering vectors are normally sampled from the array element’s far-field responses in spherical coordinate directions $(\theta, \phi)$, which are already parameterized in the output matrix `C` of the SH expansions of [sh_enc_arr.m](../sh/sh_enc_arr.m). The far-field SH MVDR function [bf_mvdr_sh.m](../bf/bf_mvdr_sh.m) solves for the beamformer weights that steers a beam in the aforementioned `theta`, `phi` input direction, while minimizing the output power in the domain as defined by the spatial covariance matrix $\bf{R}$. The latter constructs `R` via different sampling schemes for integration:
 
 * `uniform`: Uniform density over spherical coordinates maximizes DI.
 * `density`: SH density expansion `options.R_pdf` over spherical coordinates  attenuates broad spatial direction regions (e.g. side wall, ceiling, floor, back-wall reflection windows )
@@ -260,13 +260,13 @@ Let us consider different spatial covariances modes for MVDR designs on an $N=3$
 
 | Sampling Method |  Beamformer Response |  Beamformer Statistics  |  
 | :---: |  :---: |  :---:  | 
-| `uniform` (on-axis steering direction): Smooth broadband DI ~ 6 dB main-lobe visible below 10 kHz | <img src="./figs/figs_bf/arr/fit_pist_MVDR_N_3_onaxis_bp.png" width="400"/> |  <img src="./figs/figs_bf/arr/fit_pist_MVDR_N_3_onaxis_bs.png" width="400"/>  |
-| `uniform` (60 degree azimuth steering direction): Worst-case steering angle between two transducers slightly degrades DI by 1/2 dB. Beam pattern rotates that of on-axis steering angle. | <img src="./figs/figs_bf/arr/fit_pist_MVDR_N_3_60deg_bp.png" width="400"/> |  <img src="./figs/figs_bf/arr/fit_pist_MVDR_N_3_60deg_bs.png" width="400"/>  |
-| `density` (reject broad 90 degree azimuth window): Shallow null emerges near 90 degree azimuth| <img src="./figs/figs_bf/arr/fit_pist_MVDR_N_3_estbrd_bp.png" width="400"/> |  <img src="./figs/figs_bf/arr/fit_pist_MVDR_N_3_estbrd_bs.png" width="400"/>  |
-| `density` (narrow 90 degree azimuth window): Dual deep nulls emerge near 90 degree azimuth. | <img src="./figs/figs_bf/arr/fit_pist_MVDR_N_3_estnrw_bp.png" width="400"/> |  <img src="./figs/figs_bf/arr/fit_pist_MVDR_N_3_estnrw_bs.png" width="400"/>  |
-| `density` (narrow cross-talk window): Singular null steered towards the steering direction. Narrow-band lobes emerge in mid-band.| <img src="./figs/figs_bf/arr/fit_pist_MVDR_N_3_contra_bp.png" width="400"/> |  <img src="./figs/figs_bf/arr/fit_pist_MVDR_N_3_contra_bs.png" width="400"/>  |
-| `direction` (90 degree azimuth, heavy regularization `kappa = 1e3`): Steers a deep and singular null in the mid-high band. Low-frequencies revert to omni-directional with 10 dB reduction to electrical gain. | <img src="./figs/figs_bf/arr/fit_pist_MVDR_N_3_arrg1e2_bp.png" width="400"/> |  <img src="./figs/figs_bf/arr/fit_pist_MVDR_N_3_arrg1e2_bs.png" width="400"/>  |
-| `direction` (90 degree azimuth, light regularization `kappa = 1e8`): Steers a   broad-band deep and singular null. | <img src="./figs/figs_bf/arr/fit_pist_MVDR_N_3_arrg1e8_bp.png" width="400"/> |  <img src="./figs/figs_bf/arr/fit_pist_MVDR_N_3_arrg1e8_bs.png" width="400"/>  |
+| `uniform` (on-axis steering direction): Smooth broadband DI ~ 6 dB main-lobe visible below 10 kHz | <img src="../figs/figs_bf/arr/fit_pist_MVDR_N_3_onaxis_bp.png" width="400"/> |  <img src="../figs/figs_bf/arr/fit_pist_MVDR_N_3_onaxis_bs.png" width="400"/>  |
+| `uniform` (60 degree azimuth steering direction): Worst-case steering angle between two transducers slightly degrades DI by 1/2 dB. Beam pattern rotates that of on-axis steering angle. | <img src="../figs/figs_bf/arr/fit_pist_MVDR_N_3_60deg_bp.png" width="400"/> |  <img src="../figs/figs_bf/arr/fit_pist_MVDR_N_3_60deg_bs.png" width="400"/>  |
+| `density` (reject broad 90 degree azimuth window): Shallow null emerges near 90 degree azimuth| <img src="../figs/figs_bf/arr/fit_pist_MVDR_N_3_estbrd_bp.png" width="400"/> |  <img src="../figs/figs_bf/arr/fit_pist_MVDR_N_3_estbrd_bs.png" width="400"/>  |
+| `density` (narrow 90 degree azimuth window): Dual deep nulls emerge near 90 degree azimuth. | <img src="../figs/figs_bf/arr/fit_pist_MVDR_N_3_estnrw_bp.png" width="400"/> |  <img src="../figs/figs_bf/arr/fit_pist_MVDR_N_3_estnrw_bs.png" width="400"/>  |
+| `density` (narrow cross-talk window): Singular null steered towards the steering direction. Narrow-band lobes emerge in mid-band.| <img src="../figs/figs_bf/arr/fit_pist_MVDR_N_3_contra_bp.png" width="400"/> |  <img src="../figs/figs_bf/arr/fit_pist_MVDR_N_3_contra_bs.png" width="400"/>  |
+| `direction` (90 degree azimuth, heavy regularization `kappa = 1e3`): Steers a deep and singular null in the mid-high band. Low-frequencies revert to omni-directional with 10 dB reduction to electrical gain. | <img src="../figs/figs_bf/arr/fit_pist_MVDR_N_3_arrg1e2_bp.png" width="400"/> |  <img src="../figs/figs_bf/arr/fit_pist_MVDR_N_3_arrg1e2_bs.png" width="400"/>  |
+| `direction` (90 degree azimuth, light regularization `kappa = 1e8`): Steers a   broad-band deep and singular null. | <img src="../figs/figs_bf/arr/fit_pist_MVDR_N_3_arrg1e8_bp.png" width="400"/> |  <img src="../figs/figs_bf/arr/fit_pist_MVDR_N_3_arrg1e8_bs.png" width="400"/>  |
 
 
 MVDR beamformers are suitable for hyper-directive when the steering vectors' frequency responses are relatively flat and omni-directional. Otherwise, satisfying the distortionless response constraint requires excessive electrical gain, which boosts any input white-noise input in the signal. For example, a piston’s output power rolls-off outside its operating frequency range, and increases in directivity for wavelengths less than its size. MVDR beamformers designed for [loudspeaker pistons](#empirical-spherical-harmonic-arrays) require excessive electrical power gain below its operating frequency as seen in the aforementioned $N=3$ array design. We can indirectly constrain the optimization’s electrical gain by imposing a maximum array gain and pre-normalizing the steering vectors’ power to unity:
@@ -287,8 +287,8 @@ mode_mvdr = 'uniform';
 ```
  | MVDR|  Beamformer Response | Beamformer Statistics|
  | :---: |  :---: |   :---: |  
-| Unconstrained | <img src="./figs/figs_bf/arr/fit_pist_MVDR_N_3_unconstr_bp.png" width="400"/> |  <img src="./figs/figs_bf/arr/fit_pist_MVDR_N_3_unconstr_bs.png" width="400"/> | 
-| Max Array Gain (12 dB), normalized steering vector | <img src="./figs/figs_bf/arr/fit_pist_MVDR_N_3_constr_bp.png" width="400"/> |  <img src="./figs/figs_bf/arr/fit_pist_MVDR_N_3_constr_bs.png" width="400"/> |
+| Unconstrained | <img src="../figs/figs_bf/arr/fit_pist_MVDR_N_3_unconstr_bp.png" width="400"/> |  <img src="../figs/figs_bf/arr/fit_pist_MVDR_N_3_unconstr_bs.png" width="400"/> | 
+| Max Array Gain (12 dB), normalized steering vector | <img src="../figs/figs_bf/arr/fit_pist_MVDR_N_3_constr_bp.png" width="400"/> |  <img src="../figs/figs_bf/arr/fit_pist_MVDR_N_3_constr_bs.png" width="400"/> |
 
 However, the approach doesn’t lower the total electrical gain (including steering vector normalization) required to satisfy the distortionless response constraint; excessive makeup gains below the piston’s operating range (4 kHz) must compensate for its natural frequency roll-off behavior. 
 

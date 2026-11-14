@@ -36,9 +36,9 @@ where $\alpha$ is the T60 (seconds) at 0 Hz, $\beta$ is the decay exponent, and 
 ```
 gp_plt('mu_pow');
 ```
-<img src="./figs/figs_t60/mu_pow_1.png" alt="Power Function" width="600"/>
+<img src="../figs/figs_t60/mu_pow_1.png" alt="Power Function" width="600"/>
 
-The power law function is monotonic decreasing for positive $\beta$ and whose derivative converges to $0$ for increasing frequency. We can introduce a 3rd shape parameter to control the tilt following an idealized low-pass filter response design in `mu.lpf.m` given by
+The power law function is monotonic decreasing for positive $\beta$ and whose derivative converges to $0$ for increasing frequency. We can introduce a 3rd shape parameter to control the tilt following an idealized low-pass filter response design in the function [mu_lpf.m](../gp/mu_lpf.m) given by
 
 $$\overline{T}_{60}(\omega) =  \frac{\alpha}{1 + \left ( \frac{\nu(\omega)}{f_c}  \right )^{\beta}}, $$
 
@@ -47,20 +47,20 @@ where $f_c$ is the cross-over frequency relative to the flat T60 curve $(\beta =
 ```
 gp_plt('mu_lpf');
 ```
-<img src="./figs/figs_t60/mu_lpf_1.png" alt="Power Function" width="900"/>
+<img src="../figs/figs_t60/mu_lpf_1.png" alt="Power Function" width="900"/>
 
-We can model T60 distributions conditioned on real-world rooms via the linear and quadratic T60 fits of furnished and unfurnished room types[^DIAZ_DWELL] in `mu_well.m`. The interpolated T60s w.r.t. frequency and the room's cubic volume are shown:
+We can model T60 distributions conditioned on real-world rooms via the linear and quadratic T60 fits of furnished and unfurnished room types[^DIAZ_DWELL] in the function [mu_dwell.m](../gp/mu_dwell.m). The interpolated T60s w.r.t. frequency and the room's cubic volume are shown:
 ```
 gp_plt('mu_dwell', 'mu_dwell_mode', 'furnished');
 gp_plt('mu_dwell', 'mu_dwell_mode', 'unfurnished');
 ```
 | Furnished Dwelling | Unfurnished Dwelling |
   | :-: | :-: |
-|<img src="./figs/figs_t60/mu_dwell_furnished_1.png" alt="Furnished Dwelling" width="450"/> | <img src="./figs/figs_t60/mu_dwell_unfurnished_1.png" alt="Furnished Dwelling" width="450"/>|
+|<img src="../figs/figs_t60/mu_dwell_furnished_1.png" alt="Furnished Dwelling" width="450"/> | <img src="../figs/figs_t60/mu_dwell_unfurnished_1.png" alt="Furnished Dwelling" width="450"/>|
 
 where the T60 functions are monotonic decreasing in frequency between 125 to 4000 Hz. Frequencies outside the 1/3 octave band center frequencies are interpolated via piecewise splines, and extrapolated via piecewise log-linear functions.
 
-The GP prior mean functions can be evaluated via `gp_mu.m` by specifying its options struct `gp_mu_opts.m` and plotted:
+The GP prior mean functions can be evaluated via [gp_mu.m](../gp/gp_mu.m) by specifying its options struct [gp_mu_opts.m](../gp/gp_mu_opts.m) and plotted:
 ```
 omega = 2 * pi * logspace(log10(20), log10(24000), 256)'; % Angular frequencies
 
@@ -84,7 +84,7 @@ where $\lambda = \ell / f^{\gamma}$ is the scaled wavelength for velocity $\ell$
 ```
 gp_plt('cov_sqx_chw_ns');
 ```
-<img src="./figs/figs_t60/cov_sqx_chw_ns_1.png" alt="Squared Exponential Chordal Distance with Non-stationary Frequency" width="1200"/>
+<img src="../figs/figs_t60/cov_sqx_chw_ns_1.png" alt="Squared Exponential Chordal Distance with Non-stationary Frequency" width="1200"/>
 
 where the maximum covariances occur at $\lambda = \ell / f_0^{\gamma}$ for varying $\lambda' = \ell / f_1^{\gamma}$. The covariance function’s shape follows
 
@@ -101,11 +101,11 @@ where $\ell_c$, $\ell_f$ are length-scale hyper-parameters of the chordal and lo
 ```
 gp_plt('cov_sqx_chw_sqx');
 ```
-<img src="./figs/figs_t60/cov_sqx_chw_sqx_1.png" alt="Squared Exponential Chordal Distance x  Squared Exponential of Log-Frequency" width="1200"/>
+<img src="../figs/figs_t60/cov_sqx_chw_sqx_1.png" alt="Squared Exponential Chordal Distance x  Squared Exponential of Log-Frequency" width="1200"/>
 
 where frequency $f = f_0$ for varying $f' = f_1$. Unlike the non-stationary covariance, the low and high frequencies covary only by their octave separation, and are independent of the absolute frequency.
 
-The GP prior covariance function can be evaluated via `gp_cov.m` by specifying its options struct `gp_cov_opts.m` and plotted:
+The GP prior covariance function can be evaluated via [gp_cov.m](../gp/gp_cov.m) by specifying its options struct [gp_cov_opts.m](../gp/gp_cov_opts.m) and plotted:
 
 ```
 N_B = 16;     % Number of log-uniform angular frequencies
@@ -127,7 +127,7 @@ X = [2 * pi * freq_grid(:), theta_grid(:), phi_grid(:)]; %[N_B * N_E x 1] Input 
 
 ### Sampling from GP Prior and Posterior Distributions
 
-We can sample T60 functions from either a GP prior or posterior distribution via the function `gp_t60_sample.m`. Let us walk through several cases from the function `plot_gp_T60_prior_post_example.m`.
+We can sample T60 functions from either a GP prior or posterior distribution via the function `gp_t60_sample.m`. Let us walk through several cases from the function [plot_gp_T60_prior_post_example.m](../plt/plot_gp_T60_prior_post_example.m).
 
 * Drawing independent and identically distributed (IID) sample log-T60 functions from a GP prior distribution at a common spherical coordinate:
   ```
@@ -156,7 +156,7 @@ We can sample T60 functions from either a GP prior or posterior distribution via
           'options_mu', options_mu, 'options_cov', options_cov, ...
           'enable_disp', true, 'options_disp', gp_disp_opts('disp_ylim', [0, 1.75], 'disp_legend_num_cols', 1));
   ```
-	<img src="./figs/figs_t60/sample_GP_prior.png" alt="Sample T60s drawn from GP prior" width="480"/>
+	<img src="../figs/figs_t60/sample_GP_prior.png" alt="Sample T60s drawn from GP prior" width="480"/>
 
 	where by virtue of modeling log-T60 functions, the variance hyper parameter  $\sigma^2$ belonging to the covariance function is multiplicative w.r.t. the prior mean $\overline{T}_{60}(\omega)$, and the sampled functions are non-negative.
 
@@ -178,11 +178,11 @@ We can sample T60 functions from either a GP prior or posterior distribution via
             'options_mu', options_mu, 'options_cov', options_cov, ...
             'enable_disp', true, 'options_disp', gp_disp_opts('disp_ylim', [0, 0.75], 'disp_legend_loc', 'northeast', 'disp_legend_num_cols',  2));
   ```
-	<img src="./figs/figs_t60/sample_GP_prior_grid.png" alt="Sample T60s drawn from GP prior grid" width="480"/>
+	<img src="../figs/figs_t60/sample_GP_prior_grid.png" alt="Sample T60s drawn from GP prior grid" width="480"/>
 
 	where the T60s highly covary for lower frequencies by virtue of the non-stationary covariance function. 
 
-* Specifying observed log-T60 via options in `gp_obs_opts.m` and drawing IID log-T60 functions from the GP posterior distribution:
+* Specifying observed log-T60 via options in [gp_obs_opts.m](../gp/gp_obs_opts.m) and drawing IID log-T60 functions from the GP posterior distribution:
 	```
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Single point spherical coordinate evaluation grid, sampled 4 times, GP posterior
@@ -212,7 +212,7 @@ We can sample T60 functions from either a GP prior or posterior distribution via
               'enable_disp', true, 'options_disp', gp_disp_opts('disp_ylim', [0, 1], 'disp_legend_loc', 'northeast', 'disp_legend_num_cols', 1));
     ```
 	
-	<img src="./figs/figs_t60/sample_GP_post.png" alt="Sample T60s drawn from GP posterior" width="480"/>
+	<img src="../figs/figs_t60/sample_GP_post.png" alt="Sample T60s drawn from GP posterior" width="480"/>
 
 	where `obs` struct contains the three observed log-T60s specified at $[20, 692, 24000]$ Hz on a single spherical coordinate. The sampled log-T60 functions from the GP posterior distribution highly covary at the observed T60 frequencies due to the small log-noise standard deviation specification (5%).
 
@@ -254,13 +254,13 @@ We can sample T60 functions from either a GP prior or posterior distribution via
           'options_mu', options_mu, 'options_cov', options_cov, ...
           'enable_disp', true, 'options_disp', options_disp_gp);
     ```
-	<img src="./figs/figs_t60/sample_GP_post_grid.png" alt="Sample T60s drawn from GP posterior" width="480"/>
+	<img src="../figs/figs_t60/sample_GP_post_grid.png" alt="Sample T60s drawn from GP posterior" width="480"/>
 
 	where the sampled log-T60s revert back to the prior mean function for spherical coordinates far away from the observed coordinates at $(\theta = 90^{\circ}, \phi = 0^{\circ})$.
 
 ### Optimizing Gaussian Process Covariance Function Hyper Parameters
 
-We can optimize the covariance function’s hyper parameters by maximizing the marginal data likelihood following the example in `plot_gp_optimize_example.m`. Let us draw some sample log-T60 functions from the following GP prior distribution:
+We can optimize the covariance function’s hyper parameters by maximizing the marginal data likelihood following the example in [plot_gp_optimize_example.m](../plt/plot_gp_optimize_example.m). Let us draw some sample log-T60 functions from the following GP prior distribution:
 
 ```
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -293,7 +293,7 @@ num_evals = 1;
         'enable_disp', true, 'options_disp', options_disp); % [N_B x N_E x num_evals]
 ```
 
-<img src="./figs/figs_t60/opt_GP_prior_grid.png" alt="Sample T60 grid drawn from GP prior" width="480"/>
+<img src="../figs/figs_t60/opt_GP_prior_grid.png" alt="Sample T60 grid drawn from GP prior" width="480"/>
 
 We now specify the drawn samples as the observed log-T60 and maximize the log-marginal likelihood w.r.t. the covariance hyper parameters as follows:
 
@@ -361,7 +361,7 @@ omega_fitted = 2 * pi * logspace(log10(20), log10(Fs/2), 100)';
     'options_mu', options_mu, 'options_cov', options_cov_fit, ...
     'enable_disp', true, 'options_disp', options_disp_fitted);
 ```
-<img src="./figs/figs_t60/opt_GP_post_grid.png" alt="Sample T60 grid drawn from GP posterior" width="480"/>
+<img src="../figs/figs_t60/opt_GP_post_grid.png" alt="Sample T60 grid drawn from GP posterior" width="480"/>
 
 
 ## Fitting Exponentiating FIR to T60 Functions
@@ -374,7 +374,7 @@ where $\mathcal{H}$ is the Hilbert transform, and can be found via the real-ceps
 
 $$ \min_{\bf{g}} \int \left \lVert \mathcal{F} \lbrace g[n] \rbrace (\omega) - G(\omega) \right \rVert_2^2 d \omega,  \quad  \left \lVert \mathcal{F} \lbrace g[n] \rbrace (\omega)   \right \rVert_2^2 < 0, $$
 
-which can be expressed as a cone-program after discretizing the Fourier transform $\mathcal{F}$ along uniform spaced angular frequencies between DC and Nyquist. This is implemented in our function `ft_fit_bnd_minphase.m` and `ft_exp_design.m`. As an example, let us specify a simple T60 target over uniform frequencies and fit a 9-tap exponentiating FIR filter with magnitude response bounded below $1-10^{-6}$ as follows:
+which can be expressed as a cone-program after discretizing the Fourier transform $\mathcal{F}$ along uniform spaced angular frequencies between DC and Nyquist. This is implemented in the function [ft_fit_bnd_minphase.m](../ft/ft_fit_bnd_minphase.m) and [ft_exp_design.m](../ft/ft_exp_design.m). As an example, let us specify a simple T60 target over uniform frequencies and fit a 9-tap exponentiating FIR filter with magnitude response bounded below $1-10^{-6}$ as follows:
 
 ```
 Fs = 48000;
@@ -386,11 +386,11 @@ tol0 = 1e-6;
 [g_RT60_9, ~, h_f_9] = ft_exp_design(9, 'RT60',  'enable_disp', true, 'Fs', Fs, 'RT60_sec', RT60_sec, 'tol0', tol0);
 h_f_9.Position = [100, 100, 600, 480];
 ```
-<img src="./figs/figs_t60/sample_exp_design.png" alt="Sample exponentiating filter fit" width="480"/>
+<img src="../figs/figs_t60/sample_exp_design.png" alt="Sample exponentiating filter fit" width="480"/>
 
 where the target minimum-phase response overshoots $0$ dB in the high-frequency band (14 - 18 kHz). Our optimized exponentiating filter stays below the unity upper bound and is near-minimum phase given equal number of filter taps to minimum-phase target responses.
 
-Let us now combine the GP T60 sampling method from the previous section with our filter fitting method, and apply exponentiating filter to a Gaussian noise sequence in the `plot_gp_T60_exp_fit_example.m` function.
+Let us now combine the GP T60 sampling method from the previous section with our filter fitting method, and apply exponentiating filter to a Gaussian noise sequence in the function [plot_gp_T60_exp_fit_example.m](../plt/plot_gp_T60_exp_fit_example.m).
 
 * Sample a log-T60 field from the GP posterior:
 
@@ -442,7 +442,7 @@ Let us now combine the GP T60 sampling method from the previous section with our
           'options_mu', options_mu, 'options_cov', options_cov, ...
           'enable_disp', true, 'options_disp', options_disp_gp);
   ```
-  <img src="./figs/figs_t60/sample_GP_post_exp_fit_field.png" alt="Sample T60 Posterior" width="480"/>
+  <img src="../figs/figs_t60/sample_GP_post_exp_fit_field.png" alt="Sample T60 Posterior" width="480"/>
 
 * Interpolate T60 at 32 uniformly spaced frequencies between DC and Nyquist:
   ```
@@ -466,7 +466,7 @@ Let us now combine the GP T60 sampling method from the previous section with our
   end
   h_lg = legend(legend_str, 'location', 'best'); set(h_lg, 'fontsize', fontsize - 1);
   ```
-  <img src="./figs/figs_t60/sample_GP_post_exp_fit_interp.png" alt="Uniform interpolation of T60 over frequency" width="480"/>
+  <img src="../figs/figs_t60/sample_GP_post_exp_fit_interp.png" alt="Uniform interpolation of T60 over frequency" width="480"/>
 
 * Filter fit exponentiating filter $\bf{g}$ to the first sampled T60 function:
   ```
@@ -484,7 +484,7 @@ Let us now combine the GP T60 sampling method from the previous section with our
   [g_RT60{idx_fit}, g_MP{idx_fit}, h_g_fig{idx_fit}] = ft_exp_design(N_taps, 'RT60',  'enable_disp', true, 'Fs', Fs, 'RT60_sec', T60_uni_sec(:, idx_fit), 'tol0', tol0);
   h_g_fig{idx_fit}.Position = [100, 100, 600, 480];
   ```
-  <img src="./figs/figs_t60/sample_GP_post_exp_fit_filter.png" alt="Exponentiating filter fitted to target" width="480"/>
+  <img src="../figs/figs_t60/sample_GP_post_exp_fit_filter.png" alt="Exponentiating filter fitted to target" width="480"/>
 
 * Generate Gaussian noise impulse response $\bf{h}$ and apply exponentiating filtering $f(\bf{h}, \bf{g})$:
   ```
@@ -497,7 +497,7 @@ Let us now combine the GP T60 sampling method from the previous section with our
   [f_1, h_f_exp_fig] = ft_exp_conv_opt(h, g_RT60{idx_fit}, ...
       'enable_disp', true, 'Fs', Fs, 'N_FFT', 512);
   ```
-    <img src="./figs/figs_t60/sample_GP_post_exp_fit_exp_conv.png" alt="Exponentiated filtered white-noise" width="480"/>
+    <img src="../figs/figs_t60/sample_GP_post_exp_fit_exp_conv.png" alt="Exponentiated filtered white-noise" width="480"/>
   
 ## Generating and Augmenting Colorless Spatial Room Impulse Responses
 
@@ -505,14 +505,14 @@ We can generate SRIRs that distribute acoustic echos or reflections over the sph
 
 $$\delta(\theta, \phi  |  \theta', \phi') = \sum_{l=0}^{L} \sum_{m=-l}^l Y_l^m (\theta, \phi)  Y_l^{m*} (\theta', \phi'),$$
 
-where $Y_l^m(\theta, \phi)$ are spherical harmonic basis functions of degree $l$, order $m$, and $Y_l^{m*}(\theta', \phi’)$ is the complex conjugate at the spherical coordinate expansion center $(\theta’,\phi')$. Delta functions are subsequently normalized to have unity intensity at their peaks to model unit pulse-trains. Once a pulse-train of SH-SRIR expansions are generated, they can be augmented with different T60 decays sampled from a GP via the function `sh_exp_conv_gp.m`.
+where $Y_l^m(\theta, \phi)$ are spherical harmonic basis functions of degree $l$, order $m$, and $Y_l^{m*}(\theta', \phi’)$ is the complex conjugate at the spherical coordinate expansion center $(\theta’,\phi')$. Delta functions are subsequently normalized to have unity intensity at their peaks to model unit pulse-trains. Once a pulse-train of SH-SRIR expansions are generated, they can be augmented with different T60 decays sampled from a GP via the function [sh_exp_conv_gp.m](../sh/sh_exp_conv_gp.m).
 
 
 ### Spherical Harmonic Echo Density Profile Model
 
-The distribution of a room’s echo arrival times given an echo density profile[^ABEL_EDP] can be modeled by a Poisson process[^HUANG_EDP]. We can augment the echo density profile with a probability distribution function (PDF) of the acoustic reflection’s direction in spherical coordinates over time. Valid density functions over the spherical coordinates can be expressed via sum-of-magnitude square SH expansions[^LUO_MAGSQSH]. The SH-Poisson process RIR is implemented in the function `sh_rand_pp.m`.
+The distribution of a room’s echo arrival times given an echo density profile[^ABEL_EDP] can be modeled by a Poisson process[^HUANG_EDP]. We can augment the echo density profile with a probability distribution function (PDF) of the acoustic reflection’s direction in spherical coordinates over time. Valid density functions over the spherical coordinates can be expressed via sum-of-magnitude square SH expansions[^LUO_MAGSQSH]. The SH-Poisson process RIR is implemented in the function [sh_rand_pp.m](../sh/sh_rand_pp.m).
 
-Let us generate a sample SH-Poisson RIR and augment its T60 in the function `plot_sh_rand_pp_example.m`:
+Let us generate a sample SH-Poisson RIR and augment its T60 in the function [plot_sh_rand_pp_example.m](../plt/plot_sh_rand_pp_example.m):
 
 * Specify a square exponential of chordal distance density function centered on $(\theta = \pi/2, \phi = 0)$ with no, linear, and exponential scattering over time:
   ```
@@ -541,7 +541,7 @@ Let us generate a sample SH-Poisson RIR and augment its T60 in the function `plo
   ```
 	| No Scattering | Linear Scattering | Exponential Scattering |
   | :-: | :-: | :-: |
-  |<img src="./figs/figs_t60/rand_pp_pdf.png" alt="No scattering density" width="400"/>|<img src="./figs/figs_t60/rand_pp_pdf_lin.png" alt="Linear scattering density" width="400"/>|<img src="./figs/figs_t60/rand_pp_pdf_exp.png" alt="Exponential scattering density" width="400"/>|
+  |<img src="../figs/figs_t60/rand_pp_pdf.png" alt="No scattering density" width="400"/>|<img src="../figs/figs_t60/rand_pp_pdf_lin.png" alt="Linear scattering density" width="400"/>|<img src="../figs/figs_t60/rand_pp_pdf_exp.png" alt="Exponential scattering density" width="400"/>|
   
 	where no scattering holds the density constant over time, linear scattering mixes with uniform density over time, and exponential scattering transports towards uniform density over time.
 
@@ -567,13 +567,13 @@ Let us generate a sample SH-Poisson RIR and augment its T60 in the function `plo
   ```
 	| Density | SRIRs Decoded On-Axis | Energy / Time on Horizontal Plane |
   | :-: | :-: | :-: |
-  |No Scattering|<img src="./figs/figs_t60/SRIR_pp_pdf.png" width="800"/>|<img src="./figs/figs_t60/SRIR_hplane_pp_pdf.png"  width="400"/>|
-  |Linear Scattering|<img src="./figs/figs_t60/SRIR_pp_pdf_lin.png" width="800"/>|<img src="./figs/figs_t60/SRIR_hplane_pp_pdf_lin.png"  width="400"/>|
-  |Exponential Scattering|<img src="./figs/figs_t60/SRIR_pp_pdf_exp.png" width="800"/>|<img src="./figs/figs_t60/SRIR_hplane_pp_pdf_exp.png"  width="400"/>| 
+  |No Scattering|<img src="../figs/figs_t60/SRIR_pp_pdf.png" width="800"/>|<img src="../figs/figs_t60/SRIR_hplane_pp_pdf.png"  width="400"/>|
+  |Linear Scattering|<img src="../figs/figs_t60/SRIR_pp_pdf_lin.png" width="800"/>|<img src="../figs/figs_t60/SRIR_hplane_pp_pdf_lin.png"  width="400"/>|
+  |Exponential Scattering|<img src="../figs/figs_t60/SRIR_pp_pdf_exp.png" width="800"/>|<img src="../figs/figs_t60/SRIR_hplane_pp_pdf_exp.png"  width="400"/>| 
 
     where we expect the majority of the energy in the SRIR to concentrate on-axis in the no scattering case, energy to rapidly disperse in the linear scattering, and slowly disperse in the exponential scattering.
 
-* Specify a T60 GP prior mean and covariance. Set the T60 sampling method to only the GP prior mean function (direction independent, `sample_method_gp = ‘mean’; obs = []`) and apply SH exponentiated convolutions to the exponential scattered SRIR `C_pp_exp_T60_prior` via `sh_exp_conv_gp.m`. Then add a set of observed T60 to `obs` and repeat for the posterior 'C_pp_exp_T60_post':
+* Specify a T60 GP prior mean and covariance. Set the T60 sampling method to only the GP prior mean function (direction independent, `sample_method_gp = ‘mean’; obs = []`) and apply SH exponentiated convolutions to the exponential scattered SRIR `C_pp_exp_T60_prior` via the function [sh_exp_conv_gp.m](../sh/sh_exp_conv_gp.m). Then add a set of observed T60 to `obs` and repeat for the posterior 'C_pp_exp_T60_post':
   ```
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % Specify GP mean and coariance priors
@@ -623,7 +623,7 @@ Let us generate a sample SH-Poisson RIR and augment its T60 in the function `plo
   ```
   | T60 GP Prior | T60 GP Posterior|
   | :-: | :-: |
-  <img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior.png"  width="400"/> | <img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post.png"  width="400"/>
+  <img src="../figs/figs_t60/SRIR_pp_gp_exp_T60_prior.png"  width="400"/> | <img src="../figs/figs_t60/SRIR_pp_gp_exp_T60_post.png"  width="400"/>
 
 * Decode and plot SRIRs at spherical coordinates on the horizontal plane:
 
@@ -659,10 +659,10 @@ Let us generate a sample SH-Poisson RIR and augment its T60 in the function `plo
 
   | Original | Exponentiated SRIR with T60 GP prior| Exponentiated SRIR with T60 GP Posterior|
      | :-: | :-: | :-: |
-    |<img src="./figs/figs_t60/SRIR_pp_gp_exp_orig_1.png" width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior_1.png"  width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post_1.png"  width="400"/>|
-    |<img src="./figs/figs_t60/SRIR_pp_gp_exp_orig_2.png" width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior_2.png"  width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post_2.png"  width="400"/>|
-  |<img src="./figs/figs_t60/SRIR_pp_gp_exp_orig_3.png" width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior_3.png"  width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post_3.png"  width="400"/>|
-  |<img src="./figs/figs_t60/SRIR_pp_gp_exp_orig_4.png" width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_prior_4.png"  width="400"/>|<img src="./figs/figs_t60/SRIR_pp_gp_exp_T60_post_4.png"  width="400"/>|
+    |<img src="../figs/figs_t60/SRIR_pp_gp_exp_orig_1.png" width="400"/>|<img src="../figs/figs_t60/SRIR_pp_gp_exp_T60_prior_1.png"  width="400"/>|<img src="../figs/figs_t60/SRIR_pp_gp_exp_T60_post_1.png"  width="400"/>|
+    |<img src="../figs/figs_t60/SRIR_pp_gp_exp_orig_2.png" width="400"/>|<img src="../figs/figs_t60/SRIR_pp_gp_exp_T60_prior_2.png"  width="400"/>|<img src="../figs/figs_t60/SRIR_pp_gp_exp_T60_post_2.png"  width="400"/>|
+  |<img src="../figs/figs_t60/SRIR_pp_gp_exp_orig_3.png" width="400"/>|<img src="../figs/figs_t60/SRIR_pp_gp_exp_T60_prior_3.png"  width="400"/>|<img src="../figs/figs_t60/SRIR_pp_gp_exp_T60_post_3.png"  width="400"/>|
+  |<img src="../figs/figs_t60/SRIR_pp_gp_exp_orig_4.png" width="400"/>|<img src="../figs/figs_t60/SRIR_pp_gp_exp_T60_prior_4.png"  width="400"/>|<img src="../figs/figs_t60/SRIR_pp_gp_exp_T60_post_4.png"  width="400"/>|
     
 ### Spherical Harmonic Image-Source Model
 
@@ -713,9 +713,9 @@ Let us generate a sample SH-ISM RIR and augment its T60 in the function `plot_sh
 
   | SRIR 0th to 0th Order SH Source to Receiver Expansion | SRIR 0th Order SH Source to On-Axis Receiver Direction| Energy / Time or 0th Order Source on Horizontal Plane |
     | :-: | :-: | :-: |
-  |<img src="./figs/figs_t60/sh_ism_RIR_0.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_RIR_onaxis.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_RIR_hplane.png"  width="400"/>|
+  |<img src="../figs/figs_t60/sh_ism_RIR_0.png" width="400"/>|<img src="../figs/figs_t60/sh_ism_RIR_onaxis.png"  width="400"/>|<img src="../figs/figs_t60/sh_ism_RIR_hplane.png"  width="400"/>|
 
-* Specify a T60 GP prior mean and covariance. Set the T60 sampling method to only the GP prior mean function (direction independent, `sample_method_gp = ‘mean’; obs = []`) and apply SH exponentiated convolutions to the exponential scattered SRIR `C_pp_exp_T60_prior` via `sh_exp_conv_gp.m`. Then add a set of observed T60 to `obs` and repeat for the posterior ‘C_pp_exp_T60_post’. Sample T60 prior and posterior means:
+* Specify a T60 GP prior mean and covariance. Set the T60 sampling method to only the GP prior mean function (direction independent, `sample_method_gp = ‘mean’; obs = []`) and apply SH exponentiated convolutions to the exponential scattered SRIR `C_pp_exp_T60_prior` via the function [sh_exp_conv_gp.m](../sh/sh_exp_conv_gp.m). Then add a set of observed T60 to `obs` and repeat for the posterior `C_pp_exp_T60_post`. Sample T60 prior and posterior means:
 
   ```
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -770,8 +770,8 @@ Let us generate a sample SH-ISM RIR and augment its T60 in the function `plot_sh
 
     | T60 GP Prior | T60 GP Posterior|
     | :-: | :-: |
-    <img src="./figs/figs_t60/sh_ism_T60_prior.png"  width="400"/> | <img src="./figs/figs_t60/sh_ism_T60_post.png"  width="400"/>
-  | <img src="./figs/figs_t60/sh_ism_RIR_hplane_prior.png"  width="400"/>   | <img src="./figs/figs_t60/sh_ism_RIR_hplane_post.png"  width="400"/> |
+    <img src="../figs/figs_t60/sh_ism_T60_prior.png"  width="400"/> | <img src="../figs/figs_t60/sh_ism_T60_post.png"  width="400"/>
+  | <img src="../figs/figs_t60/sh_ism_RIR_hplane_prior.png"  width="400"/>   | <img src="../figs/figs_t60/sh_ism_RIR_hplane_post.png"  width="400"/> |
 
 * Decode and plot SRIRs at spherical coordinates on the horizontal plane:
 
@@ -807,10 +807,10 @@ Let us generate a sample SH-ISM RIR and augment its T60 in the function `plot_sh
   
   | Original | Exponentiated SRIR with T60 GP prior| Exponentiated SRIR with T60 GP Posterior|
   | :-: | :-: | :-: |
-    |<img src="./figs/figs_t60/sh_ism_orig_1.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_prior_1.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_post_1.png"  width="400"/>|
-    |<img src="./figs/figs_t60/sh_ism_orig_2.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_prior_2.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_post_2.png"  width="400"/>|
-  |<img src="./figs/figs_t60/sh_ism_orig_3.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_prior_3.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_post_3.png"  width="400"/>|
-  |<img src="./figs/figs_t60/sh_ism_orig_4.png" width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_prior_4.png"  width="400"/>|<img src="./figs/figs_t60/sh_ism_T60_post_4.png"  width="400"/>|
+    |<img src="../figs/figs_t60/sh_ism_orig_1.png" width="400"/>|<img src="../figs/figs_t60/sh_ism_T60_prior_1.png"  width="400"/>|<img src="../figs/figs_t60/sh_ism_T60_post_1.png"  width="400"/>|
+    |<img src="../figs/figs_t60/sh_ism_orig_2.png" width="400"/>|<img src="../figs/figs_t60/sh_ism_T60_prior_2.png"  width="400"/>|<img src="../figs/figs_t60/sh_ism_T60_post_2.png"  width="400"/>|
+  |<img src="../figs/figs_t60/sh_ism_orig_3.png" width="400"/>|<img src="../figs/figs_t60/sh_ism_T60_prior_3.png"  width="400"/>|<img src="../figs/figs_t60/sh_ism_T60_post_3.png"  width="400"/>|
+  |<img src="../figs/figs_t60/sh_ism_orig_4.png" width="400"/>|<img src="../figs/figs_t60/sh_ism_T60_prior_4.png"  width="400"/>|<img src="../figs/figs_t60/sh_ism_T60_post_4.png"  width="400"/>|
 
 [^DIAZ_DWELL]: Díaz, C., & Pedrero, A. (2007). The reverberation time and equivalent sound absorption area of rooms in dwellings. Noise & Vibration Worldwide, 38(6), 12-20.
 

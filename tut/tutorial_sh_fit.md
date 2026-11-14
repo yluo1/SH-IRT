@@ -1,6 +1,6 @@
 # Tutorial: Spherical Harmonic (SH) Basis Fitting
 
-A common task in signal processing and machine learning is to fit a smooth function to data collected over spatial-temporal or spatial-frequency domain. For spatial domains over fixed distances, the spherical coordinates are specified in terms of co-latitude $\theta \in [0, \pi]$ and azimuth $\phi \in [0, 2 \pi)$ domains, whereby the [spherical harmonic](guide_func.md) (SH) bases represent the smooth and orthogonal functions that span the domain. In this tutorial, we cover SH fitting methods and applications introduced in our paper
+A common task in signal processing and machine learning is to fit a smooth function to data collected over spatial-temporal or spatial-frequency domain. For spatial domains over fixed distances, the spherical coordinates are specified in terms of co-latitude $\theta \in [0, \pi]$ and azimuth $\phi \in [0, 2 \pi)$ domains, whereby the [spherical harmonic](../guide_func.md) (SH) bases represent the smooth and orthogonal functions that span the domain. In this tutorial, we cover SH fitting methods and applications introduced in our paper
 > Luo, Y. (2021). [Spherical Harmonic Covariance and Magnitude Function Encodings for Beamformer Design](https://link.springer.com/article/10.1186/s13636-021-00230-7). EURASIP Journal on Audio, Speech, and Music Processing, 2021(1), 41.
 
 as well sum-of-magnitude squared extensions introduced in 
@@ -128,13 +128,13 @@ Let us walk through an example in `plot_sh_fit_svd_example.m`:
 
 | Reference | Non-Regularized Least Squares |  Picard Crossover TSVD |
 | :-: | :-: | :-: | 
-| <img src="./figs/figs_sh/fit/svd_ref.png" width="400"/> | <img src="./figs/figs_sh/fit/svd_ls.png" width="400"/> |  <img src="./figs/figs_sh/fit/svd_pc.png" width="400"/> | 
+| <img src="../figs/figs_sh/fit/svd_ref.png" width="400"/> | <img src="../figs/figs_sh/fit/svd_ls.png" width="400"/> |  <img src="../figs/figs_sh/fit/svd_pc.png" width="400"/> | 
 
 where the non-regularized least squares yields a poor fit due to sensitivity to noise of the non-uniform sampling grid. We can compare the decay of the projection of the noisy observations onto the left singular vectors $|\bf{u}_i^H x|$ to the descending singular values $\sigma_i$ in the following Picard plot: 
 
  |  Picard Plot | Fitting Error |
   | :-: | :-: |
-<img src="./figs/figs_sh/fit/svd_picard.png" width="400"/> |<img src="./figs/figs_sh/fit/svd_err.png" width="600"/> |
+<img src="../figs/figs_sh/fit/svd_picard.png" width="400"/> |<img src="../figs/figs_sh/fit/svd_err.png" width="600"/> |
 
 where the singular values decay faster than the magnitude of the projections. This amplifies the noise in $\bf{x}$ in the least squares solution $`\bf{C}_{\ast} = \sum_{i=1}^{N_C} \bf{v}_i \frac{\bf{u}_i^H x}{\sigma_i}`$ for small $\sigma_i$ in the tail. We can identify when the decays diverge via reverse integration and normalizing their cumulative distribution functions (CDFs) as to account for arbitrary scaling of $\bf{x}$. Sorting the singular values in ascending order and computing the normalized CDF (NCDF), we see that the curve crosses that of the projection’s NCDF after 19 singular values, and exceeds half the latter after 5 singular values. More generally, we can define a crossover index for the DPC that removes ascending singular values below index $k_c$ for some adjustable fraction $\tau$ given by
 
@@ -155,9 +155,9 @@ where the denominator normalizes for the variance of the reference field. We can
 
   | Mode | $\tau = 0.01$ | $\tau = 0.1$ | $\tau = 0.2$ |
   | :---: |  :---: |  :---:  |  :---: |
-  | Max |<img src="./figs/figs_sh/fit/svd_fit_1_1.png" width="400"/>|<img src="./figs/figs_sh/fit/svd_fit_1_2.png"  width="400"/>|<img src="./figs/figs_sh/fit/svd_fit_1_3.png"  width="400"/>|
-  | Total Variation |<img src="./figs/figs_sh/fit/svd_fit_2_1.png" width="400"/>|<img src="./figs/figs_sh/fit/svd_fit_2_2.png"  width="400"/>|<img src="./figs/figs_sh/fit/svd_fit_2_3.png"  width="400"/>|
-  | Bottom |<img src="./figs/figs_sh/fit/svd_fit_3_1.png" width="400"/>|<img src="./figs/figs_sh/fit/svd_fit_3_2.png"  width="400"/>|<img src="./figs/figs_sh/fit/svd_fit_3_3.png"  width="400"/>|
+  | Max |<img src="../figs/figs_sh/fit/svd_fit_1_1.png" width="400"/>|<img src="../figs/figs_sh/fit/svd_fit_1_2.png"  width="400"/>|<img src="../figs/figs_sh/fit/svd_fit_1_3.png"  width="400"/>|
+  | Total Variation |<img src="../figs/figs_sh/fit/svd_fit_2_1.png" width="400"/>|<img src="../figs/figs_sh/fit/svd_fit_2_2.png"  width="400"/>|<img src="../figs/figs_sh/fit/svd_fit_2_3.png"  width="400"/>|
+  | Bottom |<img src="../figs/figs_sh/fit/svd_fit_3_1.png" width="400"/>|<img src="../figs/figs_sh/fit/svd_fit_3_2.png"  width="400"/>|<img src="../figs/figs_sh/fit/svd_fit_3_3.png"  width="400"/>|
 
 ### Tikhonov Regularized Least Squares
 
@@ -278,9 +278,9 @@ Let us consider the example in `plot_sh_fit_tr_example.m`:
 * Plot the fitted fields and errors:
   | Reference | Picard Tikhonov Regularized Least Squares | 
   | :-: | :-: | 
-  | <img src="./figs/figs_sh/fit/tr_ref.png" width="400"/> | <img src="./figs/figs_sh/fit/tr_pc.png" width="400"/> |
+  | <img src="../figs/figs_sh/fit/tr_ref.png" width="400"/> | <img src="../figs/figs_sh/fit/tr_pc.png" width="400"/> |
      Picard Plot | Varying Picard Crossover |
-   <img src="./figs/figs_sh/fit/tr_picard.png" width="400"/> |  <img src="./figs/figs_sh/fit/tr_tsvd_picard.png" width="400"/>
+   <img src="../figs/figs_sh/fit/tr_picard.png" width="400"/> |  <img src="../figs/figs_sh/fit/tr_tsvd_picard.png" width="400"/>
 
     where the Tikhonov regularization smoothly lifts the singular values below the Picard crossover index above the singular vector projection in the NCDF. For small Piard crossover fractions, too few tiny singular values are regularized or truncated, which results in high sensitivity to noise in the resulting fit. Tikhonov regularization outperforms the TSVD when more singular values are regularized. 
 
@@ -370,9 +370,9 @@ Let us consider the example in `plot_sh_fit_rbf_example.m`:
   
   | Reference | $\ell = 0.2$, NMSQE =  0.4509 | 
   | :-: | :-: | 
-  |<img src="./figs/figs_sh/fit/rbf_ell_ref.png" width="400"/>|<img src="./figs/figs_sh/fit/rbf_ell_1.png" width="400"/>|
+  |<img src="../figs/figs_sh/fit/rbf_ell_ref.png" width="400"/>|<img src="../figs/figs_sh/fit/rbf_ell_1.png" width="400"/>|
   | $\ell = 0.4$, NMSQE =  0.2618 | $\ell = 0.8$, NMSQE =  0.2747 |
-  <img src="./figs/figs_sh/fit/rbf_ell_2.png" width="400"/>|<img src="./figs/figs_sh/fit/rbf_ell_3.png" width="400"/>|
+  <img src="../figs/figs_sh/fit/rbf_ell_2.png" width="400"/>|<img src="../figs/figs_sh/fit/rbf_ell_3.png" width="400"/>|
   
   where the fitted field for $\ell = 0.4$ achieves the lowest error, being neither too smooth or coarse. Note that the noise-variance $\sigma^2$ of the measurements is incorporated into RBF’s Gram matrix. We can optimize $\ell$ by increasing the number of iterations following
   
@@ -404,9 +404,9 @@ Let us consider the example in `plot_sh_fit_rbf_example.m`:
 
   | Reference | Picard Tikhonov Regularization: NMSQE = 0.3072 | Squared Exponential RBF: NMSQE = 0.1193 |
     | :-: | :-: | :-: |
-    |<img src="./figs/figs_sh/fit/rbf_ref.png" width="400"/>|<img src="./figs/figs_sh/fit/rbf_tr.png" width="400"/>|<img src="./figs/figs_sh/fit/rbf_sqexp.png" width="400"/>|
+    |<img src="../figs/figs_sh/fit/rbf_ref.png" width="400"/>|<img src="../figs/figs_sh/fit/rbf_tr.png" width="400"/>|<img src="../figs/figs_sh/fit/rbf_sqexp.png" width="400"/>|
   | Matérn $\nu=5/2$ RBF: NMSQE = 0.0787  | Matérn $\nu=3/2$ RBF: NMSQE = 0.0936 |  Exponential RBF: NMSQE = 0.1981 |
-    |<img src="./figs/figs_sh/fit/rbf_mat52.png" width="400"/>|<img src="./figs/figs_sh/fit/rbf_mat32.png" width="400"/>|<img src="./figs/figs_sh/fit/rbf_exp.png" width="400"/>|
+    |<img src="../figs/figs_sh/fit/rbf_mat52.png" width="400"/>|<img src="../figs/figs_sh/fit/rbf_mat32.png" width="400"/>|<img src="../figs/figs_sh/fit/rbf_exp.png" width="400"/>|
 
 	The Picard Tikhonov regularized solution prevents some over-fitting to the higher-order SH bases but still produces a function with spurious high-frequency features. The Picard TSVD solution gives a similar solution and therefore omitted. The Matérn $\nu=5/2$ RBF yields both the maximum log-marginal likelihood as well as the lowest NMSQE. The squared exponential RBF solution is too smooth, and the exponential RBF too coarse.
 
@@ -475,7 +475,7 @@ where $\diamond$ is the SH product operator, and $\tilde{\bf{C}}$ is the SH conj
   
   |Reference| Sum-of-Magnitude Squared | Magnitude Squared | Mix-of-Magnitude Squared | Mixture Power |
   | :-: | :-: | :-: | :-: | :-: |
-  | <img src="./figs/figs_sh/fit/msq_ref_4_3.png" width="350"/> | <img src="./figs/figs_sh/fit/msq_soms_4_3.png" width="350"/> | <img src="./figs/figs_sh/fit/msq_ms_4_3.png" width="350"/> | <img src="./figs/figs_sh/fit/msq_moms_4_3.png" width="350"/> | <img src="./figs/figs_sh/fit/msq_mp_4_3.png" width="350"/> |
+  | <img src="../figs/figs_sh/fit/msq_ref_4_3.png" width="350"/> | <img src="../figs/figs_sh/fit/msq_soms_4_3.png" width="350"/> | <img src="../figs/figs_sh/fit/msq_ms_4_3.png" width="350"/> | <img src="../figs/figs_sh/fit/msq_moms_4_3.png" width="350"/> | <img src="../figs/figs_sh/fit/msq_mp_4_3.png" width="350"/> |
   
   The SOMS and MOMS solutions converge to the reference solution. The MS and MP solutions converge to rank-1 approximations due to lack of modeling capacity.
 
@@ -483,7 +483,7 @@ where $\diamond$ is the SH product operator, and $\tilde{\bf{C}}$ is the SH conj
 
   |Reference| Sum-of-Magnitude Squared | Magnitude Squared | Mix-of-Magnitude Squared | Mixture Power |
   | :-: | :-: | :-: | :-: | :-: |
-  | <img src="./figs/figs_sh/fit/msq_ref_4_1.png" width="350"/> | <img src="./figs/figs_sh/fit/msq_soms_4_1.png" width="350"/> | <img src="./figs/figs_sh/fit/msq_ms_4_1.png" width="350"/> | <img src="./figs/figs_sh/fit/msq_moms_4_1.png" width="350"/> | <img src="./figs/figs_sh/fit/msq_mp_4_1.png" width="350"/> |
+  | <img src="../figs/figs_sh/fit/msq_ref_4_1.png" width="350"/> | <img src="../figs/figs_sh/fit/msq_soms_4_1.png" width="350"/> | <img src="../figs/figs_sh/fit/msq_ms_4_1.png" width="350"/> | <img src="../figs/figs_sh/fit/msq_moms_4_1.png" width="350"/> | <img src="../figs/figs_sh/fit/msq_mp_4_1.png" width="350"/> |
 
 
 ### Sum-of-Magnitude Squared Least Squares
@@ -511,7 +511,7 @@ where the minimizer can be found by solving for positive semi-definite (PSD) $\b
 tst_sh_pdf_transport('SlicedWass', 'FwdLeft', 'SqExp', 'FwdRight', 'SqExp', [0.25, 0.5, 0.75], 'preset_title', 'Left to Right');
 ```
 
-  |<img src="./figs/figs_sh/fit/FwdLeftSqExp_FwdRightSqExp_1.png" width="280"/> | <img src="./figs/figs_sh/fit/FwdLeftSqExp_FwdRightSqExp_2.png" width="250"/> |<img src="./figs/figs_sh/fit/FwdLeftSqExp_FwdRightSqExp_3.png" width="250"/> |<img src="./figs/figs_sh/fit/FwdLeftSqExp_FwdRightSqExp_4.png" width="250"/> |<img src="./figs/figs_sh/fit/FwdLeftSqExp_FwdRightSqExp_5.png" width="250"/> |
+  |<img src="../figs/figs_sh/fit/FwdLeftSqExp_FwdRightSqExp_1.png" width="280"/> | <img src="../figs/figs_sh/fit/FwdLeftSqExp_FwdRightSqExp_2.png" width="250"/> |<img src="../figs/figs_sh/fit/FwdLeftSqExp_FwdRightSqExp_3.png" width="250"/> |<img src="../figs/figs_sh/fit/FwdLeftSqExp_FwdRightSqExp_4.png" width="250"/> |<img src="../figs/figs_sh/fit/FwdLeftSqExp_FwdRightSqExp_5.png" width="250"/> |
   | :-: | :-: | :-: | :-: | :-: |   
 
 ### Magnitude Squared Least Squares
@@ -530,8 +530,8 @@ plot_sh_fit_msq_phase_recovery_example(5);
 ```
   |Reference | Magnitude Square Fit |
   | :-: | :-: |
-  | <img src="./figs/figs_sh/fit/msq_ms_phaserecover_ref_4.png" width="350"/> | <img src="./figs/figs_sh/fit/msq_ms_phaserecover_fit_4.png" width="350"/> |
-  |<img src="./figs/figs_sh/fit/msq_ms_phaserecover_ref_5.png" width="350"/> | <img src="./figs/figs_sh/fit/msq_ms_phaserecover_fit_5.png" width="350"/> | 
+  | <img src="../figs/figs_sh/fit/msq_ms_phaserecover_ref_4.png" width="350"/> | <img src="../figs/figs_sh/fit/msq_ms_phaserecover_fit_4.png" width="350"/> |
+  |<img src="../figs/figs_sh/fit/msq_ms_phaserecover_ref_5.png" width="350"/> | <img src="../figs/figs_sh/fit/msq_ms_phaserecover_fit_5.png" width="350"/> | 
 
 
 
@@ -570,13 +570,13 @@ beamformer_coeffs =
 
 | Piston 1 Response | Piston 2 Response | Piston 3 Response | Piston 4 Response|
   | :-: | :-: | :-: | :-: | 
-  | <img src="./figs/figs_sh/fit/omni_array_dic_1.png" width="350"/> | <img src="./figs/figs_sh/fit/omni_array_dic_2.png" width="350"/> | <img src="./figs/figs_sh/fit/omni_array_dic_3.png" width="350"/> | <img src="./figs/figs_sh/fit/omni_array_dic_4.png" width="350"/> |
+  | <img src="../figs/figs_sh/fit/omni_array_dic_1.png" width="350"/> | <img src="../figs/figs_sh/fit/omni_array_dic_2.png" width="350"/> | <img src="../figs/figs_sh/fit/omni_array_dic_3.png" width="350"/> | <img src="../figs/figs_sh/fit/omni_array_dic_4.png" width="350"/> |
 | Beam 1 Response | Beam 2 Response | Beam 3 Response | Beam 4 Response |
- | <img src="./figs/figs_sh/fit/omni_array_beam_1.png" width="350"/> | <img src="./figs/figs_sh/fit/omni_array_beam_2.png" width="350"/> | <img src="./figs/figs_sh/fit/omni_array_beam_3.png" width="350"/> | <img src="./figs/figs_sh/fit/omni_array_beam_4.png" width="350"/> |
+ | <img src="../figs/figs_sh/fit/omni_array_beam_1.png" width="350"/> | <img src="../figs/figs_sh/fit/omni_array_beam_2.png" width="350"/> | <img src="../figs/figs_sh/fit/omni_array_beam_3.png" width="350"/> | <img src="../figs/figs_sh/fit/omni_array_beam_4.png" width="350"/> |
 
 | Fitted Total Power Response |
 | :-: | 
-|<img src="./figs/figs_sh/fit/omni_array_fit.png" width="350"/>|
+|<img src="../figs/figs_sh/fit/omni_array_fit.png" width="350"/>|
 
 ### Mixture Power Least Squares
 
@@ -616,7 +616,7 @@ beamformer_coeffs =
 
 | Target Power Response | Fitted Power Response | Fitted Frequency Response | 
 | :-: | :-: |:-: |
-| <img src="./figs/figs_sh/fit/null_array_tgt_pow.png" width=“400”/> | <img src="./figs/figs_sh/fit/null_array_fit_pow.png" width=“400”/> | <img src="./figs/figs_sh/fit/null_array_fit_resp.png" width=“400”/> 
+| <img src="../figs/figs_sh/fit/null_array_tgt_pow.png" width=“400”/> | <img src="../figs/figs_sh/fit/null_array_fit_pow.png" width=“400”/> | <img src="../figs/figs_sh/fit/null_array_fit_resp.png" width=“400”/> 
 
 [^HANSEN_DPC]: Hansen, P. C. (1990). The discrete Picard condition for discrete ill-posed problems. BIT Numerical Mathematics, 30(4), 658-672.
 

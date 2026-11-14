@@ -17,13 +17,13 @@ In this tutorial, we cover sample usage of basic operators on the spherical harm
 * [Filter Time Domain](#filter-time-domain)
 * [Filter Frequency Domain](#filter-frequency-domain)
 
-Sample codes are contained in the function [plot_sh_ops_example.m](plt/plot_sh_ops_example.m) and parsed as follows:
+Sample codes are contained in the function [plot_sh_ops_example.m](../plt/plot_sh_ops_example.m) and parsed as follows:
 
 ## Decode
 
 Evaluate (decode) spherical harmonic expansion at select spherical coordinates. 
 
-Sample [sh_dec.m](/sh/sh_dec.m) usage:
+Sample [sh_dec.m](../sh/sh_dec.m) usage:
 ```
     is_real = false;
     max_odr = 6;    
@@ -46,7 +46,7 @@ Sample [sh_dec.m](/sh/sh_dec.m) usage:
     grid on; axis tight;
 ```
 
-|<img src="figs/figs_sh/ops/ops_dec_1.png"  width="450"> | <img src="figs/figs_sh/ops/ops_dec_2.png"  width="450"> |
+|<img src="../figs/figs_sh/ops/ops_dec_1.png"  width="450"> | <img src="../figs/figs_sh/ops/ops_dec_2.png"  width="450"> |
 | :-: | :-: | 
 
 ## Addition
@@ -66,14 +66,14 @@ Sample usage:
     h_3 = sh_plt(C_sum, 'mercator', is_real, 'title_name', 'Field A + B', 'dB_lim', dB_lim);
 ```
 
-| <img src="figs/figs_sh/ops/ops_add_1.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_add_2.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_add_3.png"  width="450"> |
+| <img src="../figs/figs_sh/ops/ops_add_1.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_add_2.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_add_3.png"  width="450"> |
 | :-: | :-: | :-: | 
 
 
 ## Multiplication
 Multiply spherical harmonic expansions via Clebsch-Gordan coefficients.
 
-Sample [sh_mul.m](/sh/sh_mul.m) usage:
+Sample [sh_mul.m](../sh/sh_mul.m) usage:
 ```
     is_real = false;
     max_odr = 6;    
@@ -86,13 +86,13 @@ Sample [sh_mul.m](/sh/sh_mul.m) usage:
     h_3 = sh_plt(C_mul, 'mercator', is_real, 'title_name', 'Field A \times B', 'dB_lim', dB_lim);
 ```
 
-| <img src="figs/figs_sh/ops/ops_mul_1.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_mul_2.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_mul_3.png"  width="450"> |
+| <img src="../figs/figs_sh/ops/ops_mul_1.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_mul_2.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_mul_3.png"  width="450"> |
 | :-: | :-: | :-: | 
 
 ## Conjugation
 Conjugate spherical harmonic expansion evaluations.
 
-Sample [sh_conj.m](/sh/sh_conj.m) usage:
+Sample [sh_conj.m](../sh/sh_conj.m) usage:
 ```
     is_real = false;
     max_odr = 6;    
@@ -103,13 +103,13 @@ Sample [sh_conj.m](/sh/sh_conj.m) usage:
     h_2 = sh_plt(C_conj, 'mercator', is_real, 'title_name', 'Field conj(A)');
 ```
 
-| <img src="figs/figs_sh/ops/ops_conj_1.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_conj_2.png"  width="450">  |
+| <img src="../figs/figs_sh/ops/ops_conj_1.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_conj_2.png"  width="450">  |
 | :-: | :-: | 
 
 ## Magnitude Squared
 Compute magnitude squared expansion of spherical harmonic expansion.
 
-Sample [sh_msq.m](/sh/sh_msq.m) usage:
+Sample [sh_msq.m](../sh/sh_msq.m) usage:
 ```
     rng(5324);
     is_real = false;
@@ -122,13 +122,13 @@ Sample [sh_msq.m](/sh/sh_msq.m) usage:
     h_2 = sh_plt(D, 'mercator', is_real, 'title_name', 'Field |A|^2', 'dB_lim', dB_lim);
 ```
 
-| <img src="figs/figs_sh/ops/ops_msq_1.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_msq_2.png"  width="450">  |
+| <img src="../figs/figs_sh/ops/ops_msq_1.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_msq_2.png"  width="450">  |
 | :-: | :-: | 
 
 ## Convolution
 Convolve multiple spherical harmonic expansions.
 
-Sample [sh_conv.m](/sh/sh_conv.m) usage:
+Sample [sh_conv.m](../sh/sh_conv.m) usage:
 ```
     rng(5324);
     is_real = false;
@@ -143,13 +143,13 @@ Sample [sh_conv.m](/sh/sh_conv.m) usage:
     h_3 = sh_plt(E, 'mercator', is_real, 'title_name', 'Field Conv(C, D)', 'dB_lim', dB_lim);
 ```
 
-| <img src="figs/figs_sh/ops/ops_conv_1.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_conv_2.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_conv_3.png"  width="450"> |
+| <img src="../figs/figs_sh/ops/ops_conv_1.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_conv_2.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_conv_3.png"  width="450"> |
 | :-: | :-: | :-: | 
 
 ## Normalization
 Normalize N3D spherical harmonic expansion by its integral sum or power.
 
-Sample [sh_nrm.m](/sh/sh_nrm.m) usage:
+Sample [sh_nrm.m](../sh/sh_nrm.m) usage:
 ```
     rng(5324);
     is_real = false;
@@ -163,14 +163,14 @@ Sample [sh_nrm.m](/sh/sh_nrm.m) usage:
     h_3 = sh_plt(E, 'mercator', is_real, 'disp_phase', false, 'title_name', "Field norm(C, 'Pow')", 'dB_lim', [-40, 6]);
 ```
 
-| <img src="figs/figs_sh/ops/ops_norm_1.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_norm_2.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_norm_3.png"  width="450"> |
+| <img src="../figs/figs_sh/ops/ops_norm_1.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_norm_2.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_norm_3.png"  width="450"> |
 | :-: | :-: | :-: | 
 
 ## Rotation
 
 Rotate spherical harmonic expansion coefficients by zyx (yaw-pitch-roll), Tait-Bryan rotation, intrinsic.
 
-Sample [sh_rot.m](/sh/sh_rot.m) usage:
+Sample [sh_rot.m](../sh/sh_rot.m) usage:
 ```
     rng(1123);
     is_real = false;
@@ -187,14 +187,14 @@ Sample [sh_rot.m](/sh/sh_rot.m) usage:
     h_4 = sh_plt(C_x90, 'mercator', is_real, 'title_name', 'Field Rotate(C, x=90)', 'dB_lim',  dB_lim);
 ```
 
-| <img src="figs/figs_sh/ops/ops_rot_1.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_rot_2.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_rot_3.png"  width="450"> | <img src="figs/figs_sh/ops/ops_rot_4.png"  width="450"> |
+| <img src="../figs/figs_sh/ops/ops_rot_1.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_rot_2.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_rot_3.png"  width="450"> | <img src="../figs/figs_sh/ops/ops_rot_4.png"  width="450"> |
 | :-: | :-: | :-: | :-: | 
 
 ## Reflection
 
 Reflect spherical harmonic expansion over a cardinal plane.
 
-Sample [sh_refl.m](/sh/sh_refl.m) usage:
+Sample [sh_refl.m](../sh/sh_refl.m) usage:
 ```
     rng(1953);
     is_real = false;
@@ -211,7 +211,7 @@ Sample [sh_refl.m](/sh/sh_refl.m) usage:
     h_4 = sh_plt(C_front, 'mercator', is_real, 'title_name', 'Field Reflect(C, Frontal)', 'dB_lim',  dB_lim);
 ```
 
-| <img src="figs/figs_sh/ops/ops_refl_1.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_refl_2.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_refl_3.png"  width="450"> | <img src="figs/figs_sh/ops/ops_refl_4.png"  width="450"> |
+| <img src="../figs/figs_sh/ops/ops_refl_1.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_refl_2.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_refl_3.png"  width="450"> | <img src="../figs/figs_sh/ops/ops_refl_4.png"  width="450"> |
 | :-: | :-: | :-: | :-: | 
 
 
@@ -219,7 +219,7 @@ Sample [sh_refl.m](/sh/sh_refl.m) usage:
 
 Regularized least squares fit FIR filters to SH coefficients per basis over frequency. Then compute frequency response of FIRs at target angular frequency for resampling.
 
-Sample [ft_fit_sh.m](/ft/ft_fit_sh.m) and [sh_filter_val.m](/sh/sh_filter_val.m) usage:
+Sample [ft_fit_sh.m](../ft/ft_fit_sh.m) and [sh_filter_val.m](../sh/sh_filter_val.m) usage:
 ```
     % Resample log-frequency response of spherical piston to linear-frequency
     Fs = 48000;
@@ -241,14 +241,14 @@ Sample [ft_fit_sh.m](/ft/ft_fit_sh.m) and [sh_filter_val.m](/sh/sh_filter_val.m)
     h_2 = sh_plt(C_lin, 'horizontal', is_real,  'hz', w_lin / (2 * pi) * Fs, 'dB_lim', [-20, 60], 'title_name', 'Resampled');
 ```
 
-| <img src="figs/figs_sh/ops/ops_resamp_1.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_resamp_2.png"  width="450">  |
+| <img src="../figs/figs_sh/ops/ops_resamp_1.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_resamp_2.png"  width="450">  |
 | :-: | :-: | 
 
 ## Resize
 
 Resize max order of spherical harmonic expansions via truncation or zero-padding.
 
-Sample [sh_resize.m](/sh/sh_resize.m) usage:
+Sample [sh_resize.m](../sh/sh_resize.m) usage:
 ```
     rng(534);
     P = 4;
@@ -263,7 +263,7 @@ Sample [sh_resize.m](/sh/sh_resize.m) usage:
     h_3 = sh_plt(E, 'mercator', is_real); % Match C
 ```
 
-| <img src="figs/figs_sh/ops/ops_resize_1.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_resize_2.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_resize_3.png"  width="450"> |
+| <img src="../figs/figs_sh/ops/ops_resize_1.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_resize_2.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_resize_3.png"  width="450"> |
 | :-: | :-: | :-: | 
 
 
@@ -271,7 +271,7 @@ Sample [sh_resize.m](/sh/sh_resize.m) usage:
 
 Translate spherical harmonic expansion's origin to a new coordinate. Refit to higher max-order expansions.
 
-Sample [sh_translate.m](/sh/sh_translate.m) usage:
+Sample [sh_translate.m](../sh/sh_translate.m) usage:
 ```
     % Generate SH spherical piston normalized on-axis and translate the expansion
     Fs = 8000;
@@ -289,15 +289,15 @@ Sample [sh_translate.m](/sh/sh_translate.m) usage:
     h_3 = sh_plt(D, 'cardinal', is_real, 't', t, 'hz', freq, 'title_name', 'Translated');
 ```
 
-| <img src="figs/figs_sh/ops/ops_trans_1.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_trans_2.png"  width="450"> |
+| <img src="../figs/figs_sh/ops/ops_trans_1.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_trans_2.png"  width="450"> |
 | :-: | :-: |
-|<img src="figs/figs_sh/ops/ops_trans_3.png"  width="450"> | <img src="figs/figs_sh/ops/ops_trans_4.png"  width="450"> |
+|<img src="../figs/figs_sh/ops/ops_trans_3.png"  width="450"> | <img src="../figs/figs_sh/ops/ops_trans_4.png"  width="450"> |
 
 ## Filter Time domain
 
 Filter spherical harmonic expansion coefficients in the time-domain by numerator/denominator coefficients or second-order-sections.
 
-Sample [sh_filter.m](/sh/sh_filter.m) usage:
+Sample [sh_filter.m](../sh/sh_filter.m) usage:
 ```
     Fs    = 48000;
     M_w   = 256;
@@ -328,14 +328,14 @@ Sample [sh_filter.m](/sh/sh_filter.m) usage:
     h_3 = sh_plt(D_sos, 'horizontal', is_real, 'hz', freq, 'title_name', 'Real Random Field * LPF SOS', 'dB_lim', dB_lim);
 ```
 
-| <img src="figs/figs_sh/ops/ops_flt_t_1.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_flt_t_2.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_flt_t_3.png"  width="450"> |
+| <img src="../figs/figs_sh/ops/ops_flt_t_1.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_flt_t_2.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_flt_t_3.png"  width="450"> |
 | :-: | :-: | :-: | 
 
 ## Filter Frequency Domain
 
 Filter spherical harmonic expansion coefficients in the frequency domain (Hardamard product) by numerator/denominator coefficients or second-order-sections.
 
-Sample [sh_filter_freq.m](/sh/sh_filter_freq.m) usage:
+Sample [sh_filter_freq.m](../sh/sh_filter_freq.m) usage:
 ```
     Fs    = 48000;
     freq  = logspace(log10(100), log10(Fs / 2), 256);
@@ -356,5 +356,5 @@ Sample [sh_filter_freq.m](/sh/sh_filter_freq.m) usage:
     h_3 = sh_plt(C_butter_sos, 'horizontal', false, 'hz', freq, 'title_name', 'Piston on Spherical Baffle * LPF SOS', 'dB_lim', dB_lim);
 ```
 
-| <img src="figs/figs_sh/ops/ops_flt_f_1.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_flt_f_2.png"  width="450">  |  <img src="figs/figs_sh/ops/ops_flt_f_3.png"  width="450"> |
+| <img src="../figs/figs_sh/ops/ops_flt_f_1.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_flt_f_2.png"  width="450">  |  <img src="../figs/figs_sh/ops/ops_flt_f_3.png"  width="450"> |
 | :-: | :-: | :-: | 
