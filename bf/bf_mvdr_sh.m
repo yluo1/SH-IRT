@@ -47,8 +47,6 @@ function [W, fval, SINR, G, h_figs] = bf_mvdr_sh(C_arr, is_real, freq, theta, ph
 %options.center:    [] or [N x 3]   Center-of-expansion coordinates xyz per channel 
 %options.wavnum:    [] or [1 x M]   Angular wavenumber kappa (e.g. kappa = 2 * pi * hz / c for propagation velocity c)
 
-%options.wt:        [] or [N x M]   Frequency weighting per channel / frequency. If empty, treat channels as equal-weighted
-
 %options.enable_disp:   Logical, if true, display beampattern and statistics
 %options.disp_hplane:   Logical, if true, display horizontal plane beam pattern
 %options.disp_mplane:   Logical, if true, display median plane beam pattern
@@ -61,7 +59,7 @@ function [W, fval, SINR, G, h_figs] = bf_mvdr_sh(C_arr, is_real, freq, theta, ph
 %Output
 %W:         [N x M]     Beamformer weights (conjugated)
 %fval       [1 x M]     Objective:           fval(m) = real(W(:,m)' * R_kappa(:,:,m) * W(:,m))
-%SINR:      [1 x M]     Signal-to-interference-plus-noise ratio:   SINR(m) = |W(:,m)' * v_m|^2 / real(W(:,m)' * R_m * W(:,m))
+%SINR:      [1 x M]     Signal-to-interference-plus-noise ratio:   SINR(m) = |W(:,m)' * v_m|^2 / real(W(:,m)' * R(:,:,m) * W(:,m))
 %G:         [1 x M]     Electrical gain:     G(m) = W(:,m)' * W(:,m)
 %h_figs:    [1 x *]     Cell array figure handles
 
@@ -164,8 +162,6 @@ arguments
     options.center (:,3) double = [];
     options.wavnum (1,:) double = [];
 
-    options.wt (:,:) double {mustBeNonnegative}  = [];
-
     options.enable_disp (1,1) logical = false;
     options.disp_hplane (1,1) logical = true;
     options.disp_mplane (1,1) logical = false;
@@ -186,10 +182,6 @@ if ~isempty(options.center)
 end
 if ~isempty(options.wavnum)
     assert( numel(options.wavnum) == M, 'Size options.wavnum mismatch M frequencies');
-end
-
-if ~isempty(options.wt)
-    assert( isequal(size(options.wt), [N, M]), 'options.wt mismatch [N, M]');
 end
 
 assert(options.max_arr_gain >= 1, 'options.max_arr_gain must be >= 1');
@@ -234,13 +226,6 @@ G = zeros(1,M);
 
 for m = 1:M
 
-    % Channel / Frequency weighting
-    if isempty(options.wt) 
-        R_m = R(:,:,m);
-    else 
-        R_m = diag(options.wt(:,m)) * R(:,:,m) * diag(options.wt(:,m)); 
-    end
-
     % Steering vector
     if isempty(options.center)
         center_wavnum = [];
@@ -262,7 +247,7 @@ for m = 1:M
 
         for i = 1:options.max_arr_gain_iters % Bisection method
             
-            [W(:, m), fval(m), SINR(m), G(m)] = bf_mvdr(v_m, R_m, kappa_m, options.mode_kappa);
+            [W(:, m), fval(m), SINR(m), G(m)] = bf_mvdr(v_m, R(:,:,m), kappa_m, options.mode_kappa);
             AG_m = abs(v_m'*v_m * G(m));
             
             if AG_m > AG % Overshot
@@ -281,7 +266,7 @@ for m = 1:M
         end
 
     else % Unbounded array gain
-        [W(:, m), fval(m), SINR(m), G(m)] = bf_mvdr(v_m, R_m, kappa, options.mode_kappa);
+        [W(:, m), fval(m), SINR(m), G(m)] = bf_mvdr(v_m, R(:,:,m), kappa, options.mode_kappa);
     end
 
 end
