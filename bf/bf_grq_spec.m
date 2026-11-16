@@ -104,29 +104,41 @@ lambda = diag(D);
 [~, idx] = sort(lambda, 'descend');  idx = idx(1:(N-N_U));  % Sort and truncate eigenvalues and eigenvectors    
 lambda = real(lambda(idx));    
 V = V(:, idx);
-tau = max(min(tau, lambda(1)), lambda(end)); % Truncate tau to GRQ range
 
-if strcmp(mode, 'max')
+if tau >= lambda(1)  % Solution is GRQ minimizer
 
-    w_sq = minimax_spec(lambda, tau);
-    W = L' \ (V * sqrt(w_sq));
+    W = L' \ V(:, 1);
 
-elseif strcmp(mode, 'sq')
+elseif tau <= lambda(end) % Solution is GRQ maximizer
 
-    w_sq = min_spec_sq(lambda, tau);
-    W = L' \ (V * sqrt(w_sq));
-
-elseif strcmp(mode, 'wsq')
-
-    w_sq = min_spec_wsq(lambda, tau);
-    W = L' \ (V * sqrt(w_sq));
+    W = L' \ V(:, end);
 
 else
-    error('Unknown mode');
+
+    if strcmp(mode, 'max')
+    
+        w_sq = minimax_spec(lambda, tau);
+        W = L' \ (V * sqrt(w_sq));
+    
+    elseif strcmp(mode, 'sq')
+    
+        w_sq = min_spec_sq(lambda, tau);
+        W = L' \ (V * sqrt(w_sq));
+    
+    elseif strcmp(mode, 'wsq')
+    
+        w_sq = min_spec_wsq(lambda, tau);
+        W = L' \ (V * sqrt(w_sq));
+    
+    else
+        error('Unknown mode');
+    end
+
 end
 
 % Normalize
 W = bsxfun(@rdivide, W, sqrt(sum(W .* conj(W), 1)));
+
 
 % Check constraints of solution
 if options.check_constraints

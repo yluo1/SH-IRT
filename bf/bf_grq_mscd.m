@@ -67,11 +67,11 @@ assert(N == size(R, 1) && N == size(R, 2), 'c and R size mismatch');
 
 % Check tau against GRQ bounds
 [W_min_max, tau_min_max] = bf_grq_ex(A, R);
-if tau < tau_min_max(1) % Solution is GRQ minimizer
+if tau <= tau_min_max(1) % Solution is GRQ minimizer
 
     W = W_min_max(:, 1);
 
-elseif tau > tau_min_max(2) % Solution is GRQ maximizer
+elseif tau >= tau_min_max(2) % Solution is GRQ maximizer
 
     W = W_min_max(:, 2);
 
