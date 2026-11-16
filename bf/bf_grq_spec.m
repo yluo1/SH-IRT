@@ -29,7 +29,7 @@ function [W] = bf_grq_spec(A, R, tau, mode, options)
 %A:             [N x N]     Accept covariance matrix
 %R:             [N x N]     Reject positive definite covariance matrix
 %tau:           Scalar, target GDI 
-%mode:          String, averaging method {'minimax'}
+%mode:          String, averaging method {'max', 'sq', 'wsq'}
 
 %options:       struct
 
