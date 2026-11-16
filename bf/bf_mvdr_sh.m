@@ -211,19 +211,11 @@ elseif strcmp(mode, 'density')
 elseif strcmp(mode, 'direction')
 
     assert(~isempty(options.R_theta_phi), 'options.R_theta_phi must be non-empty');
-    R = complex(zeros([N, N, M]));  % [N x N x M] Spatial covariance along directions options.R_theta_phi
+  
+    R = sh_cov(C_arr, [], is_real, 'mode', 'discrete', 'D_theta_phi', options.R_theta_phi, ...
+      'SHT_center', options.center, 'SHT_wavnum', options.wavnum, ...
+      'SHT_oversample', 1, 'SHT_maxsample', 4096); % [N x N x M] Spatial covariance integrated over discrete directions R_theta_phi
 
-    for m = 1:M
-
-        if isempty(options.center)
-            center_wavnum = [];
-        else
-            center_wavnum = [options.center, options.wavnum(m) * ones(N,1)];
-        end
-        V = sh_dec(C_arr(:, :, m), options.R_theta_phi(:, 1), options.R_theta_phi(:, 2), is_real, 'eval', center_wavnum).'; % [N x N_theta_phi]
-
-        R(:,:,m) = V*V'; 
-    end
 elseif strcmp(mode, 'custom')
 
     assert(isequal(size(options.R_custom), [N, N, M]), 'options.R_custom size mismatch [N x N x M]');

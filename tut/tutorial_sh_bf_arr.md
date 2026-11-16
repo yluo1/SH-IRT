@@ -256,7 +256,10 @@ In far-field MVDR beamformer designs, the steering vectors are normally sampled 
 
 and where the input maximum condition number `kappa` regularization of `R`, and optional array gain upper-bound `options.max_arr_gain` control for excessive electrical and white-noise gains.
 
-Let us consider different spatial covariances modes for MVDR designs on an $N=3$ element micro [piston array](#piston-on-spherical-baffle-arrays) near the pole of the spherical baffle:
+Let us consider different spatial covariances modes for MVDR designs on an $N=3$ element micro [piston array](#piston-on-spherical-baffle-arrays) near the pole of the spherical baffle in the function [plot_sh_enc_arr_example.m](../plt/plot_sh_enc_arr_example.m):
+```
+plot_sh_enc_arr_example('spis_custom');
+```
 
 | Sampling Method |  Beamformer Response |  Beamformer Statistics  |  
 | :---: |  :---: |  :---:  | 

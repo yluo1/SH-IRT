@@ -147,34 +147,34 @@ elseif strcmp(mode, 'spis_custom')
         'R_theta_phi', R_theta_phi, ...
         'enable_disp', true, 'disp_dB_lim', dB_lim);
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % Export figures
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    out_dir = 'figs/figs_bf/arr';
-    if ~isfolder(out_dir)
-        mkdir(out_dir);
-    end
-
-    exportgraphics(h_figs_MVDR_uniform_onaxis{1}, fullfile(out_dir, 'fit_pist_MVDR_N_3_onaxis_bp.png' ));
-    exportgraphics(h_figs_MVDR_uniform_onaxis{2}, fullfile(out_dir, 'fit_pist_MVDR_N_3_onaxis_bs.png' ));
-
-    exportgraphics(h_figs_MVDR_uniform_60deg{1}, fullfile(out_dir, 'fit_pist_MVDR_N_3_60deg_bp.png' ));
-    exportgraphics(h_figs_MVDR_uniform_60deg{2}, fullfile(out_dir, 'fit_pist_MVDR_N_3_60deg_bs.png' ));
-
-    exportgraphics(h_figs_MVDR_density_east_broad{1}, fullfile(out_dir, 'fit_pist_MVDR_N_3_estbrd_bp.png' ));
-    exportgraphics(h_figs_MVDR_density_east_broad{2}, fullfile(out_dir, 'fit_pist_MVDR_N_3_estbrd_bs.png' ));
-
-    exportgraphics(h_figs_MVDR_density_east_narrow{1}, fullfile(out_dir, 'fit_pist_MVDR_N_3_estnrw_bp.png' ));
-    exportgraphics(h_figs_MVDR_density_east_narrow{2}, fullfile(out_dir, 'fit_pist_MVDR_N_3_estnrw_bs.png' ));
-
-    exportgraphics(h_figs_MVDR_density_contra{1}, fullfile(out_dir, 'fit_pist_MVDR_N_3_contra_bp.png' ));
-    exportgraphics(h_figs_MVDR_density_contra{2}, fullfile(out_dir, 'fit_pist_MVDR_N_3_contra_bs.png' ));
-
-    exportgraphics(h_figs_MVDR_dir_kappa_1e2{1}, fullfile(out_dir, 'fit_pist_MVDR_N_3_arrg1e2_bp.png' ));
-    exportgraphics(h_figs_MVDR_dir_kappa_1e2{2}, fullfile(out_dir, 'fit_pist_MVDR_N_3_arrg1e2_bs.png' ));
-
-    exportgraphics(h_figs_MVDR_dir_kappa_1e8{1}, fullfile(out_dir, 'fit_pist_MVDR_N_3_arrg1e8_bp.png' ));
-    exportgraphics(h_figs_MVDR_dir_kappa_1e8{2}, fullfile(out_dir, 'fit_pist_MVDR_N_3_arrg1e8_bs.png' ));
+    % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % % Export figures
+    % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % out_dir = 'figs/figs_bf/arr';
+    % if ~isfolder(out_dir)
+    %     mkdir(out_dir);
+    % end
+    % 
+    % exportgraphics(h_figs_MVDR_uniform_onaxis{1}, fullfile(out_dir, 'fit_pist_MVDR_N_3_onaxis_bp.png' ));
+    % exportgraphics(h_figs_MVDR_uniform_onaxis{2}, fullfile(out_dir, 'fit_pist_MVDR_N_3_onaxis_bs.png' ));
+    % 
+    % exportgraphics(h_figs_MVDR_uniform_60deg{1}, fullfile(out_dir, 'fit_pist_MVDR_N_3_60deg_bp.png' ));
+    % exportgraphics(h_figs_MVDR_uniform_60deg{2}, fullfile(out_dir, 'fit_pist_MVDR_N_3_60deg_bs.png' ));
+    % 
+    % exportgraphics(h_figs_MVDR_density_east_broad{1}, fullfile(out_dir, 'fit_pist_MVDR_N_3_estbrd_bp.png' ));
+    % exportgraphics(h_figs_MVDR_density_east_broad{2}, fullfile(out_dir, 'fit_pist_MVDR_N_3_estbrd_bs.png' ));
+    % 
+    % exportgraphics(h_figs_MVDR_density_east_narrow{1}, fullfile(out_dir, 'fit_pist_MVDR_N_3_estnrw_bp.png' ));
+    % exportgraphics(h_figs_MVDR_density_east_narrow{2}, fullfile(out_dir, 'fit_pist_MVDR_N_3_estnrw_bs.png' ));
+    % 
+    % exportgraphics(h_figs_MVDR_density_contra{1}, fullfile(out_dir, 'fit_pist_MVDR_N_3_contra_bp.png' ));
+    % exportgraphics(h_figs_MVDR_density_contra{2}, fullfile(out_dir, 'fit_pist_MVDR_N_3_contra_bs.png' ));
+    % 
+    % exportgraphics(h_figs_MVDR_dir_kappa_1e2{1}, fullfile(out_dir, 'fit_pist_MVDR_N_3_arrg1e2_bp.png' ));
+    % exportgraphics(h_figs_MVDR_dir_kappa_1e2{2}, fullfile(out_dir, 'fit_pist_MVDR_N_3_arrg1e2_bs.png' ));
+    % 
+    % exportgraphics(h_figs_MVDR_dir_kappa_1e8{1}, fullfile(out_dir, 'fit_pist_MVDR_N_3_arrg1e8_bp.png' ));
+    % exportgraphics(h_figs_MVDR_dir_kappa_1e8{2}, fullfile(out_dir, 'fit_pist_MVDR_N_3_arrg1e8_bs.png' ));
 
     ;
 

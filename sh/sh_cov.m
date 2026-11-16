@@ -5,9 +5,10 @@ function K = sh_cov(C, D_pdf, is_real, options)
 % K = E_{D_pdf}[f_C.' * conj(f_C)]
 % K_{ij} = \int_{\Omega} Y(\Omega) * C(:, i) * conj( Y(\Omega) * C(:, j) ) * Y(\Omega) * D_pdf d\Omega for uniform grid \Omega
 
-% mode = 'CGC':     Compute analytic covariance via Clebsch-Gordan coefficients (SH product operator) for common centers-of-expansions
-% mode = 'SHT':     Compute numeric covariance via quadrature over uniform spherical coordinate grid.
-%                   Supports non-common centers-of-expansion direction and delay compensation (require both options.SHT_centers and options.SHT_wavnum)
+% options.mode = 'CGC':         Compute analytic covariance via Clebsch-Gordan coefficients (SH product operator) for common centers-of-expansions
+% options.mode = 'SHT':         Compute numeric covariance via quadrature over uniform spherical coordinate grid.
+%                               Supports non-common centers-of-expansion direction and delay compensation (require both options.SHT_centers and options.SHT_wavnum)
+% options.mode = 'discrete':    Compute numeric covariance over discrete set of spherical coordinates in options.D_theta_phi 
 
 % Author: Yuancheng Luo, 2026
 
@@ -19,9 +20,10 @@ function K = sh_cov(C, D_pdf, is_real, options)
 
 %is_real:       Logical, if true, evaluate real SH
 
-%options.mode:          String, integration (SH multiplication) method {'CGC', 'SHT'}
+%options.mode:          String, integration (SH multiplication) method {'CGC', 'SHT', 'discrete'}
 %                           'CGC':   Clebsch-Gordan coefficients (SH product operator)
 %                           'SHT':   Spherical harmonic transform (inverse SHT -> numeric integration)
+%                           'discrete':    Discrete set of spherical coordinates in options.D_theta_phi
 
 %options.center_mean:       Logical, if true, subtract mean from covariance matrix
 %options.SHT_oversample:    Oversample number of spherical coordinate direction by this factor for mode = 'SHT'
@@ -30,6 +32,7 @@ function K = sh_cov(C, D_pdf, is_real, options)
 %options.SHT_center:        [] or [N x 3]   Non-common centers-of-expansion coordinates [x, y, z]
 %options.SHT_wavnum:        [] or [1 x M]   Angular wavenumber kappa (e.g. kappa = 2 * pi * hz / c for propagation velocity c)
 
+%options.D_theta_phi:       [N_theta_phi x 2]  Discrete list of spherical coordinates (theta, phi) to compute D for mode = 'discrete'
 %options.min_eig:           Scalar, add diagonal loading upto minimum min_eig (ignore if 0)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -88,7 +91,7 @@ arguments
     D_pdf (:,:) double {coder.mustBeComplex} = sh_pdf_preset('FwdCenter', 'Uniform', 0);
     is_real (1,1) logical = false;
     
-    options.mode (1,:) char {mustBeMember(options.mode, {'CGC', 'SHT'})} = 'SHT';
+    options.mode (1,:) char {mustBeMember(options.mode, {'CGC', 'SHT', 'discrete'})} = 'SHT';
     options.center_mean (1,1) logical = false;
 
     options.SHT_oversample (1,1) double {mustBeInteger, mustBePositive} = 4;
@@ -97,6 +100,7 @@ arguments
     options.SHT_center (:,3) double = [];
     options.SHT_wavnum (1,:) double {mustBeNonnegative} = [];
 
+    options.D_theta_phi (:,2) double = [];
     options.min_eig (1,1) {mustBeNonnegative} = 0;
 
 end
@@ -107,10 +111,12 @@ assert(L_C == floor(L_C), 'Invalid size C');
 
 N_D = size(D_pdf, 1);
 L_D = sqrt(N_D) - 1;
-assert(L_D == floor(L_D), 'Invalid size D_pdf');
-assert(size(D_pdf, 2) == 1 || size(D_pdf, 2) == M, 'size(D_pdf, 2) must be 1 or M');
 
-assert(sh_pdf_check(D_pdf, is_real), 'D_pdf is invalid density');
+if any(strcmp(options.mode, {'CGC', 'SHT'})) % Check density for these modes
+    assert(L_D == floor(L_D), 'Invalid size D_pdf');
+    assert(size(D_pdf, 2) == 1 || size(D_pdf, 2) == M, 'size(D_pdf, 2) must be 1 or M');
+    assert(sh_pdf_check(D_pdf, is_real), 'D_pdf is invalid density');
+end
 
 K = complex(zeros([N, N, M]));
 
@@ -194,6 +200,41 @@ elseif strcmp(options.mode, 'SHT')
 
         if options.center_mean            
             mu = sum(f_C_pdf, 1); % [1 x N]
+            K(:, :, m) = K(:, :, m) - conj(mu' * mu);
+        end
+
+    end
+
+elseif strcmp(options.mode, 'discrete')
+
+    N_theta_phi = size(options.D_theta_phi, 1);
+    theta = options.D_theta_phi(:, 1);
+    phi = options.D_theta_phi(:, 2);
+    
+    % Decode expansions along uniform grid
+    if isempty(options.SHT_center)
+
+        f_C_full = reshape(sh_dec(reshape(C, [N_C, N * M]), theta, phi, is_real), [N_theta_phi, N, M]); % [N_theta_phi x N x M] 
+
+    else
+
+        center_wavnum = zeros([N, M, 4]);
+        for n = 1:N
+            for m = 1:M
+                center_wavnum(n, m, :) = [options.SHT_center(n, :), options.SHT_wavnum(m)];
+            end
+        end
+        f_C_full = reshape(sh_dec(reshape(C, [N_C, N * M]), theta, phi, is_real, 'eval', reshape(center_wavnum, [N * M, 4] )), [N_theta_phi, N, M]); % [N_theta_phi x N x M]            
+
+    end
+
+    for m = 1:M % Iterate over functions
+
+        f_C = f_C_full(:, :, m);
+        K(:, :, m) = conj(f_C' * f_C) / N_theta_phi; % Conjugate to account for input ordering
+
+        if options.center_mean            
+            mu = sum(f_C, 1) / N_theta_phi; % [1 x N]
             K(:, :, m) = K(:, :, m) - conj(mu' * mu);
         end
 
