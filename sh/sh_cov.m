@@ -30,6 +30,8 @@ function K = sh_cov(C, D_pdf, is_real, options)
 %options.SHT_center:        [] or [N x 3]   Non-common centers-of-expansion coordinates [x, y, z]
 %options.SHT_wavnum:        [] or [1 x M]   Angular wavenumber kappa (e.g. kappa = 2 * pi * hz / c for propagation velocity c)
 
+%options.min_eig:           Scalar, add diagonal loading upto minimum min_eig (ignore if 0)
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
 %K:             [N x N x M]     Covariance matrix [N x N] per function
@@ -95,6 +97,8 @@ arguments
     options.SHT_center (:,3) double = [];
     options.SHT_wavnum (1,:) double {mustBeNonnegative} = [];
 
+    options.min_eig (1,1) {mustBeNonnegative} = 0;
+
 end
 
 [N_C, N, M] = size(C);
@@ -138,6 +142,7 @@ if strcmp(options.mode, 'CGC')
             end
             K(:, :, m) = K(:, :, m) - conj(mu' * mu);
         end
+
     end
         
 elseif strcmp(options.mode, 'SHT')
@@ -191,8 +196,26 @@ elseif strcmp(options.mode, 'SHT')
             mu = sum(f_C_pdf, 1); % [1 x N]
             K(:, :, m) = K(:, :, m) - conj(mu' * mu);
         end
+
     end
 
 else
     error('Unknown options.mode');
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Post processing
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if options.min_eig > 0 % Add diagonal loading upto min_eig
+    for m = 1:M
+        d = eigs(K(:, :, m), 1, 'smallestreal');
+        if d < options.min_eig
+            K(:, :, m) = K(:, :, m) + (options.min_eig - d) * eye(N);
+        end
+    end
+end
+
+% Force Hermitian K
+for m = 1:M
+    K(:, :, m) = (K(:, :, m) + K(:, :, m)') / 2;
 end
