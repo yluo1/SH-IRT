@@ -207,6 +207,7 @@ elseif strcmp(options.mode, 'SHT')
 
 elseif strcmp(options.mode, 'discrete')
 
+    assert(~isempty(options.D_theta_phi), 'options.D_theta_phi must be non-empty');
     N_theta_phi = size(options.D_theta_phi, 1);
     theta = options.D_theta_phi(:, 1);
     phi = options.D_theta_phi(:, 2);
