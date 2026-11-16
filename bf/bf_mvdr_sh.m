@@ -279,23 +279,23 @@ if options.enable_disp && coder.target("MATLAB")
         'disp_freq', options.disp_freq, 'stats_DI_theta_phi', [theta, phi]};
 
     if options.disp_hplane
-        h_fig_bf = bf_plt_sh(C_arr, false, W, freq, 'horizontal', varargin_bf_plt_sh{:});
+        h_fig_bf = bf_plt_sh(C_arr, is_real, W, freq, 'horizontal', varargin_bf_plt_sh{:});
         h_figs{end+1} = h_fig_bf;
     end
 
     if options.disp_mplane
-        h_fig_bf = bf_plt_sh(C_arr, false, W, freq, 'median', varargin_bf_plt_sh{:});
+        h_fig_bf = bf_plt_sh(C_arr, is_real, W, freq, 'median', varargin_bf_plt_sh{:});
         h_figs{end+1} = h_fig_bf;
     end
 
     if options.disp_fplane
-        h_fig_bf = bf_plt_sh(C_arr, false, W, freq, 'frontal', varargin_bf_plt_sh{:});
+        h_fig_bf = bf_plt_sh(C_arr, is_real, W, freq, 'frontal', varargin_bf_plt_sh{:});
         h_figs{end+1} = h_fig_bf;
     end
 
     if options.disp_stats
         title_name = ['mode = ', mode, ', \kappa = (', options.mode_kappa, ', ', num2str(kappa), '), direction (\theta = ', num2str(rad2deg(theta)), ', \phi = ', num2str(rad2deg(phi)), ')'];
-        h_fig_stats = bf_plt_sh(C_arr, false, W, freq, 'stats', varargin_bf_plt_sh{:}, 'title_name', title_name);
+        h_fig_stats = bf_plt_sh(C_arr, is_real, W, freq, 'stats', varargin_bf_plt_sh{:}, 'title_name', title_name);
         h_figs{end+1} = h_fig_stats;
     end
     
