@@ -188,4 +188,5 @@ and is vectorized in the same format as the complex case. In such instances, the
 |[bf_grq_mscd.m](bf/bf_grq_mscd.m)| Maximum sensitivity constant directivity (MSCD): GDI and linear constriants |
 |[bf_grq_mecd.m](bf/bf_grq_mecd.m)| Maximum efficiency constant directivity (MECD): GDI and quadratic constriants |
 |[bf_grq_tau_tgt.m](bf/bf_grq_tau_tgt.m)| Fit bounded and smooth GRQ targets |
+|[bf_grq_sh.m](bf/bf_grq_sh.m)| Constant directivity equality GRQ constraint integration with SH expansion arrays: Variants (spec, proj, MSCD, MECD), smooth and bounded GRQ target fitting, spatial covariance selection |
 |[bf_plt_sh.m](bf/bf_plt_sh.m)| Plot planar projections of SH beam patterns,  and statistics (electrical gain, directivity index)|
