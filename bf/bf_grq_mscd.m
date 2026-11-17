@@ -96,7 +96,7 @@ else
         lambda_crit = lambda_re(max(b(b < 0)) < lambda_re & lambda_re < min(b(b > 0)) );
         assert(~isempty(lambda_crit), 'Critical point not found');
         W = lambda_crit(1) * ((eye(N) - lambda_crit(1) * D) \ c);
-        W = W / (W'*c);
+        W = W / conj(W'*c);
 
     elseif strcmp(options.mode, 'fmincon')
 
