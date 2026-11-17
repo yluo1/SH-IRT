@@ -47,6 +47,9 @@ function [W, fval] = bf_grq_mscd(c, A, R, tau, options)
 % [W_fmc, fval_fmc] = bf_grq_mscd(c, A, R, tau, 'mode', 'fmincon', 'check_constraints', true);
 % err = norm( W_sec - W_fmc)
 
+% [W_sec_inf, fval_sec_inf] = bf_grq_mscd(c, A, R, inf, 'mode', 'secular', 'check_constraints', true);
+% [W_sec_0, fval_sec_0] = bf_grq_mscd(c, A, R, 0, 'mode', 'secular', 'check_constraints', true);
+
 arguments
     c (:,1) double {coder.mustBeComplex} = complex(1);
     A (:,:) double {coder.mustBeComplex} = complex(1);
@@ -70,10 +73,12 @@ assert(N == size(R, 1) && N == size(R, 2), 'c and R size mismatch');
 if tau <= tau_min_max(1) % Solution is GRQ minimizer
 
     W = W_min_max(:, 1);
+    W = W / conj(W'*c);
 
 elseif tau >= tau_min_max(2) % Solution is GRQ maximizer
 
     W = W_min_max(:, 2);
+    W = W / conj(W'*c);
 
 else
 
@@ -131,7 +136,7 @@ fval = real(W'*W);
 
 if options.check_constraints
     tol = 1e-6;
-    pass_grq_tau_c = abs(W'*A*W / (W'*R*W) - tau) <= tol
+    pass_grq_tau_c = abs(W'*A*W / (W'*R*W) - min(max(tau, tau_min_max(1)), tau_min_max(2)) ) <= tol
     pass_lin_eq_c = abs(W'*c - 1) <= tol
 end
 

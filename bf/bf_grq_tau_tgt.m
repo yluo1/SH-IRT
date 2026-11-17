@@ -28,6 +28,8 @@ function [tau, h_fig] = bf_grq_tau_tgt(A, R, freq, tau_tgt, options)
 
 %options.lambda:            Scalar, regularization term
 
+%options.tol_margin:        Scalar, margin size to shrink tau limits
+
 %options.enable_disp:       Logical, if true, display targets
 %options.disp_dB_lim:       [1 x 2] Display [min, max] dB
 
@@ -97,6 +99,8 @@ arguments
 
     options.lambda (1,1) {mustBeNonnegative} = 1e4;
 
+    options.tol_margin (1,1) {mustBeNonnegative} = 1e-8;
+
     options.enable_disp (1,1) logical = false;
     options.disp_dB_lim (1,2) = [-inf inf];
 end
@@ -112,7 +116,11 @@ for m = 1:M
     [~, tau_m] = bf_grq_ex( A(:,:,m), R(:,:,m) );
     tau_lim(:, m) = max([tau_m(1); tau_m(2)], 0);  % Truncate
 end
+tau_lim_margin = [min(tau_lim(1,:) + options.tol_margin, tau_lim(2,:)); ...
+                  max(tau_lim(2,:) - options.tol_margin, tau_lim(1,:)) ]; % Limits with margin
+
 tau_lim_dB = pow2db(tau_lim);
+tau_lim_margin_dB = pow2db(tau_lim_margin);
 
 tau_tgt_orig = tau_tgt;
 if isscalar(tau_tgt) % Constant target
@@ -138,6 +146,8 @@ else
     H_regu = toeplitz([6, -4, 1, zeros(1, M - 3)]); % Squared acceleration kernel 
     % (assume uniform frequency or log-frequency spacing)
     
+    H_regu = H_regu * M;
+    
     H = eye(M) + lambda * H_regu;
     f = -tau_tgt_dB(:);
  
@@ -151,14 +161,14 @@ else
            ];
 
     beq = [...
-           min(max(tau_tgt_dB(1), tau_lim_dB(1,1)), tau_lim_dB(2,1)); ...
-           min(max(tau_tgt_dB(2), tau_lim_dB(1,2)), tau_lim_dB(2,2)); ...
-           min(max(tau_tgt_dB(M-1), tau_lim_dB(1,M-1)), tau_lim_dB(2,M-1)); ...
-           min(max(tau_tgt_dB(M), tau_lim_dB(1,M)), tau_lim_dB(2,M)); ...
+           min(max(tau_tgt_dB(1), tau_lim_margin_dB(1,1)), tau_lim_margin_dB(2,1)); ...
+           min(max(tau_tgt_dB(2), tau_lim_margin_dB(1,2)), tau_lim_margin_dB(2,2)); ...
+           min(max(tau_tgt_dB(M-1), tau_lim_margin_dB(1,M-1)), tau_lim_margin_dB(2,M-1)); ...
+           min(max(tau_tgt_dB(M), tau_lim_margin_dB(1,M)), tau_lim_margin_dB(2,M)); ...
            ];
 
-    lb = tau_lim_dB(1, :)';
-    ub = tau_lim_dB(2, :)';
+    lb = tau_lim_margin_dB(1, :)';
+    ub = tau_lim_margin_dB(2, :)';
     tau_dB = quadprog(H, f, [], [], Aeq, beq, lb, ub); 
     tau = db2pow(tau_dB);
 
