@@ -60,7 +60,7 @@ dSdx2_func = @(x) 6  * sum(( a .* b ) ./ (x(:) - b).^4, 2);    % [1 x numel(x)] 
 if strcmp(mode, 'polysym')  % Symbolic univariate polynomial root-finding
 
     syms lambda
-    p = sym(0);
+    p = zeros(1, 'sym');
     for n = 1:N
         p_n = sym( a(n) * b(n) );
         for i = 1:N
