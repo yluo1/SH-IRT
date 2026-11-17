@@ -27,8 +27,7 @@ function [tau, h_fig] = bf_grq_tau_tgt(A, R, freq, tau_tgt, options)
 %                           Disable constraints if empty
 
 %options.lambda:            Scalar, regularization term
-
-%options.tol_margin:        Scalar, margin size to shrink tau limits
+%options.margin:            Scalar, margin size to shrink tau limits
 
 %options.enable_disp:       Logical, if true, display targets
 %options.disp_dB_lim:       [1 x 2] Display [min, max] dB
@@ -98,8 +97,7 @@ arguments
     options.U (:,:) double {coder.mustBeComplex} = [];
 
     options.lambda (1,1) {mustBeNonnegative} = 1e4;
-
-    options.tol_margin (1,1) {mustBeNonnegative} = 1e-8;
+    options.margin (1,1) {mustBeNonnegative} = 1e-8;
 
     options.enable_disp (1,1) logical = false;
     options.disp_dB_lim (1,2) = [-inf inf];
@@ -116,8 +114,8 @@ for m = 1:M
     [~, tau_m] = bf_grq_ex( A(:,:,m), R(:,:,m) );
     tau_lim(:, m) = max([tau_m(1); tau_m(2)], 0);  % Truncate
 end
-tau_lim_margin = [min(tau_lim(1,:) + options.tol_margin, tau_lim(2,:)); ...
-                  max(tau_lim(2,:) - options.tol_margin, tau_lim(1,:)) ]; % Limits with margin
+tau_lim_margin = [min(tau_lim(1,:) + options.margin, tau_lim(2,:)); ...
+                  max(tau_lim(2,:) - options.margin, tau_lim(1,:)) ]; % Limits with margin
 
 tau_lim_dB = pow2db(tau_lim);
 tau_lim_margin_dB = pow2db(tau_lim_margin);

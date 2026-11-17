@@ -1,13 +1,13 @@
 function [W] = bf_grq_spec(A, R, tau, mode, options)
-% Generalized Rayleigh quotient beamformer designs for spherical harmonic expansion based 
-% generalized directivity index GDI(A, R, W) = GRQ(A, R, W) =  w'*A*w / w'*R*w = tau,
-% that minimize weighted spectral averages of the gengeralized eigenvalues
+% Generalized Rayleigh quotient based spectral minimizations with constant directivity beamformer designs
+% GRQ(A, R, W) =  w'*A*w / w'*R*w = tau,
 
-% tau truncates to the range [min(w'*A*w / w'*R*w), max(w'*A*w / w'*R*w)]
+% W = V * sqrt(w_sq)    for eigenvectors V, and squared weights w_sq,
 
-% mode minimizes different objective weights wsq_n = |w_n|^2 s.t.  subject to spectral GDI constraints:
+% where w_sq is minimizer to the following modes that 
+% minimizes different objective weights wsq_n = |w_n|^2 s.t.  subject to spectral GRQ constraints:
 % \sum_n wsq_n = 1,   wsq_n  >= 0,    Barycentric constraints
-% \sum_n wsq_n * lambda_n = tau,      GDI constraints
+% \sum_n wsq_n * lambda_n = tau,      GRQ constraints
 % Rayleigh quotient solution: Weighted eigenvectors y = V * sqrt(wsq)
 
 % mode = 'max':         Minimax squared barycenter weights (infinity norm) of GRQ generalized eigenvalues
@@ -19,6 +19,8 @@ function [W] = bf_grq_spec(A, R, tau, mode, options)
 % mode = 'wsq'          Minimize squared spectral weighted barycenter weights (spectral norm) of GRQ generalized eigenvalues
 % min_wsq \sum_n wsq_n^2 * lambda_n^2, 
 
+% tau truncates to the range [min(w'*A*w / w'*R*w), max(w'*A*w / w'*R*w)]
+
 % Optional constraints:
 % Null space:    U'*W_min_max = 0
 
@@ -28,7 +30,7 @@ function [W] = bf_grq_spec(A, R, tau, mode, options)
 %Input
 %A:             [N x N]     Accept covariance matrix
 %R:             [N x N]     Reject positive definite covariance matrix
-%tau:           Scalar, target GDI 
+%tau:           Scalar, target GRQ 
 %mode:          String, averaging method {'max', 'sq', 'wsq'}
 
 %options:       struct
@@ -156,12 +158,12 @@ function w_sq = minimax_spec(lambda, tau, options)
 % Minimax squared barycenter weights infinity norm) of GRQ generalized eigenvalues
 % minimize_wsq max_wsq wsq,     ( wsq_n = |w_n|^2 ) s.t.   
 % \sum_n wsq_n = 1,   wsq_n  >= 0,    Barycentric constraints
-% \sum_n wsq_n * lambda_n = tau,      GDI constraints
+% \sum_n wsq_n * lambda_n = tau,      GRQ constraints
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Input
 % lambda:   [N x 1]     Eigenvalues
-% tau:      Scalar,     Target GDI in [min(lambda), max(lambda)] range
+% tau:      Scalar,     Target GRQ in [min(lambda), max(lambda)] range
 % options:  linear progrogram optimoptions 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -204,13 +206,13 @@ function w_sq = min_spec_sq(lambda, tau, options)
 % Minimize quintic barycenter weights (spectral norm) of GRQ generalized eigenvalues
 % min_wsq \sum_n wsq_n^2,     (wsq_n = |w_n|^2) s.t.   
 % \sum_n wsq_n = 1,   wsq_n  >= 0,    Barycentric constraints
-% \sum_n wsq_n * lambda_n = tau,      GDI constraints
+% \sum_n wsq_n * lambda_n = tau,      GRQ constraints
 % Rayleigh quotient solution: Weighted eigenvectors y = V * sqrt(wsq)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Input
 % lambda:   [N x 1]     Eigenvalues
-% tau:      Scalar,     Target GDI in [min(lambda), max(lambda)] range
+% tau:      Scalar,     Target GRQ in [min(lambda), max(lambda)] range
 % options:  linear progrogram optimoptions 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -246,13 +248,13 @@ function w_sq = min_spec_wsq(lambda, tau, options)
 %  Minimize squared spectral weighted barycenter weights (spectral norm) of GRQ generalized eigenvalues
 % min_wsq \sum_n wsq_n^2 * lambda_n^2,     (wsq_n = |w_n|^2) s.t.   
 % \sum_n wsq_n = 1,   wsq_n  >= 0,    Barycentric constraints
-% \sum_n wsq_n * lambda_n = tau,      GDI constraints
+% \sum_n wsq_n * lambda_n = tau,      GRQ constraints
 % Rayleigh quotient solution: Weighted eigenvectors y = V * sqrt(wsq)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Input
 % lambda:   [N x 1]     Eigenvalues
-% tau:      Scalar,     Target GDI in [min(lambda), max(lambda)] range
+% tau:      Scalar,     Target GRQ in [min(lambda), max(lambda)] range
 % options:  linear progrogram optimoptions 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
