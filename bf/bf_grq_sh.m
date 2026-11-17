@@ -64,7 +64,10 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 %options.disp_mplane:   Logical, if true, display median plane beam pattern
 %options.disp_fplane:   Logical, if true, display frontal plane beam pattern
 %options.disp_stats:    Logical, if true, display stats
-%options.disp_dB_lim:   [1 x 2]  Display dB limits [min, max]
+%options.disp_dB_lim:   [1 x 2]  Display beampattern dB limits [min, max]
+%options.disp_tau_dB_lim:  [1 x 2]  Display tau index dB limits [min, max]
+%options.disp_DI_dB_lim:   [1 x 2]  Display directivity index dB limits [min, max]
+%options.disp_EP_dB_lim:   [1 x 2]  Display electrical power dB limits [min, max]
 %options.disp_freq:     [1 x M_f]   Display beampatterns at select frequencies if non-empty
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -88,26 +91,24 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 % is_real = false;
 % 
 % C_arr = sh_enc_arr(max_odr, mode, N, radius, delay_dist, freq, 'spis_arc_len', spis_arc_len, 'enable_disp', true, 'disp_dB_lim', [-36, 12]);
+% C_arr_couple = cat(2, C_arr(:,1,:), C_arr(:,2,:)+C_arr(:,4,:),  C_arr(:,3,:));
 
 % tau_tgt = db2pow(5);
-% dB_lim = [-48, 14];
 % A_pdf = sh_pdf_preset('FwdCenter', 'SqExp', 8, is_real, 'ell', 0.5);
-% varargin = {'A_pdf', A_pdf, 'enable_disp', true, 'disp_dB_lim', dB_lim};
+% varargin = {'A_pdf', A_pdf, 'enable_disp', true, 'disp_dB_lim', [-48, 14], 'disp_tau_dB_lim', [-32, 12], 'disp_DI_dB_lim', [-12, 24], 'disp_EP_dB_lim', [-48, 12]};
 
 % bf_grq_sh(C_arr, false, freq, tau_tgt, 'spec', varargin{:});
 % bf_grq_sh(C_arr, false, freq, tau_tgt, 'proj', varargin{:});
 % bf_grq_sh(C_arr, false, freq, tau_tgt, 'efficiency', varargin{:});
 % bf_grq_sh(C_arr, false, freq, tau_tgt, 'sensitivity', varargin{:});
 
-% C_arr_couple = cat(2, C_arr(:,1,:), C_arr(:,2,:)+C_arr(:,4,:),  C_arr(:,3,:));
 % bf_grq_sh(C_arr_couple, false, freq, tau_tgt, 'spec', varargin{:});
 % bf_grq_sh(C_arr_couple, false, freq, tau_tgt, 'proj', varargin{:});
 % bf_grq_sh(C_arr_couple, false, freq, tau_tgt, 'efficiency', varargin{:});
 % bf_grq_sh(C_arr_couple, false, freq, tau_tgt, 'sensitivity', varargin{:});
 
 % %Frequency weighted array elements
-% wt = ft_freq_wt_chs(freq, [100, 10000; 0 1000; 4000 8000], [24 24; 24 24; 24 0], ... 
-%                  'enable_disp', true, 'disp_dB_lim', disp_dB_lim, 'soft_knee', true, 'norm_sum', true);
+% wt = ft_freq_wt_chs(freq, [4000 8000; 100, 10000; 0 1000], [24 0; 12 6; 24 24], 'enable_disp', true, 'disp_dB_lim', [-48, 6], 'soft_knee', true, 'norm_sum', true);
 % bf_grq_sh(C_arr_couple, false, freq, db2pow(inf), 'spec', varargin{:});
 % bf_grq_sh(C_arr_couple, false, freq, db2pow(inf), 'spec', varargin{:}, 'wt', wt);
 
@@ -153,6 +154,9 @@ arguments
     options.disp_fplane (1,1) logical = false;
     options.disp_stats (1,1) logical = true;
     options.disp_dB_lim (1,2) double = [-inf, inf];
+    options.disp_tau_dB_lim (1,2) double = [-inf, inf];
+    options.disp_DI_dB_lim (1,2) double = [-inf, inf];
+    options.disp_EP_dB_lim (1,2) double = [-inf, inf];
     options.disp_freq (1,:) double {mustBeNonnegative} = [];
 
 end
@@ -248,7 +252,7 @@ end
 
 % Compute beamformer target
 [tau, h_fig_tau] = bf_grq_tau_tgt(A, R, freq, tau_tgt, ...
-    'lambda', options.tau_lambda, 'margin', options.tau_margin, 'enable_disp', options.enable_disp);
+    'lambda', options.tau_lambda, 'margin', options.tau_margin, 'enable_disp', options.enable_disp, 'disp_dB_lim', options.disp_tau_dB_lim);
 
 % Compute beamformer weights
 W = complex(zeros(N, M));
@@ -330,7 +334,8 @@ if options.enable_disp && coder.target("MATLAB")
     if options.disp_stats
         title_name = ['Solver (', mode_sol, '), modes (A ', mode_A, ', R ', mode_R, '), direction (\theta = ', num2str(rad2deg(options.theta_steer)), ', \phi = ', num2str(rad2deg(options.phi_steer)), ')'];
         h_fig_stats = bf_plt_sh(C_arr, false, W, freq, 'stats', varargin_bf_plt_sh{:}, 'title_name', title_name, ...
-            'stats_GRQ_A', A, 'stats_GRQ_R', R);
+            'stats_GRQ_A', A, 'stats_GRQ_R', R, ...
+            'DI_dB_lim', options.disp_DI_dB_lim, 'EP_dB_lim', options.disp_EP_dB_lim);
         h_figs{end+1} = h_fig_stats;
     end
 
