@@ -159,6 +159,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 |[ft_fit_sh.m](ft/ft_fit_sh.m)| Tiknonov regularized least squares FIR fit to SH coefficients: l2 norm, exponential and circular exponential window|
 |[ft_fit_tf.m](ft/ft_fit_tf.m) | Transfer function least fitting IIR fit to complex targets: Supports unconstrained, minimum phase, allpass filter types, and stabilization options|
 |[ft_freq_wt.m](ft/ft_freq_wt.m) | Frequency weighting functions|
+|[ft_freq_wt_chs.m](ft/ft_freq_wt_chs.m) | Multichannel frequency weighting functions|
 |[ft_tf_minphase.m](ft/ft_tf_minphase.m) | Decompose transfer function coefficients into minimum-phase and all-pass coefficients |
 
 # Gaussian Processes

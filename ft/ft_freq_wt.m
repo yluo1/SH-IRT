@@ -26,14 +26,14 @@ function wt = ft_freq_wt(hz, mode, options)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
-%wt:        [N x 1] Weights
+%wt:        [M x 1] Weights
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: Plot weighting functions
 
 % Fs = 48000;
-% N = 4096;
-% hz = linspace(0, Fs/2, N)';
+% M = 4096;
+% hz = linspace(0, Fs/2, M)';
 % %norm_sum = true;
 % norm_sum = false;
 % wt_unity      = ft_freq_wt(hz, 'unity', 'norm_sum', norm_sum);
@@ -65,10 +65,10 @@ arguments
     options.oct_roll (1,1) double {mustBeNonnegative} = 6;
 end
 
-N = numel(hz);
+M = numel(hz);
 
 if strcmp(mode, 'unity')
-    wt = ones(N, 1);
+    wt = ones(M, 1);
 
 elseif strcmp(mode, 'logQuad')
 
@@ -83,7 +83,7 @@ elseif strcmp(mode, 'logSqCov')
     x = log(hz(:) + 1);
     log_D = squareform(pdist(x, 'euclidean'));
     D = exp(-log_D/2);    
-    wt = abs(D \ ones(N, 1));
+    wt = abs(D \ ones(M, 1));
     wt(end) = wt(end - 1);
 
 elseif strcmp(mode, 'octave')
