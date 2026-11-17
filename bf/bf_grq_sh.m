@@ -105,6 +105,12 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 % bf_grq_sh(C_arr_couple, false, freq, tau_tgt, 'efficiency', varargin{:});
 % bf_grq_sh(C_arr_couple, false, freq, tau_tgt, 'sensitivity', varargin{:});
 
+% %Frequency weighted array elements
+% wt = ft_freq_wt_chs(freq, [100, 10000; 0 1000; 4000 8000], [24 24; 24 24; 24 0], ... 
+%                  'enable_disp', true, 'disp_dB_lim', disp_dB_lim, 'soft_knee', true, 'norm_sum', true);
+% bf_grq_sh(C_arr_couple, false, freq, db2pow(inf), 'spec', varargin{:});
+% bf_grq_sh(C_arr_couple, false, freq, db2pow(inf), 'spec', varargin{:}, 'wt', wt);
+
 arguments
     C_arr (:,:,:) double {coder.mustBeComplex} = complex(0)
 

@@ -94,9 +94,14 @@ h_fig = [];
 if options.enable_disp && coder.target("MATLAB")
     fontsize = 16;
     h_fig = figure;
+    legend_str = cell(1,N);
     for n = 1:N
         semilogx(freq, mag2db(wt(n,:)), 'linewidth', 2 ); hold on;
+        legend_str{n} = num2str(n);
     end
+    h_lg = legend(legend_str, 'location', 'best');
+    title(h_lg, 'Ch.');
+    set(h_lg, 'fontsize', fontsize - 1);
     grid on; axis tight;
     xlabel('Frequency (Hz)', 'fontsize', fontsize);
     ylabel('Magnitude (dB)', 'fontsize', fontsize);
