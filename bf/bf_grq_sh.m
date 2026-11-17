@@ -9,7 +9,8 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 
 % mode_sol = 'proj'     Minimum norm projection onto constant directivity constraint (bf_grq_proj.m)
 
-% mode_sol = 'sensitivity'     Maximum sensitivity constant directivity (bf_grq_mscd.m)
+% mode_sol = 'sensitivity'      Maximum sensitivity constant directivity (bf_grq_mscd.m)
+% mode_sol = 'sensitivity-nowt' Maximum sensitivity constant non-weighted regularized channel directivity (bf_grq_mscd.m)
 
 % mode_sol = 'efficiency'      Maximum efficiency constant directivity  (bf_grq_mecd.m)
 % mode_sol = 'efficiency-nowt' Maximum efficiency constant non-weighted channel directivity  (bf_grq_mecd.m)
@@ -113,6 +114,12 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 % bf_grq_sh(C_arr_couple, false, freq, db2pow(inf), 'spec', varargin{:});
 % bf_grq_sh(C_arr_couple, false, freq, db2pow(inf), 'efficiency', varargin{:}, 'wt', wt);
 % bf_grq_sh(C_arr_couple, false, freq, db2pow(inf), 'efficiency-nowt', varargin{:}, 'wt', wt);
+% bf_grq_sh(C_arr_couple, false, freq, db2pow(inf), 'sensitivity-nowt', varargin{:}, 'wt', wt);
+
+% bf_grq_sh(C_arr_couple, false, freq, db2pow(6), 'efficiency', varargin{:}, 'wt', wt);
+% bf_grq_sh(C_arr_couple, false, freq, db2pow(6), 'efficiency-nowt', varargin{:}, 'wt', wt);
+% bf_grq_sh(C_arr_couple, false, freq, db2pow(6), 'sensitivity', varargin{:}, 'wt', wt);
+% bf_grq_sh(C_arr_couple, false, freq, db2pow(6), 'sensitivity-nowt', varargin{:}, 'wt', wt);
 
 arguments
     C_arr (:,:,:) double {coder.mustBeComplex} = complex(0)
@@ -122,7 +129,7 @@ arguments
 
     tau_tgt (1,:) {mustBeNonnegative} = db2pow(6);
 
-    mode_sol (1,:) char {mustBeMember(mode_sol, {'spec', 'proj', 'sensitivity', 'efficiency', 'efficiency-nowt'} )} = 'sensitivity';
+    mode_sol (1,:) char {mustBeMember(mode_sol, {'spec', 'proj', 'sensitivity', 'sensitivity-nowt', 'efficiency', 'efficiency-nowt'} )} = 'sensitivity';
     mode_A   (1,:) char {mustBeMember(mode_A, {'uniform', 'density', 'direction', 'custom'} )} = 'density';
     mode_R   (1,:) char {mustBeMember(mode_R, {'uniform', 'density', 'direction', 'custom'} )} = 'uniform';
 
@@ -249,25 +256,20 @@ if ~isempty(options.wt)
         end
 
     end
+else
+    wt = [];
 end
 
-
-C = A;
-if contains(mode_sol, '-nowt')
-
-    A = A_nowt; % Use unweighted A, R
-    R = R_nowt; 
-
-end
-
-% Compute beamformer target
-[tau, h_fig_tau] = bf_grq_tau_tgt(A, R, freq, tau_tgt, ...
-    'lambda', options.tau_lambda, 'margin', options.tau_margin, 'enable_disp', options.enable_disp, 'disp_dB_lim', options.disp_tau_dB_lim);
+% tau target options
+varargin_tau_tgt = {'lambda', options.tau_lambda, 'margin', options.tau_margin, 'enable_disp', options.enable_disp, 'disp_dB_lim', options.disp_tau_dB_lim};
 
 % Compute beamformer weights
 W = complex(zeros(N, M));
 
 if strcmp(mode_sol, 'spec')
+
+    % Compute beamformer target
+    [tau, h_fig_tau] = bf_grq_tau_tgt(A, R, freq, tau_tgt, varargin_tau_tgt{:});
 
     for m = 1:M
         W(:, m) = bf_grq_spec(A(:,:,m), R(:,:,m), tau(m), options.mode_spec);
@@ -275,6 +277,9 @@ if strcmp(mode_sol, 'spec')
 
 elseif strcmp(mode_sol, 'proj')
     
+    % Compute beamformer target
+    [tau, h_fig_tau] = bf_grq_tau_tgt(A, R, freq, tau_tgt, varargin_tau_tgt{:});
+
     for m = 1:M
 
         % Steering vector
@@ -290,6 +295,9 @@ elseif strcmp(mode_sol, 'proj')
 
 elseif strcmp(mode_sol, 'sensitivity')
 
+    % Compute beamformer target
+    [tau, h_fig_tau] = bf_grq_tau_tgt(A, R, freq, tau_tgt, varargin_tau_tgt{:});
+
     for m = 1:M
         
         % Steering vector
@@ -303,11 +311,79 @@ elseif strcmp(mode_sol, 'sensitivity')
 
     end
 
-elseif contains(mode_sol, 'efficiency')
+elseif strcmp(mode_sol, 'sensitivity-nowt')
+
+    assert(~isempty(wt), 'Requires non-empty options.wt');
+
+    % Compute beamformer target under weight transform with regularization
+    A_WT = A_nowt;
+    R_WT = R_nowt;
+    
+    for m = 1:M
+        wt_mat = wt(:,m) * wt(:,m)';
+        A_WT(:,:,m) = A_WT(:,:,m) .* wt_mat;
+        R_WT(:,:,m) = R_WT(:,:,m) .* wt_mat;
+
+        if options.A_min_eig > 0 % Add diagonal loading upto A
+            d = eigs(A_WT(:, :, m), 1, 'smallestreal');
+            if d < options.A_min_eig
+                A_WT(:, :, m) = A_WT(:, :, m) + (options.A_min_eig - d) * eye(N);
+            end
+        end
+        if options.R_min_eig > 0 % Add diagonal loading upto R
+            d = eigs(R_WT(:, :, m), 1, 'smallestreal');
+            if d < options.R_min_eig
+                R_WT(:, :, m) = R_WT(:, :, m) + (options.A_min_eig - d) * eye(N);
+            end
+        end
+    end
+    [tau, h_fig_tau] = bf_grq_tau_tgt(A_WT, R_WT, freq, tau_tgt, varargin_tau_tgt{:});
+    
+    for m = 1:M
+        
+        % Steering vector
+        if isempty(options.center)
+            center_wavnum = [];
+        else
+            center_wavnum = [options.center, options.wavnum(m) * ones(N,1)];
+        end
+        v_m = sh_dec(C_arr(:, :, m), options.theta_steer, options.phi_steer, is_real, 'eval', center_wavnum).';  % [N x 1] Steering vector
+        
+        W(:, m) = bf_grq_mscd(v_m .* wt(:,m), A_WT(:,:,m), R_WT(:,:,m), tau(m));
+        W(:, m) = W(:, m) .* wt(:,m);
+        % Check
+        % abs(W(:, m)'*A_nowt(:,:,m)*W(:,m) / ( W(:, m)'*R_nowt(:,:,m)*W(:,m) ) - tau(m))
+        % W(:,m)' * w_m
+        ;
+    end
+    % Revert A, R for display
+    A = A_nowt;
+    R = R_nowt;
+
+elseif strcmp(mode_sol, 'efficiency')
+
+    % Compute beamformer target
+    [tau, h_fig_tau] = bf_grq_tau_tgt(A, R, freq, tau_tgt, varargin_tau_tgt{:});
 
     for m = 1:M
-        W(:, m) = bf_grq_mecd(C(:,:,m), A(:,:,m), R(:,:,m), tau(m));
+        W(:, m) = bf_grq_mecd(A(:,:,m), A(:,:,m), R(:,:,m), tau(m));
     end
+
+elseif strcmp(mode_sol, 'efficiency-nowt')
+    
+    assert(~isempty(wt), 'Requires non-empty options.wt');
+
+    % Compute beamformer target
+    [tau, h_fig_tau] = bf_grq_tau_tgt(A_nowt, R_nowt, freq, tau_tgt, varargin_tau_tgt{:});
+
+    for m = 1:M
+        W(:, m) = bf_grq_mecd(A(:,:,m), A_nowt(:,:,m), R_nowt(:,:,m), tau(m));
+    end
+
+    % Revert A, R for display
+    A = A_nowt;
+    R = R_nowt;
+
 
 else
 
