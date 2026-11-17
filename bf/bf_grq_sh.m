@@ -9,9 +9,10 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 
 % mode_sol = 'proj'     Minimum norm projection onto constant directivity constraint (bf_grq_proj.m)
 
-% mode_sol = 'efficiency'      Maximum efficiency constant directivity  (bf_grq_mecd.m)
-
 % mode_sol = 'sensitivity'     Maximum sensitivity constant directivity (bf_grq_mscd.m)
+
+% mode_sol = 'efficiency'      Maximum efficiency constant directivity  (bf_grq_mecd.m)
+% mode_sol = 'efficiency-nowt' Maximum efficiency constant non-weighted channel directivity  (bf_grq_mecd.m)
 
 % mode_{A,R} = 'uniform'      Compute {A,R} over uniform density
 % mode_{A,R} = 'density'      Compute {A,R} over SH density expansion in options.{A,R}_pdf
@@ -110,7 +111,8 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 % %Frequency weighted array elements
 % wt = ft_freq_wt_chs(freq, [4000 8000; 100, 10000; 0 1000], [24 0; 12 6; 24 24], 'enable_disp', true, 'disp_dB_lim', [-48, 6], 'soft_knee', true, 'norm_sum', true);
 % bf_grq_sh(C_arr_couple, false, freq, db2pow(inf), 'spec', varargin{:});
-% bf_grq_sh(C_arr_couple, false, freq, db2pow(inf), 'spec', varargin{:}, 'wt', wt);
+% bf_grq_sh(C_arr_couple, false, freq, db2pow(inf), 'efficiency', varargin{:}, 'wt', wt);
+% bf_grq_sh(C_arr_couple, false, freq, db2pow(inf), 'efficiency-nowt', varargin{:}, 'wt', wt);
 
 arguments
     C_arr (:,:,:) double {coder.mustBeComplex} = complex(0)
@@ -120,7 +122,7 @@ arguments
 
     tau_tgt (1,:) {mustBeNonnegative} = db2pow(6);
 
-    mode_sol (1,:) char {mustBeMember(mode_sol, {'spec', 'proj', 'efficiency', 'sensitivity'} )} = 'efficiency';
+    mode_sol (1,:) char {mustBeMember(mode_sol, {'spec', 'proj', 'sensitivity', 'efficiency', 'efficiency-nowt'} )} = 'sensitivity';
     mode_A   (1,:) char {mustBeMember(mode_A, {'uniform', 'density', 'direction', 'custom'} )} = 'density';
     mode_R   (1,:) char {mustBeMember(mode_R, {'uniform', 'density', 'direction', 'custom'} )} = 'uniform';
 
@@ -228,7 +230,6 @@ end
 
 A_nowt = A;
 R_nowt = R;
-C_eff  = A;
 
 % Frequency weights
 if ~isempty(options.wt)
@@ -248,6 +249,15 @@ if ~isempty(options.wt)
         end
 
     end
+end
+
+
+C = A;
+if contains(mode_sol, '-nowt')
+
+    A = A_nowt; % Use unweighted A, R
+    R = R_nowt; 
+
 end
 
 % Compute beamformer target
@@ -278,12 +288,6 @@ elseif strcmp(mode_sol, 'proj')
 
     end
 
-elseif strcmp(mode_sol, 'efficiency')
-
-    for m = 1:M
-        W(:, m) = bf_grq_mecd(C_eff(:,:,m), A(:,:,m), R(:,:,m), tau(m));
-    end
-
 elseif strcmp(mode_sol, 'sensitivity')
 
     for m = 1:M
@@ -297,6 +301,12 @@ elseif strcmp(mode_sol, 'sensitivity')
         v_m = sh_dec(C_arr(:, :, m), options.theta_steer, options.phi_steer, is_real, 'eval', center_wavnum).';  % [N x 1] Steering vector
         W(:, m) = bf_grq_mscd(v_m, A(:,:,m), R(:,:,m), tau(m));
 
+    end
+
+elseif contains(mode_sol, 'efficiency')
+
+    for m = 1:M
+        W(:, m) = bf_grq_mecd(C(:,:,m), A(:,:,m), R(:,:,m), tau(m));
     end
 
 else
