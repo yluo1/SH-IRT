@@ -137,7 +137,7 @@ else
     assert(M >= 5, 'Requires M >= 5');
     H_regu = toeplitz([6, -4, 1, zeros(1, M - 3)]); % Squared acceleration kernel 
     % (assume uniform frequency or log-frequency spacing)
-   
+    
     H = eye(M) + lambda * H_regu;
     f = -tau_tgt_dB(:);
  
