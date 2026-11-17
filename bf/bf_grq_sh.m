@@ -91,11 +91,17 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 
 % tau_tgt = db2pow(5);
 % dB_lim = [-48, 14];
+
 % bf_grq_sh(C_arr, false, freq, tau_tgt, 'spec', 'enable_disp', true, 'disp_dB_lim', dB_lim);
 % bf_grq_sh(C_arr, false, freq, tau_tgt, 'proj', 'enable_disp', true, 'disp_dB_lim', dB_lim);
 % bf_grq_sh(C_arr, false, freq, tau_tgt, 'efficiency', 'enable_disp', true, 'disp_dB_lim', dB_lim);
 % bf_grq_sh(C_arr, false, freq, tau_tgt, 'sensitivity', 'enable_disp', true, 'disp_dB_lim', dB_lim);
 
+% C_arr_couple = cat(2, C_arr(:,1,:), C_arr(:,2,:)+C_arr(:,4,:),  C_arr(:,3,:));
+% bf_grq_sh(C_arr_couple, false, freq, tau_tgt, 'spec', 'enable_disp', true, 'disp_dB_lim', dB_lim);
+% bf_grq_sh(C_arr_couple, false, freq, tau_tgt, 'proj', 'enable_disp', true, 'disp_dB_lim', dB_lim);
+% bf_grq_sh(C_arr_couple, false, freq, tau_tgt, 'efficiency', 'enable_disp', true, 'disp_dB_lim', dB_lim);
+% bf_grq_sh(C_arr_couple, false, freq, tau_tgt, 'sensitivity', 'enable_disp', true, 'disp_dB_lim', dB_lim);
 
 arguments
     C_arr (:,:,:) double {coder.mustBeComplex} = complex(0)
