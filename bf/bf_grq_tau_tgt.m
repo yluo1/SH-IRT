@@ -144,7 +144,7 @@ else
     H_regu = toeplitz([6, -4, 1, zeros(1, M - 3)]); % Squared acceleration kernel 
     % (assume uniform frequency or log-frequency spacing)
     
-    H_regu = H_regu * M;
+    H_regu = H_regu * (M/32)^2;
     
     H = eye(M) + lambda * H_regu;
     f = -tau_tgt_dB(:);

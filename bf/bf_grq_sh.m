@@ -91,17 +91,19 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 
 % tau_tgt = db2pow(5);
 % dB_lim = [-48, 14];
+% A_pdf = sh_pdf_preset('FwdCenter', 'SqExp', 8, is_real, 'ell', 0.5);
+% varargin = {'A_pdf', A_pdf, 'enable_disp', true, 'disp_dB_lim', dB_lim};
 
-% bf_grq_sh(C_arr, false, freq, tau_tgt, 'spec', 'enable_disp', true, 'disp_dB_lim', dB_lim);
-% bf_grq_sh(C_arr, false, freq, tau_tgt, 'proj', 'enable_disp', true, 'disp_dB_lim', dB_lim);
-% bf_grq_sh(C_arr, false, freq, tau_tgt, 'efficiency', 'enable_disp', true, 'disp_dB_lim', dB_lim);
-% bf_grq_sh(C_arr, false, freq, tau_tgt, 'sensitivity', 'enable_disp', true, 'disp_dB_lim', dB_lim);
+% bf_grq_sh(C_arr, false, freq, tau_tgt, 'spec', varargin{:});
+% bf_grq_sh(C_arr, false, freq, tau_tgt, 'proj', varargin{:});
+% bf_grq_sh(C_arr, false, freq, tau_tgt, 'efficiency', varargin{:});
+% bf_grq_sh(C_arr, false, freq, tau_tgt, 'sensitivity', varargin{:});
 
 % C_arr_couple = cat(2, C_arr(:,1,:), C_arr(:,2,:)+C_arr(:,4,:),  C_arr(:,3,:));
-% bf_grq_sh(C_arr_couple, false, freq, tau_tgt, 'spec', 'enable_disp', true, 'disp_dB_lim', dB_lim);
-% bf_grq_sh(C_arr_couple, false, freq, tau_tgt, 'proj', 'enable_disp', true, 'disp_dB_lim', dB_lim);
-% bf_grq_sh(C_arr_couple, false, freq, tau_tgt, 'efficiency', 'enable_disp', true, 'disp_dB_lim', dB_lim);
-% bf_grq_sh(C_arr_couple, false, freq, tau_tgt, 'sensitivity', 'enable_disp', true, 'disp_dB_lim', dB_lim);
+% bf_grq_sh(C_arr_couple, false, freq, tau_tgt, 'spec', varargin{:});
+% bf_grq_sh(C_arr_couple, false, freq, tau_tgt, 'proj', varargin{:});
+% bf_grq_sh(C_arr_couple, false, freq, tau_tgt, 'efficiency', varargin{:});
+% bf_grq_sh(C_arr_couple, false, freq, tau_tgt, 'sensitivity', varargin{:});
 
 arguments
     C_arr (:,:,:) double {coder.mustBeComplex} = complex(0)
@@ -301,7 +303,7 @@ if options.enable_disp && coder.target("MATLAB")
     
     h_figs{1} = h_fig_tau;
 
-    varargin_bf_plt_sh = {'center', options.center, 'wavnum', options.wavnum, 'dB_lim', options.disp_dB_lim, 'title_name', 'GRQ', ...
+    varargin_bf_plt_sh = {'center', options.center, 'wavnum', options.wavnum, 'dB_lim', options.disp_dB_lim, 'title_name', ['GRQ Solver (', mode_sol, ')'], ...
         'disp_freq', options.disp_freq, 'stats_DI_theta_phi', [options.theta_steer, options.phi_steer]};
 
     if options.disp_hplane
