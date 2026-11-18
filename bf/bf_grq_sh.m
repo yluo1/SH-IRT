@@ -3,8 +3,6 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 % constrain the solution to smooth and bounded generalized directivity index functions
 % GRQ(A, R, W) = tau \in [min gev, max gev] w.r.t. frequency.
 
-% SH expansion: f_C(theta, phi) = Y(theta, phi) * C  row-vector [1 x N]
-
 % mode_sol = 'spec'     Minimum weighted spectral constant directivity index (bf_grq_spec.m)
 
 % mode_sol = 'proj'     Minimum norm projection onto constant directivity constraint (bf_grq_proj.m)
@@ -36,14 +34,14 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 %tau_tgt:       Scalar          Constant target                           
 %               [1 x M]         Target per frequency
 
-%mode_sol:      String, solver method   {'spec', 'proj', 'efficiency', 'sensitivity'}
+%mode_sol:      String, solver method   {'spec', 'proj', 'sensitivity', 'sensitivity-nowt', 'efficiency', 'efficiency-nowt'}
 %mode_A:        String, spatial covariance compute method for covariance matrix A {'uniform', 'density', 'direction', 'custom'}
 %mode_A:        String, spatial covariance compute method for covariance matrix R {'uniform', 'density', 'direction', 'custom'}
 
 %options:       Struct
 
-%options.theta_steer:   Scalar, co-latitude (0, pi) steering direction 
-%options.phi_steer:     Scalar, azimuth (0, 2 * pi) steering direction
+%options.theta_steer:   Scalar, co-latitude (0, pi) steering direction for mode_sol = {'proj', 'sensitivity', 'sensitivity-nowt'}
+%options.phi_steer:     Scalar, azimuth (0, 2 * pi) steering direction for mode_sol = {'proj', 'sensitivity', 'sensitivity-nowt'}
 
 %options.center:    [] or [N x 3]   Center-of-expansion coordinates xyz per channel 
 %options.wavnum:    [] or [1 x M]   Angular wavenumber kappa (e.g. kappa = 2 * pi * hz / c for propagation velocity c)
@@ -54,23 +52,23 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 %options.{A,R}_theta_phi:   [N_{A,R}_theta_phi x 2]  Steering directions (theta, phi) to compute {A,R} for mode_{A,R} = 'direction'
 %options.{A_R}_custom:      [N x N x M] Custom covariance matrix over frequency for mode_{A,R} = 'custom'
 
-%options.wt:        [] or [N x M]   Frequency weighting per channel / frequency. If empty, treat channels as equal-weighted
+%options.wt:            [] or [N x M]   Frequency weighting per channel / frequency. If empty, treat channels as equal-weighted
 
 %options.tau_lambda:    Scalar, regularization term for smoothing bounded GRQ target tau
 %options.tau_margin:    Scalar, margin size to shrink tau limits in bounded GRQ target tau 
 
 %options.mode_spec:     String, averaging method {'max', 'sq', 'wsq'} for mode_sol = 'spec'
 
-%options.enable_disp:   Logical, if true, display beampattern and statistics
-%options.disp_hplane:   Logical, if true, display horizontal plane beam pattern
-%options.disp_mplane:   Logical, if true, display median plane beam pattern
-%options.disp_fplane:   Logical, if true, display frontal plane beam pattern
-%options.disp_stats:    Logical, if true, display stats
-%options.disp_dB_lim:   [1 x 2]  Display beampattern dB limits [min, max]
-%options.disp_tau_dB_lim:  [1 x 2]  Display tau index dB limits [min, max]
-%options.disp_DI_dB_lim:   [1 x 2]  Display directivity index dB limits [min, max]
-%options.disp_EP_dB_lim:   [1 x 2]  Display electrical power dB limits [min, max]
-%options.disp_freq:     [1 x M_f]   Display beampatterns at select frequencies if non-empty
+%options.enable_disp:       Logical, if true, display beampattern and statistics
+%options.disp_hplane:       Logical, if true, display horizontal plane beam pattern
+%options.disp_mplane:       Logical, if true, display median plane beam pattern
+%options.disp_fplane:       Logical, if true, display frontal plane beam pattern
+%options.disp_stats:        Logical, if true, display directivity index, electrical gain statistics
+%options.disp_dB_lim:       [1 x 2]  Display beampattern dB limits [min, max]
+%options.disp_tau_dB_lim:   [1 x 2]  Display tau index dB limits [min, max]
+%options.disp_DI_dB_lim:    [1 x 2]  Display directivity index dB limits [min, max]
+%options.disp_EP_dB_lim:    [1 x 2]  Display electrical power dB limits [min, max]
+%options.disp_freq:         [1 x M_f]   Display beampatterns at select frequencies if non-empty
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
@@ -235,10 +233,11 @@ else
     error('Unknown mode_R');
 end
 
+% Non-weighted covariances
 A_nowt = A;
 R_nowt = R;
 
-% Frequency weights
+% Compute frequency weighted covariances
 if ~isempty(options.wt)
     assert( isequal(size(options.wt), [N, M]), 'options.wt mismatch [N, M]');
     wt = options.wt;
@@ -246,9 +245,7 @@ if ~isempty(options.wt)
     for m = 1:M
 
         wt_mat_m = wt(:,m) * wt(:,m)';
-
-        A(:,:,m) = A(:,:,m) .* wt_mat_m; 
-        
+        A(:,:,m) = A(:,:,m) .* wt_mat_m;         
         R_diag_m = diag(R(:,:,m));
         R(:,:,m) = R(:,:,m) .* wt_mat_m;
         for n = 1:N % Replace diagonal with original
@@ -263,7 +260,9 @@ end
 % tau target options
 varargin_tau_tgt = {'lambda', options.tau_lambda, 'margin', options.tau_margin, 'enable_disp', options.enable_disp, 'disp_dB_lim', options.disp_tau_dB_lim};
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Compute beamformer weights
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 W = complex(zeros(N, M));
 
 if strcmp(mode_sol, 'spec')
@@ -271,6 +270,7 @@ if strcmp(mode_sol, 'spec')
     % Compute beamformer target
     [tau, h_fig_tau] = bf_grq_tau_tgt(A, R, freq, tau_tgt, varargin_tau_tgt{:});
 
+    % Compute beamformer weights
     for m = 1:M
         W(:, m) = bf_grq_spec(A(:,:,m), R(:,:,m), tau(m), options.mode_spec);
     end
@@ -280,6 +280,7 @@ elseif strcmp(mode_sol, 'proj')
     % Compute beamformer target
     [tau, h_fig_tau] = bf_grq_tau_tgt(A, R, freq, tau_tgt, varargin_tau_tgt{:});
 
+    % Compute beamformer weights
     for m = 1:M
 
         % Steering vector
@@ -298,6 +299,7 @@ elseif strcmp(mode_sol, 'sensitivity')
     % Compute beamformer target
     [tau, h_fig_tau] = bf_grq_tau_tgt(A, R, freq, tau_tgt, varargin_tau_tgt{:});
 
+    % Compute beamformer weights
     for m = 1:M
         
         % Steering vector
@@ -315,7 +317,12 @@ elseif strcmp(mode_sol, 'sensitivity-nowt')
 
     assert(~isempty(wt), 'Requires non-empty options.wt');
 
-    % Compute beamformer target under weight transform with regularization
+    % Compute beamformer weights under change-of-variables
+    % W = diag(wt) * Y with additional regularization of covariances:
+    % W'*A*W / (W'*R*W) = tau   =>  Y'* A_WT * Y / (Y'* R_WT * Y),
+    % A_WT = diag(wt) * A * diag(wt) + lambda_A * eye(N),
+    % R_WT = diag(wt) * R * diag(wt) + lambda_R * eye(N),
+
     A_WT = A_nowt;
     R_WT = R_nowt;
     
@@ -324,21 +331,24 @@ elseif strcmp(mode_sol, 'sensitivity-nowt')
         A_WT(:,:,m) = A_WT(:,:,m) .* wt_mat;
         R_WT(:,:,m) = R_WT(:,:,m) .* wt_mat;
 
-        if options.A_min_eig > 0 % Add diagonal loading upto A
+        if options.A_min_eig > 0 % Add diagonal loading A_min_eig to A
             d = eigs(A_WT(:, :, m), 1, 'smallestreal');
             if d < options.A_min_eig
                 A_WT(:, :, m) = A_WT(:, :, m) + (options.A_min_eig - d) * eye(N);
             end
         end
-        if options.R_min_eig > 0 % Add diagonal loading upto R
+        if options.R_min_eig > 0 % Add diagonal loading R_min_eig to R
             d = eigs(R_WT(:, :, m), 1, 'smallestreal');
             if d < options.R_min_eig
                 R_WT(:, :, m) = R_WT(:, :, m) + (options.A_min_eig - d) * eye(N);
             end
         end
     end
+
+    % Compute beamformer target
     [tau, h_fig_tau] = bf_grq_tau_tgt(A_WT, R_WT, freq, tau_tgt, varargin_tau_tgt{:});
     
+    % Compute beamformer weights
     for m = 1:M
         
         % Steering vector
@@ -349,13 +359,14 @@ elseif strcmp(mode_sol, 'sensitivity-nowt')
         end
         v_m = sh_dec(C_arr(:, :, m), options.theta_steer, options.phi_steer, is_real, 'eval', center_wavnum).';  % [N x 1] Steering vector
         
-        W(:, m) = bf_grq_mscd(v_m .* wt(:,m), A_WT(:,:,m), R_WT(:,:,m), tau(m));
-        W(:, m) = W(:, m) .* wt(:,m);
-        % Check
+        Y_m = bf_grq_mscd(v_m .* wt(:,m), A_WT(:,:,m), R_WT(:,:,m), tau(m));
+        W(:, m) = Y_m .* wt(:,m); % Recover beamformer weights
+        % Check constraints at solution
         % abs(W(:, m)'*A_nowt(:,:,m)*W(:,m) / ( W(:, m)'*R_nowt(:,:,m)*W(:,m) ) - tau(m))
         % W(:,m)' * w_m
         ;
     end
+
     % Revert A, R for display
     A = A_nowt;
     R = R_nowt;
@@ -365,6 +376,7 @@ elseif strcmp(mode_sol, 'efficiency')
     % Compute beamformer target
     [tau, h_fig_tau] = bf_grq_tau_tgt(A, R, freq, tau_tgt, varargin_tau_tgt{:});
 
+    % Compute beamformer weights
     for m = 1:M
         W(:, m) = bf_grq_mecd(A(:,:,m), A(:,:,m), R(:,:,m), tau(m));
     end
@@ -373,9 +385,13 @@ elseif strcmp(mode_sol, 'efficiency-nowt')
     
     assert(~isempty(wt), 'Requires non-empty options.wt');
 
+    % Compute beamformer weights for non-weighted GRQ constraints, and weighted efficiency covariance:
+    % Maximize frequency weighted W'*A*W s.t. W'*W = 1, GRQ(A_nowt, R_nowt, W) = tau constraints
+
     % Compute beamformer target
     [tau, h_fig_tau] = bf_grq_tau_tgt(A_nowt, R_nowt, freq, tau_tgt, varargin_tau_tgt{:});
 
+    % Compute beamformer weights
     for m = 1:M
         W(:, m) = bf_grq_mecd(A(:,:,m), A_nowt(:,:,m), R_nowt(:,:,m), tau(m));
     end
@@ -383,7 +399,6 @@ elseif strcmp(mode_sol, 'efficiency-nowt')
     % Revert A, R for display
     A = A_nowt;
     R = R_nowt;
-
 
 else
 
