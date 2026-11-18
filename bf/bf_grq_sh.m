@@ -501,9 +501,15 @@ end
 h_figs = [];
 if options.enable_disp && coder.target("MATLAB")
     
+    % Set solver title
+    disp_mode_sol = mode_sol;
+    if any(strcmp(mode_sol, {'spec', 'spec-nowt'}))
+        disp_mode_sol = [disp_mode_sol, ', ', options.mode_spec];
+    end
+
     h_figs{1} = h_fig_tau;
 
-    varargin_bf_plt_sh = {'center', options.center, 'wavnum', options.wavnum, 'dB_lim', options.disp_dB_lim, 'title_name', ['GRQ Solver (', mode_sol, ')'], ...
+    varargin_bf_plt_sh = {'center', options.center, 'wavnum', options.wavnum, 'dB_lim', options.disp_dB_lim, 'title_name', ['GRQ Solver (', disp_mode_sol, ')'], ...
         'disp_freq', options.disp_freq, 'stats_DI_theta_phi', [options.theta_steer, options.phi_steer]};
 
     if options.disp_hplane
@@ -522,10 +528,6 @@ if options.enable_disp && coder.target("MATLAB")
     end
 
     if options.disp_stats
-        disp_mode_sol = mode_sol;
-        if any(strcmp(mode_sol, {'spec', 'spec-nowt'}))
-            disp_mode_sol = [disp_mode_sol, ', ', options.mode_spec];
-        end
         title_name = ['Solver (', disp_mode_sol, '),\newlineSpatial Covariances (A ', mode_A, ', R ', mode_R, '), Steering Direction (\theta = ', num2str(rad2deg(options.theta_steer)), ', \phi = ', num2str(rad2deg(options.phi_steer)), ')'];
         h_fig_stats = bf_plt_sh(C_arr, false, W, freq, 'stats', varargin_bf_plt_sh{:}, 'title_name', title_name, ...
             'stats_GRQ_A', A, 'stats_GRQ_R', R, ...
