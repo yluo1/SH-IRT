@@ -287,9 +287,9 @@ if any(strcmp(mode, {'horizontal', 'median', 'frontal'}))
         end
         if options.disp_title
             if isempty(options.title_name_override)
-                title(title_str, 'fontsize', options.fontsize + 1);  
+                title(split(title_str, '\newline'), 'fontsize', options.fontsize + 1);  
             else
-                title(options.title_name_override, 'fontsize', options.fontsize + 1);
+                title(split(options.title_name_override, '\newline'), 'fontsize', options.fontsize + 1);
             end  
         end
 
@@ -386,9 +386,9 @@ if any(strcmp(mode, {'horizontal', 'median', 'frontal'}))
         end
         if options.disp_title            
             if isempty(options.title_name_override)
-                title(title_str, 'fontsize', options.fontsize + 1);  
+                title(split(title_str, '\newline'), 'fontsize', options.fontsize + 1);  
             else
-                title(options.title_name_override, 'fontsize', options.fontsize + 1);
+                title(split(options.title_name_override, '\newline'), 'fontsize', options.fontsize + 1);
             end
         end
         
@@ -483,9 +483,9 @@ elseif strcmp(mode, 'stats')
         title_str = [title_str, ' ', options.title_name];
     end
     if isempty(options.title_name_override)
-        title(h_tile, title_str, 'fontsize', options.fontsize + 1);  
+        title(h_tile, split(title_str, '\newline'), 'fontsize', options.fontsize + 1);  
     else
-        title(h_tile, options.title_name_override, 'fontsize', options.fontsize + 2);
+        title(h_tile, split(options.title_name_override, '\newline'), 'fontsize', options.fontsize + 2);
     end
 
 else

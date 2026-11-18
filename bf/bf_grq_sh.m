@@ -1,18 +1,28 @@
 function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A, mode_R, options)
 % Generalized Rayleigh quotient (GRQ) beamformer designs for spherical harmonic expansions 
-% constrain the solution to smooth and bounded generalized directivity index functions
-% GRQ(A, R, W) = tau \in [min gev, max gev] w.r.t. frequency.
+% constrain the solution to smooth and bounded generalized directivity index (GDI) functions
+% GRQ(A, R, W) = tau \in [min gev, max gev] over frequency.
 
-% mode_sol = 'spec'     Minimum weighted spectral constant directivity index (bf_grq_spec.m)
+% Spatial covariances are pre-transformed by channel / frequency weights in options.wt,
+% which regularizes for relative channel gain for heterogeneous arrays.
 
-% mode_sol = 'proj'     Minimum norm projection onto constant directivity constraint (bf_grq_proj.m)
+% Solvers variants are specified in mode_sol:
+% mode_sol with '-nowt' suffix use non-weighted GRQ constraints (interpreted as GDI),
+% and move channel / frequency weightings into objective functions.
 
-% mode_sol = 'sensitivity'      Maximum sensitivity constant directivity (bf_grq_mscd.m)
-% mode_sol = 'sensitivity-nowt' Maximum sensitivity constant non-weighted regularized channel directivity (bf_grq_mscd.m)
+% mode_sol = 'spec'         Minimum weighted spectral constant channel-weighted directivity index (bf_grq_spec.m)
+% mode_sol = 'spec-nowt'    Minimum weighted spectral constant non-weighted directivity index (bf_grq_spec.m)
 
-% mode_sol = 'efficiency'      Maximum efficiency constant directivity  (bf_grq_mecd.m)
-% mode_sol = 'efficiency-nowt' Maximum efficiency constant non-weighted channel directivity  (bf_grq_mecd.m)
+% mode_sol = 'proj'         Minimum norm projection onto constant channel-weighted directivity index constraint (bf_grq_proj.m)
+% mode_sol = 'proj-nowt'    Minimum norm projection onto constant non-weighted regularized directivity index constraint (bf_grq_proj.m)
 
+% mode_sol = 'sensitivity'      Maximum sensitivity constant channel-weighted directivity index (bf_grq_mscd.m)
+% mode_sol = 'sensitivity-nowt' Maximum sensitivity constant non-weighted regularized directivity (bf_grq_mscd.m)
+
+% mode_sol = 'efficiency'      Maximum efficiency constant channel-weighted directivity index (bf_grq_mecd.m)
+% mode_sol = 'efficiency-nowt' Maximum efficiency constant non-weighted directivity index (bf_grq_mecd.m)
+
+% Spatial covariance matrix specifications:
 % mode_{A,R} = 'uniform'      Compute {A,R} over uniform density
 % mode_{A,R} = 'density'      Compute {A,R} over SH density expansion in options.{A,R}_pdf
 % mode_{A,R} = 'direction'    Compute {A,R} over spherical coordinates in options.{A,R}_theta_phi 
@@ -34,14 +44,14 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 %tau_tgt:       Scalar          Constant target                           
 %               [1 x M]         Target per frequency
 
-%mode_sol:      String, solver method   {'spec', 'proj', 'sensitivity', 'sensitivity-nowt', 'efficiency', 'efficiency-nowt'}
+%mode_sol:      String, solver method   {'spec', 'spec-nowt', 'proj', 'proj-nowt', 'sensitivity', 'sensitivity-nowt', 'efficiency', 'efficiency-nowt'}
 %mode_A:        String, spatial covariance compute method for covariance matrix A {'uniform', 'density', 'direction', 'custom'}
 %mode_A:        String, spatial covariance compute method for covariance matrix R {'uniform', 'density', 'direction', 'custom'}
 
 %options:       Struct
 
-%options.theta_steer:   Scalar, co-latitude (0, pi) steering direction for mode_sol = {'proj', 'sensitivity', 'sensitivity-nowt'}
-%options.phi_steer:     Scalar, azimuth (0, 2 * pi) steering direction for mode_sol = {'proj', 'sensitivity', 'sensitivity-nowt'}
+%options.theta_steer:   Scalar, co-latitude (0, pi) steering direction for mode_sol = {'proj', 'proj-nowt', 'sensitivity', 'sensitivity-nowt'}
+%options.phi_steer:     Scalar, azimuth (0, 2 * pi) steering direction for mode_sol = {'proj', 'proj-nowt', 'sensitivity', 'sensitivity-nowt'}
 
 %options.center:    [] or [N x 3]   Center-of-expansion coordinates xyz per channel 
 %options.wavnum:    [] or [1 x M]   Angular wavenumber kappa (e.g. kappa = 2 * pi * hz / c for propagation velocity c)
@@ -57,7 +67,7 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 %options.tau_lambda:    Scalar, regularization term for smoothing bounded GRQ target tau
 %options.tau_margin:    Scalar, margin size to shrink tau limits in bounded GRQ target tau 
 
-%options.mode_spec:     String, averaging method {'max', 'sq', 'wsq'} for mode_sol = 'spec'
+%options.mode_spec:     String, averaging method {'max', 'sq', 'wsq'} for mode_sol = {'spec', 'spec-nowt'}
 
 %options.enable_disp:       Logical, if true, display beampattern and statistics
 %options.disp_hplane:       Logical, if true, display horizontal plane beam pattern
@@ -114,6 +124,10 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 % bf_grq_sh(C_arr_couple, false, freq, db2pow(inf), 'efficiency-nowt', varargin{:}, 'wt', wt);
 % bf_grq_sh(C_arr_couple, false, freq, db2pow(inf), 'sensitivity-nowt', varargin{:}, 'wt', wt);
 
+% bf_grq_sh(C_arr_couple, false, freq, db2pow(6), 'spec', varargin{:}, 'wt', wt);
+% bf_grq_sh(C_arr_couple, false, freq, db2pow(6), 'spec-nowt', varargin{:}, 'wt', wt);
+% bf_grq_sh(C_arr_couple, false, freq, db2pow(6), 'proj', varargin{:}, 'wt', wt);
+% bf_grq_sh(C_arr_couple, false, freq, db2pow(6), 'proj-nowt', varargin{:}, 'wt', wt);
 % bf_grq_sh(C_arr_couple, false, freq, db2pow(6), 'efficiency', varargin{:}, 'wt', wt);
 % bf_grq_sh(C_arr_couple, false, freq, db2pow(6), 'efficiency-nowt', varargin{:}, 'wt', wt);
 % bf_grq_sh(C_arr_couple, false, freq, db2pow(6), 'sensitivity', varargin{:}, 'wt', wt);
@@ -127,7 +141,7 @@ arguments
 
     tau_tgt (1,:) {mustBeNonnegative} = db2pow(6);
 
-    mode_sol (1,:) char {mustBeMember(mode_sol, {'spec', 'proj', 'sensitivity', 'sensitivity-nowt', 'efficiency', 'efficiency-nowt'} )} = 'sensitivity';
+    mode_sol (1,:) char {mustBeMember(mode_sol, {'spec', 'spec-nowt', 'proj', 'proj-nowt', 'sensitivity', 'sensitivity-nowt', 'efficiency', 'efficiency-nowt'} )} = 'sensitivity';
     mode_A   (1,:) char {mustBeMember(mode_A, {'uniform', 'density', 'direction', 'custom'} )} = 'density';
     mode_R   (1,:) char {mustBeMember(mode_R, {'uniform', 'density', 'direction', 'custom'} )} = 'uniform';
 
@@ -275,6 +289,22 @@ if strcmp(mode_sol, 'spec')
         W(:, m) = bf_grq_spec(A(:,:,m), R(:,:,m), tau(m), options.mode_spec);
     end
 
+elseif strcmp(mode_sol, 'spec-nowt')
+
+    assert(~isempty(wt), 'Requires non-empty options.wt');
+
+    % Compute beamformer target
+    [tau, h_fig_tau] = bf_grq_tau_tgt(A_nowt, R_nowt, freq, tau_tgt, varargin_tau_tgt{:});
+
+    % Compute beamformer weights
+    for m = 1:M
+        W(:, m) = bf_grq_spec(A_nowt(:,:,m), R_nowt(:,:,m), tau(m), options.mode_spec, 'wt', wt(:,m));
+    end
+
+    % Revert A, R for display
+    A = A_nowt;
+    R = R_nowt;
+
 elseif strcmp(mode_sol, 'proj')
     
     % Compute beamformer target
@@ -293,6 +323,65 @@ elseif strcmp(mode_sol, 'proj')
         W(:, m) = bf_grq_proj(v_m, A(:,:,m), R(:,:,m), tau(m), 'mode', 'secular');
 
     end
+
+elseif strcmp(mode_sol, 'proj-nowt')
+    
+    assert(~isempty(wt), 'Requires non-empty options.wt');
+
+    % Compute beamformer weights under change-of-variables
+    % W = diag(wt) * Y with additional regularization of covariances:
+    % W'*A*W / (W'*R*W) = tau   =>  Y'* A_WT * Y / (Y'* R_WT * Y),
+    % A_WT = diag(wt) * A * diag(wt) + lambda_A * eye(N),
+    % R_WT = diag(wt) * R * diag(wt) + lambda_R * eye(N),
+
+    A_WT = A_nowt;
+    R_WT = R_nowt;
+    
+    for m = 1:M
+        wt_mat = wt(:,m) * wt(:,m)';
+        A_WT(:,:,m) = A_WT(:,:,m) .* wt_mat;
+        R_WT(:,:,m) = R_WT(:,:,m) .* wt_mat;
+
+        if options.A_min_eig > 0 % Add diagonal loading A_min_eig to A
+            d = eigs(A_WT(:, :, m), 1, 'smallestreal');
+            if d < options.A_min_eig
+                A_WT(:, :, m) = A_WT(:, :, m) + (options.A_min_eig - d) * eye(N);
+            end
+        end
+        if options.R_min_eig > 0 % Add diagonal loading R_min_eig to R
+            d = eigs(R_WT(:, :, m), 1, 'smallestreal');
+            if d < options.R_min_eig
+                R_WT(:, :, m) = R_WT(:, :, m) + (options.A_min_eig - d) * eye(N);
+            end
+        end
+    end
+
+    % Compute beamformer target
+    [tau, h_fig_tau] = bf_grq_tau_tgt(A_WT, R_WT, freq, tau_tgt, varargin_tau_tgt{:});
+
+    % Compute beamformer weights
+    for m = 1:M
+
+        % Steering vector
+        if isempty(options.center)
+            center_wavnum = [];
+        else
+            center_wavnum = [options.center, options.wavnum(m) * ones(N,1)];
+        end
+        v_m = sh_dec(C_arr(:, :, m), options.theta_steer, options.phi_steer, is_real, 'eval', center_wavnum).';  % [N x 1] Steering vector
+        Y_m = bf_grq_proj(v_m .* wt(:,m), A_WT(:,:,m), R_WT(:,:,m), tau(m), 'mode', 'secular');
+        W(:, m) = Y_m .* wt(:,m); % Recover beamformer weights
+        W(:, m) = W(:, m) / sqrt(W(:, m)'*W(:, m)); % Normalize
+        % Check constraints at solution
+        % abs(W(:, m)'*A_nowt(:,:,m)*W(:,m) / ( W(:, m)'*R_nowt(:,:,m)*W(:,m) ) - tau(m))
+        ;
+
+    end
+
+    % Revert A, R for display
+    A = A_nowt;
+    R = R_nowt;
+
 
 elseif strcmp(mode_sol, 'sensitivity')
 
@@ -363,7 +452,7 @@ elseif strcmp(mode_sol, 'sensitivity-nowt')
         W(:, m) = Y_m .* wt(:,m); % Recover beamformer weights
         % Check constraints at solution
         % abs(W(:, m)'*A_nowt(:,:,m)*W(:,m) / ( W(:, m)'*R_nowt(:,:,m)*W(:,m) ) - tau(m))
-        % W(:,m)' * w_m
+        % W(:,m)' * v_m
         ;
     end
 
@@ -433,7 +522,11 @@ if options.enable_disp && coder.target("MATLAB")
     end
 
     if options.disp_stats
-        title_name = ['Solver (', mode_sol, '), modes (A ', mode_A, ', R ', mode_R, '), direction (\theta = ', num2str(rad2deg(options.theta_steer)), ', \phi = ', num2str(rad2deg(options.phi_steer)), ')'];
+        disp_mode_sol = mode_sol;
+        if any(strcmp(mode_sol, {'spec', 'spec-nowt'}))
+            disp_mode_sol = [disp_mode_sol, ', ', options.mode_spec];
+        end
+        title_name = ['Solver (', disp_mode_sol, '),\newlineSpatial Covariances (A ', mode_A, ', R ', mode_R, '), Steering Direction (\theta = ', num2str(rad2deg(options.theta_steer)), ', \phi = ', num2str(rad2deg(options.phi_steer)), ')'];
         h_fig_stats = bf_plt_sh(C_arr, false, W, freq, 'stats', varargin_bf_plt_sh{:}, 'title_name', title_name, ...
             'stats_GRQ_A', A, 'stats_GRQ_R', R, ...
             'DI_dB_lim', options.disp_DI_dB_lim, 'EP_dB_lim', options.disp_EP_dB_lim);
