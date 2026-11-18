@@ -88,7 +88,8 @@ function [W] = bf_grq_spec(A, R, tau, mode, options)
 % tau = 5;
 
 % wt = rand(N,1);
-% [W_max_wt] = bf_grq_spec(A, R, tau, 'max', 'wt', wt, 'check_constraints', true)
+% [W_max_wt]    = bf_grq_spec(A, R, tau, 'max', 'wt', wt, 'check_constraints', true)
+% [W_max_U_wt]  = bf_grq_spec(A, R, tau, 'max', 'wt', wt, 'U', U,  'check_constraints', true)
 
 arguments
     A (:,:) double {coder.mustBeComplex} = complex(1);
@@ -139,12 +140,12 @@ else
 
     % Compute channel-weighted eigenvector weights
     if isempty(options.wt)
-        wev = ones(N,1);
+        wev = ones(N-N_U,1);
     else
         T = L' \ V;
         T = bsxfun(@rdivide, T, sqrt(sum(T .* conj(T), 1)) );
-        wev = zeros(N,1);
-        for n = 1:N
+        wev = zeros(N-N_U,1);
+        for n = 1:(N-N_U)
             wev(n) = real(T(:,n)' * diag(options.wt.^2) * T(:,n));
         end
         wev = wev / sum(wev);
