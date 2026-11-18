@@ -80,6 +80,7 @@ arguments
 
     options.U (:,:) double {coder.mustBeComplex} = [];
     options.check_constraints (1,1) logical = false;
+    
 end
 
 assert(isequal(size(A), size(R)), 'A, R size mismatch');
@@ -107,11 +108,11 @@ lambda = diag(D);
 lambda = real(lambda(idx));    
 V = V(:, idx);
 
-if tau >= lambda(1)  % Solution is GRQ minimizer
+if tau >= lambda(1)  % Solution is GRQ maximizer
 
     W = L' \ V(:, 1);
 
-elseif tau <= lambda(end) % Solution is GRQ maximizer
+elseif tau <= lambda(end) % Solution is GRQ minimizer 
 
     W = L' \ V(:, end);
 
