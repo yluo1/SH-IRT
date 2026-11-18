@@ -234,7 +234,7 @@ beq_grq = tau;
 Aeq = [Aeq_bary; Aeq_grq];
 beq = [beq_bary; beq_grq];
 
-[w_aug, fval, exitflag] = linprog(f, A, b, Aeq, beq, zeros(N + 1, 1), ones(N + 1,1), options);
+[w_aug, fval, exitflag] = linprog(f, A, b, Aeq, beq, zeros(N + 1, 1), [ones(N,1); inf], options);
 w_sq = w_aug(1:N);
 
 

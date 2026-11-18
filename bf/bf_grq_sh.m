@@ -118,7 +118,7 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 % bf_grq_sh(C_arr_couple, false, freq, tau_tgt, 'sensitivity', varargin{:});
 
 % %Frequency weighted array elements
-% wt = ft_freq_wt_chs(freq, [4000 8000; 100, 10000; 0 1000], [24 0; 12 6; 24 24], 'enable_disp', true, 'disp_dB_lim', [-48, 6], 'soft_knee', true, 'norm_sum', true);
+% wt = ft_freq_wt_chs(freq, [4000 8000; 100, 10000; 0 1000], [24 0; 12 6; 24 24], 'enable_disp', true, 'disp_dB_lim', [-48, 6], 'soft_knee', true);
 % bf_grq_sh(C_arr_couple, false, freq, db2pow(inf), 'spec', varargin{:});
 % bf_grq_sh(C_arr_couple, false, freq, db2pow(inf), 'efficiency', varargin{:}, 'wt', wt);
 % bf_grq_sh(C_arr_couple, false, freq, db2pow(inf), 'efficiency-nowt', varargin{:}, 'wt', wt);
