@@ -26,6 +26,7 @@ function [tau, h_fig] = bf_grq_tau_tgt(A, R, freq, tau_tgt, options)
 %options.U:                 Empty or [N x N_U]  Null space vectors
 %                           Disable constraints if empty
 
+%options.mode:              String, target GRQ transformation     {'GRQ', 'GRQ*min', 'GRQ*max'}
 %options.lambda:            Scalar, regularization term
 %options.margin:            Scalar, margin size to shrink tau limits
 
@@ -96,6 +97,7 @@ arguments
 
     options.U (:,:) double {coder.mustBeComplex} = [];
 
+    options.mode (1,:) char {mustBeMember(options.mode, {'GRQ', 'GRQ*min', 'GRQ*max'} )} = 'GRQ';
     options.lambda (1,1) {mustBeNonnegative} = 1e4;
     options.margin (1,1) {mustBeNonnegative} = 1e-8;
 
@@ -119,12 +121,19 @@ tau_lim_margin = [min(tau_lim(1,:) + options.margin, tau_lim(2,:)); ...
 
 tau_lim_dB = pow2db(tau_lim);
 tau_lim_margin_dB = pow2db(tau_lim_margin);
-
 tau_tgt_orig = tau_tgt;
 if isscalar(tau_tgt) % Constant target
     tau_tgt = ones(1,M) * tau_tgt; 
 end
 assert(numel(tau_tgt) == M, 'tau_tgt must be scalar or size [1 x M]');
+
+% Apply transformations
+if strcmp(options.mode, 'GRQ*min')
+    tau_tgt = tau_tgt .* tau_lim(1,:);
+elseif strcmp(options.mode, 'GRQ*max')
+    tau_tgt = tau_tgt .* tau_lim(2,:);
+end
+
 tau_tgt_dB = pow2db(tau_tgt);
 
 % Compute GRQ targets

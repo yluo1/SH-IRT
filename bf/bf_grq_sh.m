@@ -41,12 +41,12 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 %is_real:       Logical, if true, evaluate real SH
 
 %freq:          [1 x M]         Frequency (Hz)
-%tau_tgt:       Scalar          Constant target                           
-%               [1 x M]         Target per frequency
+%tau_tgt:       Scalar          Constant GRQ target                           
+%               [1 x M]         Target GRQ per frequency
 
 %mode_sol:      String, solver method   {'spec', 'spec-nowt', 'proj', 'proj-nowt', 'sensitivity', 'sensitivity-nowt', 'efficiency', 'efficiency-nowt'}
 %mode_A:        String, spatial covariance compute method for covariance matrix A {'uniform', 'density', 'direction', 'custom'}
-%mode_A:        String, spatial covariance compute method for covariance matrix R {'uniform', 'density', 'direction', 'custom'}
+%mode_R:        String, spatial covariance compute method for covariance matrix R {'uniform', 'density', 'direction', 'custom'}
 
 %options:       Struct
 
@@ -64,6 +64,7 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 
 %options.wt:            [] or [N x M]   Frequency weighting per channel / frequency. If empty, treat channels as equal-weighted
 
+%options.tau_mode:      String, target GRQ transformation     {'GRQ', 'GRQ*min', 'GRQ*max'}
 %options.tau_lambda:    Scalar, regularization term for smoothing bounded GRQ target tau
 %options.tau_margin:    Scalar, margin size to shrink tau limits in bounded GRQ target tau 
 
@@ -161,6 +162,7 @@ arguments
 
     options.wt (:,:) double {mustBeNonnegative}  = [];
 
+    options.tau_mode (1,:) char {mustBeMember(options.tau_mode, {'GRQ', 'GRQ*min', 'GRQ*max'} )} = 'GRQ';
     options.tau_lambda (1,1) double {mustBeNonnegative} = 1e4;
     options.tau_margin (1,1) double {mustBeNonnegative} = 1e-8;
 
@@ -272,7 +274,8 @@ else
 end
 
 % tau target options
-varargin_tau_tgt = {'lambda', options.tau_lambda, 'margin', options.tau_margin, 'enable_disp', options.enable_disp, 'disp_dB_lim', options.disp_tau_dB_lim};
+varargin_tau_tgt = {'lambda', options.tau_lambda, 'margin', options.tau_margin, 'mode', options.tau_mode, ...
+    'enable_disp', options.enable_disp, 'disp_dB_lim', options.disp_tau_dB_lim};
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Compute beamformer weights
@@ -324,65 +327,6 @@ elseif strcmp(mode_sol, 'proj')
 
     end
 
-elseif strcmp(mode_sol, 'proj-nowt')
-    
-    assert(~isempty(wt), 'Requires non-empty options.wt');
-
-    % Compute beamformer weights under change-of-variables
-    % W = diag(wt) * Y with additional regularization of covariances:
-    % W'*A*W / (W'*R*W) = tau   =>  Y'* A_WT * Y / (Y'* R_WT * Y),
-    % A_WT = diag(wt) * A * diag(wt) + lambda_A * eye(N),
-    % R_WT = diag(wt) * R * diag(wt) + lambda_R * eye(N),
-
-    A_WT = A_nowt;
-    R_WT = R_nowt;
-    
-    for m = 1:M
-        wt_mat = wt(:,m) * wt(:,m)';
-        A_WT(:,:,m) = A_WT(:,:,m) .* wt_mat;
-        R_WT(:,:,m) = R_WT(:,:,m) .* wt_mat;
-
-        if options.A_min_eig > 0 % Add diagonal loading A_min_eig to A
-            d = eigs(A_WT(:, :, m), 1, 'smallestreal');
-            if d < options.A_min_eig
-                A_WT(:, :, m) = A_WT(:, :, m) + (options.A_min_eig - d) * eye(N);
-            end
-        end
-        if options.R_min_eig > 0 % Add diagonal loading R_min_eig to R
-            d = eigs(R_WT(:, :, m), 1, 'smallestreal');
-            if d < options.R_min_eig
-                R_WT(:, :, m) = R_WT(:, :, m) + (options.R_min_eig - d) * eye(N);
-            end
-        end
-    end
-
-    % Compute beamformer target
-    [tau, h_fig_tau] = bf_grq_tau_tgt(A_WT, R_WT, freq, tau_tgt, varargin_tau_tgt{:});
-
-    % Compute beamformer weights
-    for m = 1:M
-
-        % Steering vector
-        if isempty(options.center)
-            center_wavnum = [];
-        else
-            center_wavnum = [options.center, options.wavnum(m) * ones(N,1)];
-        end
-        v_m = sh_dec(C_arr(:, :, m), options.theta_steer, options.phi_steer, is_real, 'eval', center_wavnum).';  % [N x 1] Steering vector
-        Y_m = bf_grq_proj(v_m .* wt(:,m), A_WT(:,:,m), R_WT(:,:,m), tau(m), 'mode', 'secular');
-        W(:, m) = Y_m .* wt(:,m); % Recover beamformer weights
-        W(:, m) = W(:, m) / sqrt(W(:, m)'*W(:, m)); % Normalize
-        % Check constraints at solution
-        % abs(W(:, m)'*A_nowt(:,:,m)*W(:,m) / ( W(:, m)'*R_nowt(:,:,m)*W(:,m) ) - tau(m))
-        ;
-
-    end
-
-    % Revert A, R for display
-    A = A_nowt;
-    R = R_nowt;
-
-
 elseif strcmp(mode_sol, 'sensitivity')
 
     % Compute beamformer target
@@ -402,7 +346,7 @@ elseif strcmp(mode_sol, 'sensitivity')
 
     end
 
-elseif strcmp(mode_sol, 'sensitivity-nowt')
+elseif any(strcmp(mode_sol, {'proj-nowt', 'sensitivity-nowt'}))
 
     assert(~isempty(wt), 'Requires non-empty options.wt');
 
@@ -412,6 +356,9 @@ elseif strcmp(mode_sol, 'sensitivity-nowt')
     % A_WT = diag(wt) * A * diag(wt) + lambda_A * eye(N),
     % R_WT = diag(wt) * R * diag(wt) + lambda_R * eye(N),
 
+    %Normalize weights to unity sum per frequency
+    wt = bsxfun(@rdivide, wt, sum(wt, 1)); 
+    
     A_WT = A_nowt;
     R_WT = R_nowt;
     
@@ -420,6 +367,7 @@ elseif strcmp(mode_sol, 'sensitivity-nowt')
         A_WT(:,:,m) = A_WT(:,:,m) .* wt_mat;
         R_WT(:,:,m) = R_WT(:,:,m) .* wt_mat;
 
+        % Regularize A_WT, R_WT
         if options.A_min_eig > 0 % Add diagonal loading A_min_eig to A
             d = eigs(A_WT(:, :, m), 1, 'smallestreal');
             if d < options.A_min_eig
@@ -448,12 +396,25 @@ elseif strcmp(mode_sol, 'sensitivity-nowt')
         end
         v_m = sh_dec(C_arr(:, :, m), options.theta_steer, options.phi_steer, is_real, 'eval', center_wavnum).';  % [N x 1] Steering vector
         
-        Y_m = bf_grq_mscd(v_m .* wt(:,m), A_WT(:,:,m), R_WT(:,:,m), tau(m));
-        W(:, m) = Y_m .* wt(:,m); % Recover beamformer weights
+        if strcmp(mode_sol, 'proj-nowt')
+
+            Y_m = bf_grq_proj(v_m .* wt(:,m), A_WT(:,:,m), R_WT(:,:,m), tau(m), 'mode', 'secular');
+            W(:, m) = Y_m .* wt(:,m); % Recover beamformer weights
+            W(:, m) = W(:, m) / sqrt(W(:, m)'*W(:, m)); % Normalize
+
+        elseif strcmp(mode_sol, 'sensitivity-nowt')
+            
+            %min W'*diag(wt.^(-2))*W s.t. W'*A*W / (W'*R*W) = tau, W'*v = 1
+            %Y = diag(wt^(-1)) * W
+            Y_m = bf_grq_mscd(v_m .* wt(:,m), A_WT(:,:,m), R_WT(:,:,m), tau(m));
+            W(:, m) = Y_m .* wt(:,m); % Recover beamformer weights
+
+        else
+            error('Unknown mode');
+        end
         % Check constraints at solution
         % abs(W(:, m)'*A_nowt(:,:,m)*W(:,m) / ( W(:, m)'*R_nowt(:,:,m)*W(:,m) ) - tau(m))
-        % W(:,m)' * v_m
-        ;
+        
     end
 
     % Revert A, R for display
