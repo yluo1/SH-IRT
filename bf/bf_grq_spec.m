@@ -15,14 +15,23 @@ function [W] = bf_grq_spec(A, R, tau, mode, options)
 % wev(n) = 1,                                                      empty wt
 % wev(n) = 1 ./ ( (L' \ V(:,n))' * diag(wt.^2) * (L' \ V(:,n)) ),  non-empty wt
 
-% mode = 'max':         Minimax squared barycenter weights (infinity norm) of GRQ generalized eigenvalues
-% min_wsq max_n wev_n * wsq_n,       
+% mode = 'max':         Minimize maximum barycenter squared weights (infinity norm) of GRQ generalized eigenvalues
+% min_wsq max_n wev_n * wsq_n, 
 
-% mode = 'sq'           Minimize quintic barycenter weights (spectral norm) of GRQ generalized eigenvalues
+% mode = 'wabs'         Minimize spectral weighted barycenter weights of GRQ generalized eigenvalues
+% min_wsq \sum_n wev_n * wsq_n * lambda_n,
+
+% mode = 'iwabs'         Minimize inverse spectral weighted barycenter weights of GRQ generalized eigenvalues
+% min_wsq \sum_n wev_n * wsq_n * lambda_n^(-1),
+
+% mode = 'sq'           Minimize barycenter squared weights (spectral norm) of GRQ generalized eigenvalues
 % min_wsq \sum_n wev_n * wsq_n^2,
 
-% mode = 'wsq'          Minimize squared spectral weighted barycenter weights (spectral norm) of GRQ generalized eigenvalues
+% mode = 'wsq'          Minimize squared spectral weighted barycenter squared weights (spectral norm) of GRQ generalized eigenvalues
 % min_wsq \sum_n wev_n * wsq_n^2 * lambda_n^2, 
+
+% mode = 'iwsq'         Minimize inverse squared spectral weighted barycenter squared weights (spectral norm) of GRQ generalized eigenvalues
+% min_wsq \sum_n wev_n * wsq_n^2 * lambda_n^(-2), 
 
 % tau truncates to the range [min(w'*A*w / w'*R*w), max(w'*A*w / w'*R*w)]
 
@@ -36,7 +45,7 @@ function [W] = bf_grq_spec(A, R, tau, mode, options)
 %A:             [N x N]     Accept covariance matrix
 %R:             [N x N]     Reject positive definite covariance matrix
 %tau:           Scalar, target GRQ 
-%mode:          String, averaging method {'max', 'sq', 'wsq'}
+%mode:          String, averaging method {'max', 'wabs', 'iwabs', 'sq', 'wsq', 'iwsq'}
 
 %options:       struct
 
@@ -96,7 +105,7 @@ arguments
     A (:,:) double {coder.mustBeComplex} = complex(1);
     R (:,:) double {coder.mustBeComplex} = complex(1);
     tau (1,1) double = inf;
-    mode (1,:) char {mustBeMember(mode, {'max', 'sq', 'wsq'} )} = 'max';
+    mode (1,:) char {mustBeMember(mode, {'max', 'wabs', 'iwabs', 'sq', 'wsq', 'iwsq'} )} = 'max';
 
     options.U (:,:) double {coder.mustBeComplex} = [];
     options.check_constraints (1,1) logical = false;
@@ -155,21 +164,31 @@ else
     if strcmp(mode, 'max')
     
         w_sq = minimax_spec(lambda, tau, wev);
-        W = L' \ (V * sqrt(w_sq));
+
+    elseif strcmp(mode, 'wabs')
+    
+        w_sq = min_spec_wabs(lambda, tau, wev);
+
+    elseif strcmp(mode, 'iwabs')
+    
+        w_sq = min_spec_iwabs(lambda, tau, wev);
     
     elseif strcmp(mode, 'sq')
     
         w_sq = min_spec_sq(lambda, tau, wev);
-        W = L' \ (V * sqrt(w_sq));
     
     elseif strcmp(mode, 'wsq')
     
         w_sq = min_spec_wsq(lambda, tau, wev);
-        W = L' \ (V * sqrt(w_sq));
+
+    elseif strcmp(mode, 'iwsq')
     
+        w_sq = min_spec_iwsq(lambda, tau, wev);
+
     else
         error('Unknown mode');
     end
+    W = L' \ (V * sqrt(w_sq));
 
 end
 
@@ -201,7 +220,7 @@ function w_sq = minimax_spec(lambda, tau, wev, options)
 % tau:      Scalar,     Target GRQ in [min(lambda), max(lambda)] range
 % wev:      [N x 1]     Channel-eigenvalue weighting
 
-% options:  linear progrogram optimoptions 
+% options:  linprog optimoptions 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Output
@@ -239,6 +258,99 @@ beq = [beq_bary; beq_grq];
 [w_aug, fval, exitflag] = linprog(f, A, b, Aeq, beq, zeros(N + 1, 1), [ones(N,1); inf], options);
 w_sq = w_aug(1:N);
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function w_sq = min_spec_wabs(lambda, tau, wev, options)
+% Minimize quintic barycenter weights (spectral norm) of GRQ generalized eigenvalues
+% min_wsq \sum_n wev_n * wsq_n * lambda_n,     (wsq_n = |w_n|^2) s.t.   
+% \sum_n wsq_n = 1,   wsq_n  >= 0,    Barycentric constraints
+% \sum_n wsq_n * lambda_n = tau,      GRQ constraints
+% Rayleigh quotient solution: Weighted eigenvectors y = V * sqrt(wsq)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Input
+% lambda:   [N x 1]     Eigenvalues
+% tau:      Scalar,     Target GRQ in [min(lambda), max(lambda)] range
+% wev:      [N x 1]     Channel-eigenvalue weighting
+
+% options:  linprog optimoptions 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Output
+% w_sq:     [N x 1]     Squared weights
+
+arguments
+    lambda (:,1) double = 1;
+    tau (1,1) double = 1;
+    wev (:,1) double = 1;
+    
+    options = optimoptions('linprog', 'Display', 'none', 'MaxIterations', 10000, ...
+        'OptimalityTolerance', 1e-8, 'ConstraintTolerance', 1e-8);
+end
+
+assert(tau >= min(lambda) && tau <= max(lambda), 'tau must be in [min(lambda), max(lambda)]');
+assert(numel(lambda) == numel(wev), 'wev size mismatch lambda');
+
+N = numel(lambda);
+
+Aeq_bary = [ones(1,N)];
+beq_bary = 1;
+
+Aeq_grq = [abs(real(lambda(:)))'];
+beq_grq = tau;
+
+Aeq = [Aeq_bary; Aeq_grq];
+beq = [beq_bary; beq_grq];
+
+f = lambda;
+
+[w_sq, fval, exitflag] = linprog(f, [], [], Aeq, beq, zeros(N,1), ones(N,1), options);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function w_sq = min_spec_iwabs(lambda, tau, wev, options)
+% Minimize quintic barycenter weights (spectral norm) of GRQ generalized eigenvalues
+% min_wsq \sum_n wev_n * wsq_n * lambda_n^(-1),     (wsq_n = |w_n|^2) s.t.   
+% \sum_n wsq_n = 1,   wsq_n  >= 0,    Barycentric constraints
+% \sum_n wsq_n * lambda_n = tau,      GRQ constraints
+% Rayleigh quotient solution: Weighted eigenvectors y = V * sqrt(wsq)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Input
+% lambda:   [N x 1]     Eigenvalues
+% tau:      Scalar,     Target GRQ in [min(lambda), max(lambda)] range
+% wev:      [N x 1]     Channel-eigenvalue weighting
+
+% options:  linprog optimoptions 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Output
+% w_sq:     [N x 1]     Squared weights
+
+arguments
+    lambda (:,1) double = 1;
+    tau (1,1) double = 1;
+    wev (:,1) double = 1;
+    
+    options = optimoptions('linprog', 'Display', 'none', 'MaxIterations', 10000, ...
+        'OptimalityTolerance', 1e-8, 'ConstraintTolerance', 1e-8);
+end
+
+assert(tau >= min(lambda) && tau <= max(lambda), 'tau must be in [min(lambda), max(lambda)]');
+assert(numel(lambda) == numel(wev), 'wev size mismatch lambda');
+
+N = numel(lambda);
+
+Aeq_bary = [ones(1,N)];
+beq_bary = 1;
+
+Aeq_grq = [abs(real(lambda(:)))'];
+beq_grq = tau;
+
+Aeq = [Aeq_bary; Aeq_grq];
+beq = [beq_bary; beq_grq];
+
+f = 1 ./ lambda;
+
+[w_sq, fval, exitflag] = linprog(f, [], [], Aeq, beq, zeros(N,1), ones(N,1), options);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function w_sq = min_spec_sq(lambda, tau, wev, options)
@@ -254,7 +366,7 @@ function w_sq = min_spec_sq(lambda, tau, wev, options)
 % tau:      Scalar,     Target GRQ in [min(lambda), max(lambda)] range
 % wev:      [N x 1]     Channel-eigenvalue weighting
 
-% options:  linear progrogram optimoptions 
+% options:  quadprog optimoptions 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Output
@@ -300,7 +412,7 @@ function w_sq = min_spec_wsq(lambda, tau, wev, options)
 % tau:      Scalar,     Target GRQ in [min(lambda), max(lambda)] range
 % wev:      [N x 1]     Channel-eigenvalue weighting
 
-% options:  linear progrogram optimoptions 
+% options:  quadprog ptimoptions 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Output
@@ -330,5 +442,51 @@ Aeq = [Aeq_bary; Aeq_grq];
 beq = [beq_bary; beq_grq];
 
 [w_sq, fval, exitflag] = quadprog(diag(wev .* (lambda.^2)), zeros(N,1), [], [], Aeq, beq, zeros(N,1), ones(N,1), [], options);
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function w_sq = min_spec_iwsq(lambda, tau, wev, options)
+%  Minimize squared spectral weighted barycenter weights (spectral norm) of GRQ generalized eigenvalues
+% min_wsq \sum_n wev_n * wsq_n^2 * lambda_n^(-2),     (wsq_n = |w_n|^2) s.t.   
+% \sum_n wsq_n = 1,   wsq_n  >= 0,    Barycentric constraints
+% \sum_n wsq_n * lambda_n = tau,      GRQ constraints
+% Rayleigh quotient solution: Weighted eigenvectors y = V * sqrt(wsq)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Input
+% lambda:   [N x 1]     Eigenvalues
+% tau:      Scalar,     Target GRQ in [min(lambda), max(lambda)] range
+% wev:      [N x 1]     Channel-eigenvalue weighting
+
+% options:  quadprog optimoptions 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Output
+% w_sq:     [N x 1]     Squared weights
+
+arguments
+    lambda (:,1) double = 1;
+    tau (1,1) double = 1;
+    wev (:,1) double = 1;
+
+    options = optimoptions('quadprog', 'Display', 'none', 'MaxIterations', 10000, ...
+        'OptimalityTolerance', 1e-8, 'FunctionTolerance', 1e-8, 'ConstraintTolerance', 1e-8);
+end
+
+assert(tau >= min(lambda) && tau <= max(lambda), 'tau must be in [min(lambda), max(lambda)]');
+assert(numel(lambda) == numel(wev), 'wev size mismatch lambda');
+
+N = numel(lambda);
+
+Aeq_bary = [ones(1,N)];
+beq_bary = 1;
+
+Aeq_grq = abs(real(lambda(:)))';
+beq_grq = tau;
+
+Aeq = [Aeq_bary; Aeq_grq];
+beq = [beq_bary; beq_grq];
+
+[w_sq, fval, exitflag] = quadprog(diag(wev .* (lambda.^(-2))), zeros(N,1), [], [], Aeq, beq, zeros(N,1), ones(N,1), [], options);
 
 

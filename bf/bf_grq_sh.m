@@ -68,7 +68,7 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 %options.tau_lambda:    Scalar, regularization term for smoothing bounded GRQ target tau
 %options.tau_margin:    Scalar, margin size to shrink tau limits in bounded GRQ target tau 
 
-%options.mode_spec:     String, averaging method {'max', 'sq', 'wsq'} for mode_sol = {'spec', 'spec-nowt'}
+%options.mode_spec:     String, averaging method {'max', 'wabs', 'iwabs', 'sq', 'wsq', 'iwsq'} for mode_sol = {'spec', 'spec-nowt'}
 
 %options.enable_disp:       Logical, if true, display beampattern and statistics
 %options.disp_hplane:       Logical, if true, display horizontal plane beam pattern
@@ -166,7 +166,7 @@ arguments
     options.tau_lambda (1,1) double {mustBeNonnegative} = 1e4;
     options.tau_margin (1,1) double {mustBeNonnegative} = 1e-8;
 
-    options.mode_spec (1,:) char {mustBeMember(options.mode_spec, {'max', 'sq', 'wsq'} )} = 'max';
+    options.mode_spec (1,:) char {mustBeMember(options.mode_spec, {'max', 'wabs', 'iwabs', 'sq', 'wsq', 'iwsq'} )} = 'max';
 
     options.A_min_eig (1,1) double {mustBeNonnegative} = 1e-8;
     options.R_min_eig (1,1) double {mustBeNonnegative}= 1e-8;
