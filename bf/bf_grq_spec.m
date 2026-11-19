@@ -10,9 +10,10 @@ function [W] = bf_grq_spec(A, R, tau, mode, options)
 % \sum_n wsq_n * lambda_n = tau,      GRQ constraints
 % Rayleigh quotient solution: Weighted eigenvectors y = V * sqrt(wsq)
 
-% For non-empty channel options.wt, bias the spectral weights by the squared norm of the channel weighted un-transformed eigenvectors (L' \ V)
-% wev(n) = 1,                                             empty wt
-% wev(n) = (L' \ V(:,n))' * diag(wt.^2) * (L' \ V(:,n)),  non-empty wt
+% For non-empty channel options.wt, bias the spectral weights by the squared norm 
+% of the channel weighted un-transformed eigenvectors (L' \ V)
+% wev(n) = 1,                                                      empty wt
+% wev(n) = 1 ./ ( (L' \ V(:,n))' * diag(wt.^2) * (L' \ V(:,n)) ),  non-empty wt
 
 % mode = 'max':         Minimax squared barycenter weights (infinity norm) of GRQ generalized eigenvalues
 % min_wsq max_n wev_n * wsq_n,       
@@ -143,13 +144,11 @@ else
         wev = ones(N-N_U,1);
     else
         T = L' \ V;
-        T = bsxfun(@rdivide, T, sqrt(sum(T .* conj(T), 1)) );
         wev = zeros(N-N_U,1);
         for n = 1:(N-N_U)
             wev(n) = real(T(:,n)' * diag(options.wt.^(2)) * T(:,n));
         end
         wev = 1 ./ wev;
-        %wev = wev .* lambda;
         wev = wev / sum(wev);
     end
 
