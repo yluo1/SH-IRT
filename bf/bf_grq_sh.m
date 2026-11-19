@@ -351,7 +351,7 @@ elseif strcmp(mode_sol, 'proj-nowt')
         if options.R_min_eig > 0 % Add diagonal loading R_min_eig to R
             d = eigs(R_WT(:, :, m), 1, 'smallestreal');
             if d < options.R_min_eig
-                R_WT(:, :, m) = R_WT(:, :, m) + (options.A_min_eig - d) * eye(N);
+                R_WT(:, :, m) = R_WT(:, :, m) + (options.R_min_eig - d) * eye(N);
             end
         end
     end
@@ -429,7 +429,7 @@ elseif strcmp(mode_sol, 'sensitivity-nowt')
         if options.R_min_eig > 0 % Add diagonal loading R_min_eig to R
             d = eigs(R_WT(:, :, m), 1, 'smallestreal');
             if d < options.R_min_eig
-                R_WT(:, :, m) = R_WT(:, :, m) + (options.A_min_eig - d) * eye(N);
+                R_WT(:, :, m) = R_WT(:, :, m) + (options.R_min_eig - d) * eye(N);
             end
         end
     end
