@@ -1,4 +1,4 @@
-function C_pdf = sh_pdf_preset(dir_name, func_name, max_odr, is_real, options)
+function [C_pdf, h_fig] = sh_pdf_preset(dir_name, func_name, max_odr, is_real, options)
 %Generate spherical harmonic probability density function presets
 
 %Author: Yuancheng Luo, 2026
@@ -18,7 +18,8 @@ function C_pdf = sh_pdf_preset(dir_name, func_name, max_odr, is_real, options)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
-%C              [(max_odr + 1)^2 x 1] SH coefficients
+%C:              [(max_odr + 1)^2 x 1] SH coefficients
+%h_fig:          Handle to figure
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Sample usage: Generate sample PDF presets
@@ -178,6 +179,8 @@ C_pdf = sh_nrm(C_pdf, 'Sum');
 C_pdf = [C_pdf; zeros((max_odr + 1)^2  - size(C_pdf, 1), 1)];
 
 %Plotting
+h_fig = [];
 if options.enable_disp && coder.target('MATLAB')
-    sh_plt(C_pdf, 'mercator', is_real, 'title_name', [dir_name, ' ', func_name], 'dB_lim', [-48, 6], 'disp_phase', false);
+    h_fig_cell = sh_plt(C_pdf, 'mercator', is_real, 'title_name', [dir_name, ' ', func_name], 'dB_lim', [-48, 6], 'disp_phase', false);
+    h_fig = h_fig_cell{1};
 end
