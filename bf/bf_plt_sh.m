@@ -51,8 +51,10 @@ function h_fig = bf_plt_sh(C_arr, is_real, W, freq, mode, options)
 %options.fig_size       [1 x 2] [width, height] pixels
 
 %options.stats_DI_theta_phi:    [1 x 2] Steering direction (co-latitude, azimuth radians)
-%options.stats_GRQ_A:           [N x N x M] GRQ Covariance matrix (accept)
-%options.stats_GRQ_R:           [N x N x M] GRQ Covariance matrix (reject)
+%options.stats_GRQ_A:           [N x N x M] GRQ Covariance matrix unweighted (accept)
+%options.stats_GRQ_R:           [N x N x M] GRQ Covariance matrix unweighted (reject)
+%options.stats_GRQ_WA:          [N x N x M] GRQ Covariance matrix weighted (accept)
+%options.stats_GRQ_WR:          [N x N x M] GRQ Covariance matrix weighted (reject)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
@@ -128,6 +130,8 @@ arguments
 
     options.stats_GRQ_A (:,:,:) = [];
     options.stats_GRQ_R (:,:,:) = [];
+    options.stats_GRQ_WA (:,:,:) = [];
+    options.stats_GRQ_WR (:,:,:) = [];
 
 end
 
@@ -443,8 +447,20 @@ elseif strcmp(mode, 'stats')
         for m = 1:M
             tau_dB(m) = pow2db( abs(W(:,m)' * options.stats_GRQ_A(:,:,m) * W(:,m)) / abs(W(:,m)' * options.stats_GRQ_R(:,:,m) * W(:,m)) );
         end
-        semilogx(freq, tau_dB, 'm-.', 'linewidth', 3);  
+        semilogx(freq, tau_dB, 'm-.', 'linewidth', 2);  
         legend_str{end+1} = 'GRQ(A,R,W)'; hold on;
+    end
+
+    % Plot optional weighted GRQ
+    if ~isempty(options.stats_GRQ_WA) && ~isempty(options.stats_GRQ_WR)
+        assert( isequal(size(options.stats_GRQ_WA), [N, N, M] ), 'Size options.stats_GRQ_WA mismatch [N, N, M]' );
+        assert( isequal(size(options.stats_GRQ_WR), [N, N, M] ), 'Size options.stats_GRQ_WR mismatch [N, N, M]' );
+        tau_dB = zeros([1, M]);
+        for m = 1:M
+            tau_dB(m) = pow2db( abs(W(:,m)' * options.stats_GRQ_WA(:,:,m) * W(:,m)) / abs(W(:,m)' * options.stats_GRQ_WR(:,:,m) * W(:,m)) );
+        end
+        semilogx(freq, tau_dB, 'c-.', 'linewidth', 2);  
+        legend_str{end+1} = 'WGRQ(A,R,W)'; hold on;
     end
 
     grid on; axis tight;

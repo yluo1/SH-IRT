@@ -255,6 +255,7 @@ R_nowt = R;
 
 % Compute frequency weighted covariances
 if ~isempty(options.wt)
+    
     assert( isequal(size(options.wt), [N, M]), 'options.wt mismatch [N, M]');
     wt = options.wt;
 
@@ -269,8 +270,15 @@ if ~isempty(options.wt)
         end
 
     end
+    A_wt = A;
+    R_wt = R;
+
 else
+
     wt = [];
+    A_wt = [];
+    R_wt = [];
+
 end
 
 % tau target options
@@ -490,8 +498,8 @@ if options.enable_disp && coder.target("MATLAB")
 
     if options.disp_stats
         title_name = ['Solver (', disp_mode_sol, '),\newlineSpatial Covariances (A ', mode_A, ', R ', mode_R, '), Steering Direction (\theta = ', num2str(rad2deg(options.theta_steer)), ', \phi = ', num2str(rad2deg(options.phi_steer)), ')'];
-        h_fig_stats = bf_plt_sh(C_arr, false, W, freq, 'stats', varargin_bf_plt_sh{:}, 'title_name', title_name, ...
-            'stats_GRQ_A', A, 'stats_GRQ_R', R, ...
+        h_fig_stats = bf_plt_sh(C_arr, false, W, freq, 'stats', varargin_bf_plt_sh{:}, 'fig_size', [800, 800], 'title_name', title_name, ...
+            'stats_GRQ_A', A_nowt, 'stats_GRQ_R', R_nowt,  'stats_GRQ_WA', A_wt, 'stats_GRQ_WR', R_wt, ...
             'DI_dB_lim', options.disp_DI_dB_lim, 'EP_dB_lim', options.disp_EP_dB_lim);
         h_figs{end+1} = h_fig_stats;
     end
