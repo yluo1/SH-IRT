@@ -13,14 +13,14 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 % mode_sol = 'spec'         Minimum weighted spectral constant channel-weighted directivity index (bf_grq_spec.m)
 % mode_sol = 'spec-nowt'    Minimum weighted spectral constant non-weighted directivity index (bf_grq_spec.m)
 
-% mode_sol = 'proj'         Minimum norm projection onto constant channel-weighted directivity index constraint (bf_grq_proj.m)
-% mode_sol = 'proj-nowt'    Minimum norm projection onto constant non-weighted regularized directivity index constraint (bf_grq_proj.m)
+% mode_sol = 'proj'         Minimum non-weighted norm projection onto constant channel-weighted directivity index constraint (bf_grq_proj.m)
+% mode_sol = 'proj-nowt'    Minimum channel-weighted norm projection onto constant non-weighted regularized directivity index constraint (bf_grq_proj.m)
 
-% mode_sol = 'sensitivity'      Maximum sensitivity constant channel-weighted directivity index (bf_grq_mscd.m)
-% mode_sol = 'sensitivity-nowt' Maximum sensitivity constant non-weighted regularized directivity (bf_grq_mscd.m)
+% mode_sol = 'sensitivity'      Maximum non-weighted sensitivity constant channel-weighted directivity index (bf_grq_mscd.m)
+% mode_sol = 'sensitivity-nowt' Maximum channel-weighted sensitivity constant non-weighted regularized directivity (bf_grq_mscd.m)
 
-% mode_sol = 'efficiency'      Maximum efficiency constant channel-weighted directivity index (bf_grq_mecd.m)
-% mode_sol = 'efficiency-nowt' Maximum efficiency constant non-weighted directivity index (bf_grq_mecd.m)
+% mode_sol = 'efficiency'      Maximum non-weighted efficiency constant channel-weighted directivity index (bf_grq_mecd.m)
+% mode_sol = 'efficiency-nowt' Maximum channel-weighted efficiency constant non-weighted directivity index (bf_grq_mecd.m)
 
 % Spatial covariance matrix specifications:
 % mode_{A,R} = 'uniform'      Compute {A,R} over uniform density
@@ -107,6 +107,7 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 % tau_tgt = db2pow(5);
 % A_pdf = sh_pdf_preset('FwdCenter', 'SqExp', 8, is_real, 'ell', 0.5);
 % varargin = {'A_pdf', A_pdf, 'enable_disp', true, 'disp_dB_lim', [-48, 14], 'disp_tau_dB_lim', [-32, 12], 'disp_DI_dB_lim', [-12, 24], 'disp_EP_dB_lim', [-48, 12]};
+% wt = ft_freq_wt_chs(freq, [4000 8000; 100, 10000; 0 1000], [24 0; 12 6; 24 24], 'enable_disp', true, 'disp_dB_lim', [-48, 6], 'soft_knee', true);
 
 % bf_grq_sh(C_arr, false, freq, tau_tgt, 'spec', varargin{:});
 % bf_grq_sh(C_arr, false, freq, tau_tgt, 'proj', varargin{:});
@@ -119,7 +120,6 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 % bf_grq_sh(C_arr_couple, false, freq, tau_tgt, 'sensitivity', varargin{:});
 
 % %Frequency weighted array elements
-% wt = ft_freq_wt_chs(freq, [4000 8000; 100, 10000; 0 1000], [24 0; 12 6; 24 24], 'enable_disp', true, 'disp_dB_lim', [-48, 6], 'soft_knee', true);
 % bf_grq_sh(C_arr_couple, false, freq, db2pow(inf), 'spec', varargin{:});
 % bf_grq_sh(C_arr_couple, false, freq, db2pow(inf), 'efficiency', varargin{:}, 'wt', wt);
 % bf_grq_sh(C_arr_couple, false, freq, db2pow(inf), 'efficiency-nowt', varargin{:}, 'wt', wt);
@@ -312,10 +312,6 @@ elseif strcmp(mode_sol, 'spec-nowt')
         W(:, m) = bf_grq_spec(A_nowt(:,:,m), R_nowt(:,:,m), tau(m), options.mode_spec, 'wt', wt(:,m));
     end
 
-    % Revert A, R for display
-    A = A_nowt;
-    R = R_nowt;
-
 elseif strcmp(mode_sol, 'proj')
     
     % Compute beamformer target
@@ -425,10 +421,6 @@ elseif any(strcmp(mode_sol, {'proj-nowt', 'sensitivity-nowt'}))
         
     end
 
-    % Revert A, R for display
-    A = A_nowt;
-    R = R_nowt;
-
 elseif strcmp(mode_sol, 'efficiency')
 
     % Compute beamformer target
@@ -436,7 +428,7 @@ elseif strcmp(mode_sol, 'efficiency')
 
     % Compute beamformer weights
     for m = 1:M
-        W(:, m) = bf_grq_mecd(A(:,:,m), A(:,:,m), R(:,:,m), tau(m));
+        W(:, m) = bf_grq_mecd(A_nowt(:,:,m), A(:,:,m), R(:,:,m), tau(m));
     end
 
 elseif strcmp(mode_sol, 'efficiency-nowt')
@@ -451,12 +443,8 @@ elseif strcmp(mode_sol, 'efficiency-nowt')
 
     % Compute beamformer weights
     for m = 1:M
-        W(:, m) = bf_grq_mecd(A(:,:,m), A_nowt(:,:,m), R_nowt(:,:,m), tau(m));
+        W(:, m) = bf_grq_mecd(A_wt(:,:,m), A_nowt(:,:,m), R_nowt(:,:,m), tau(m));
     end
-
-    % Revert A, R for display
-    A = A_nowt;
-    R = R_nowt;
 
 else
 
