@@ -52,6 +52,7 @@ function [W, fval, SINR, G, h_figs] = bf_mvdr_sh(C_arr, is_real, freq, theta, ph
 %options.disp_mplane:   Logical, if true, display median plane beam pattern
 %options.disp_fplane:   Logical, if true, display frontal plane beam pattern
 %options.disp_stats:    Logical, if true, display stats
+%options.disp_spin:     Logical, if true, display spinorama
 %options.disp_dB_lim:   [1 x 2]  Display dB limits [min, max]
 %options.disp_freq:     [1 x M_f]   Display beampatterns at select frequencies if non-empty
 
@@ -132,7 +133,7 @@ function [W, fval, SINR, G, h_figs] = bf_mvdr_sh(C_arr, is_real, freq, theta, ph
 % mode_mvdr = 'uniform';
 
 % C_arr = sh_enc_arr(max_odr, mode, N, radius, delay_dist, freq, 'spis_arc_len', spis_arc_len, 'enable_disp', true, 'disp_dB_lim', [-36, 12]);
-% bf_mvdr_sh(C_arr, false, freq, theta, phi, kappa, mode_mvdr, 'enable_disp', true, 'disp_dB_lim', [-48, 14]);
+% bf_mvdr_sh(C_arr, false, freq, theta, phi, kappa, mode_mvdr, 'enable_disp', true, 'disp_dB_lim', [-48, 14], 'disp_spin', true);
 
 
 arguments
@@ -167,6 +168,7 @@ arguments
     options.disp_mplane (1,1) logical = false;
     options.disp_fplane (1,1) logical = false;
     options.disp_stats (1,1) logical = true;
+    options.disp_spin (1,1) logical = false;
     options.disp_dB_lim (1,2) double = [-inf, inf];
     options.disp_freq (1,:) double {mustBeNonnegative} = [];
 
@@ -299,4 +301,9 @@ if options.enable_disp && coder.target("MATLAB")
         h_figs{end+1} = h_fig_stats;
     end
     
+    if options.disp_spin
+        title_name = ['mode = ', mode, ', \kappa = (', options.mode_kappa, ', ', num2str(kappa), '), direction (\theta = ', num2str(rad2deg(theta)), ', \phi = ', num2str(rad2deg(phi)), ')'];
+        h_fig_stats = bf_plt_sh(C_arr, is_real, W, freq, 'spinorama', varargin_bf_plt_sh{:}, 'title_name', title_name);
+        h_figs{end+1} = h_fig_stats;
+    end
 end

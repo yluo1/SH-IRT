@@ -95,7 +95,7 @@ arguments
     options.center_mean (1,1) logical = false;
 
     options.SHT_oversample (1,1) double {mustBeInteger, mustBePositive} = 4;
-    options.SHT_maxsample (1,1) double {mustBeInteger, mustBePositive} = inf;
+    options.SHT_maxsample (1,1) double { mustBePositive} = inf;
 
     options.SHT_center (:,3) double = [];
     options.SHT_wavnum (1,:) double {mustBeNonnegative} = [];

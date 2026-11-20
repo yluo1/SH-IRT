@@ -75,10 +75,12 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 %options.disp_mplane:       Logical, if true, display median plane beam pattern
 %options.disp_fplane:       Logical, if true, display frontal plane beam pattern
 %options.disp_stats:        Logical, if true, display directivity index, electrical gain statistics
+%options.disp_spin:         Logical, if true, display spinorama
 %options.disp_dB_lim:       [1 x 2]  Display beampattern dB limits [min, max]
 %options.disp_tau_dB_lim:   [1 x 2]  Display tau index dB limits [min, max]
 %options.disp_DI_dB_lim:    [1 x 2]  Display directivity index dB limits [min, max]
 %options.disp_EP_dB_lim:    [1 x 2]  Display electrical power dB limits [min, max]
+%options.disp_OP_dB_lim:    [1 x 2]  Display output power dB limits [min, max]
 %options.disp_freq:         [1 x M_f]   Display beampatterns at select frequencies if non-empty
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -106,7 +108,7 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 
 % tau_tgt = db2pow(5);
 % A_pdf = sh_pdf_preset('FwdCenter', 'SqExp', 8, is_real, 'ell', 0.5);
-% varargin = {'A_pdf', A_pdf, 'enable_disp', true, 'disp_dB_lim', [-48, 14], 'disp_tau_dB_lim', [-32, 12], 'disp_DI_dB_lim', [-12, 24], 'disp_EP_dB_lim', [-48, 12]};
+% varargin = {'A_pdf', A_pdf, 'enable_disp', true, 'disp_dB_lim', [-48, 14], 'disp_tau_dB_lim', [-32, 12], 'disp_DI_dB_lim', [-12, 24], 'disp_EP_dB_lim', [-48, 12], 'disp_spin', true};
 % wt = ft_freq_wt_chs(freq, [4000 8000; 100, 10000; 0 1000], [24 0; 12 6; 24 24], 'enable_disp', true, 'disp_dB_lim', [-48, 6], 'soft_knee', true);
 
 % bf_grq_sh(C_arr, false, freq, tau_tgt, 'spec', varargin{:});
@@ -176,10 +178,12 @@ arguments
     options.disp_mplane (1,1) logical = false;
     options.disp_fplane (1,1) logical = false;
     options.disp_stats (1,1) logical = true;
+    options.disp_spin (1,1) logical = false;
     options.disp_dB_lim (1,2) double = [-inf, inf];
     options.disp_tau_dB_lim (1,2) double = [-inf, inf];
     options.disp_DI_dB_lim (1,2) double = [-inf, inf];
     options.disp_EP_dB_lim (1,2) double = [-inf, inf];
+    options.disp_OP_dB_lim (1,2) double = [-inf, inf];
     options.disp_freq (1,:) double {mustBeNonnegative} = [];
 
 end
@@ -489,6 +493,13 @@ if options.enable_disp && coder.target("MATLAB")
         h_fig_stats = bf_plt_sh(C_arr, false, W, freq, 'stats', varargin_bf_plt_sh{:}, 'fig_size', [800, 800], 'title_name', title_name, ...
             'stats_GRQ_A', A_nowt, 'stats_GRQ_R', R_nowt,  'stats_GRQ_WA', A_wt, 'stats_GRQ_WR', R_wt, ...
             'DI_dB_lim', options.disp_DI_dB_lim, 'EP_dB_lim', options.disp_EP_dB_lim);
+        h_figs{end+1} = h_fig_stats;
+    end
+
+    if options.disp_spin
+        title_name = ['Solver (', disp_mode_sol, '),\newlineSpatial Covariances (A ', mode_A, ', R ', mode_R, '), Steering Direction (\theta = ', num2str(rad2deg(options.theta_steer)), ', \phi = ', num2str(rad2deg(options.phi_steer)), ')'];
+        h_fig_stats = bf_plt_sh(C_arr, false, W, freq, 'spinorama', varargin_bf_plt_sh{:}, 'fig_size', [800, 800], 'title_name', title_name, ...
+            'DI_dB_lim', options.disp_DI_dB_lim, 'OP_dB_lim', options.disp_OP_dB_lim);
         h_figs{end+1} = h_fig_stats;
     end
 

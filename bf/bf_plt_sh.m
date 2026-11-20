@@ -13,11 +13,12 @@ function h_fig = bf_plt_sh(C_arr, is_real, W, freq, mode, options)
 %W:         [N x M]     Beamformer weights (conjugated)
 %freq:      [1 x M]     Frequency (Hz)
 
-%mode:      String, display modes {'horizontal', 'median', 'frontal', 'stats'}
+%mode:      String, display modes {'horizontal', 'median', 'frontal', 'stats', 'spinorama'}
 %               'horizontal':   Beampattern in z = 0 plane
 %               'median':       Beampattern in y = 0 plane
 %               'frontal:       Beampattern in x = 0 plane
-%               'stats:         Statistics / frequency (directivity index, electrical gain)
+%               'stats':        Statistics / frequency (directivity index, electrical gain)
+%               'spinorama':    CEA-2034-A windowed power averages / frequency
 
 %options:               struct
 %options.center:        [] or [N x 3]   Center-of-expansion coordinates xyz per channel 
@@ -43,6 +44,7 @@ function h_fig = bf_plt_sh(C_arr, is_real, W, freq, mode, options)
 %options.deg_lim:       [1 x 2] Beampattern phase degree range [min, max]
 %options.DI_dB_lim:     [1 x 2] Directivity index magnitude dB range [min, max]
 %options.EP_dB_lim:     [1 x 2] Electrical power magnitude dB range [min, max]
+%options.OP_dB_lim:     [1 x 2] Output power magnitude dB range [min, max]
 
 %options.title_name:     String, custom title name
 %options.title_name_override:   String, custom title name override all names
@@ -55,6 +57,9 @@ function h_fig = bf_plt_sh(C_arr, is_real, W, freq, mode, options)
 %options.stats_GRQ_R:           [N x N x M] GRQ Covariance matrix unweighted (reject)
 %options.stats_GRQ_WA:          [N x N x M] GRQ Covariance matrix weighted (accept)
 %options.stats_GRQ_WR:          [N x N x M] GRQ Covariance matrix weighted (reject)
+
+%options.spin_C_A_pdf:            [] or [(L_A + 1)^2 x 1] SH density function coeffs.
+%options.spin_C_R_pdf:            [] or [(L_R + 1)^2 x 1] SH density function coeffs.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
@@ -85,6 +90,8 @@ function h_fig = bf_plt_sh(C_arr, is_real, W, freq, mode, options)
 % bf_plt_sh(C_arr_noncenter, false, W, freq, 'median', 'center', center, 'wavnum', wavnum, 'dB_lim', [-48, 14], 'title_name', 'Non-centered Array');
 % bf_plt_sh(C_arr_noncenter, false, W, freq, 'frontal', 'center', center, 'wavnum', wavnum, 'dB_lim', [-48, 14], 'title_name', 'Non-centered Array');
 % bf_plt_sh(C_arr_noncenter, false, W, freq, 'stats', 'center', center, 'wavnum', wavnum, 'dB_lim', [-48, 14], 'title_name', 'Non-centered Array');
+% bf_plt_sh(C_arr_noncenter, false, W, freq, 'spinorama', 'center', center, 'wavnum', wavnum, 'dB_lim', [-48, 14], 'title_name', 'Non-centered Array', ...
+%           'spin_C_A_pdf', sh_pdf_preset('FwdCenter', 'SqExp', 8), 'spin_C_R_pdf', sh_pdf_preset('East', 'SqExp', 8) );
 
 arguments
     C_arr (:,:,:) double {coder.mustBeComplex} = complex(0)
@@ -93,7 +100,7 @@ arguments
     W (:,:) double  {coder.mustBeComplex} = complex(0);
     freq (1,:) double = 0;
 
-    mode (1,:) char {mustBeMember(mode, {'horizontal', 'median', 'frontal', 'stats'})} = 'horizontal';
+    mode (1,:) char {mustBeMember(mode, {'horizontal', 'median', 'frontal', 'stats', 'spinorama'})} = 'horizontal';
 
     options.center (:,3) double = [];
     options.wavnum (1,:) double = [];
@@ -119,6 +126,7 @@ arguments
 
     options.DI_dB_lim (1,2) double  = [-inf inf];
     options.EP_dB_lim (1,2) double  = [-inf inf];
+    options.OP_dB_lim (1,2) double  = [-inf inf];
 
     options.title_name (1,:) char = [];
     options.title_name_override (1,:) char = [];
@@ -132,6 +140,9 @@ arguments
     options.stats_GRQ_R (:,:,:) = [];
     options.stats_GRQ_WA (:,:,:) = [];
     options.stats_GRQ_WR (:,:,:) = [];
+
+    options.spin_C_A_pdf (:,1) double {coder.mustBeComplex} = [];
+    options.spin_C_R_pdf (:,1) double {coder.mustBeComplex} = [];
 
 end
 
@@ -499,7 +510,122 @@ elseif strcmp(mode, 'stats')
         title_str = [title_str, ' ', options.title_name];
     end
     if isempty(options.title_name_override)
-        title(h_tile, split(title_str, '\newline'), 'fontsize', options.fontsize + 1);  
+        title(h_tile, split(title_str, '\newline'), 'fontsize', options.fontsize + 2);  
+    else
+        title(h_tile, split(options.title_name_override, '\newline'), 'fontsize', options.fontsize + 2);
+    end
+
+elseif strcmp(mode, 'spinorama')
+
+    [theta_lis, phi_lis] = sh_grd_cea('listening');
+    [theta_ER, phi_ER]     = sh_grd_cea('early-reflections');
+
+    V = reshape(sh_dec(reshape(C_arr, [N_C, N * M]), pi/2, 0, is_real, 'eval', center_wavnum), [N, M] ); % [N x M] on-axis steering vectors
+
+    % Compute windowed covariance matrices
+    A_lis = sh_cov(C_arr, [], is_real, 'mode', 'discrete', 'SHT_center', options.center, 'SHT_wavnum', options.wavnum, ...
+        'D_theta_phi', [theta_lis, phi_lis]); % [N x N x M] Spatial covariance integrated over listening window
+
+    A_ER = sh_cov(C_arr, [], is_real, 'mode', 'discrete', 'SHT_center', options.center, 'SHT_wavnum', options.wavnum, ...
+        'D_theta_phi', [theta_ER, phi_ER]); % [N x N x M] Spatial covariance integrated over early reflections
+
+    A_SP = sh_cov(C_arr, sh_pdf_preset('FwdCenter', 'Uniform', 0), is_real, 'SHT_center', options.center, 'SHT_wavnum', options.wavnum, ...
+        'SHT_oversample', 1, 'SHT_maxsample', 1024); % [N x N x M] Spatial covariance integrated over uniform density
+    
+    OA_dB   = zeros([1, M]);
+    lis_dB  = zeros([1, M]);
+    ER_dB   = zeros([1, M]);
+    SP_dB   = zeros([1, M]);
+
+    for m = 1:M
+        OA_dB(m)   = pow2db( abs(W(:,m)' * V(:,m) )^2 );
+        lis_dB(m)  = pow2db( abs(W(:,m)' * A_lis(:,:,m) * W(:,m) ) );
+        ER_dB(m)   = pow2db( abs(W(:,m)' * A_ER(:,:,m) * W(:,m) ) );
+        SP_dB(m)   = pow2db( abs(W(:,m)' * A_SP(:,:,m) * W(:,m) ) );
+    end
+
+    % Display
+    h_fig = figure;
+    h_fig.Position = [options.fig_pos, options.fig_size];
+    h_tile = tiledlayout(2,1);
+        
+    % Plot power responses
+    nexttile;
+    legend_str = {};
+    semilogx(freq, OA_dB, 'b-', 'linewidth', 3); legend_str{end+1} = 'On-Axis'; hold on;
+    semilogx(freq, lis_dB, 'r-', 'linewidth', 3); legend_str{end+1} = 'Listening Window';
+    semilogx(freq, ER_dB, 'm.-', 'linewidth', 2); legend_str{end+1} = 'Early Reflections';
+    semilogx(freq, SP_dB, 'k.-', 'linewidth', 2); legend_str{end+1} = 'Sound Power';
+    
+    if ~isempty(options.spin_C_A_pdf)
+
+        N_C_A = numel(options.spin_C_A_pdf);
+        L_A = sqrt(N_C_A) - 1;
+        assert(L_A == floor(L_A), 'Invalid size spin_C_A_pdf');
+        A_custom = sh_cov(C_arr, options.spin_C_A_pdf, is_real, 'SHT_center', options.center, 'SHT_wavnum', options.wavnum, ...
+            'SHT_oversample', 1, 'SHT_maxsample', 1024); % [N x N x M] Spatial covariance integrated over spin_C_A_pdf
+
+        A_dB   = zeros([1, M]);
+        for m = 1:M
+            A_dB(m) =  pow2db( abs(W(:,m)' * A_custom(:,:,m) * W(:,m) ) );
+        end
+        semilogx(freq, A_dB, 'g.-', 'linewidth', 2); legend_str{end+1} = 'A Custom';
+    end
+   
+    if ~isempty(options.spin_C_R_pdf)
+
+        N_C_R = numel(options.spin_C_R_pdf);
+        L_R = sqrt(N_C_R) - 1;
+        assert(L_R == floor(L_R), 'Invalid size spin_C_R_pdf');
+        R_custom = sh_cov(C_arr, options.spin_C_R_pdf, is_real, 'SHT_center', options.center, 'SHT_wavnum', options.wavnum, ...
+            'SHT_oversample', 1, 'SHT_maxsample', 1024); % [N x N x M] Spatial covariance integrated over spin_C_R_pdf
+
+        R_dB   = zeros([1, M]);
+        for m = 1:M
+            R_dB(m) =  pow2db( abs(W(:,m)' * R_custom(:,:,m) * W(:,m) ) );
+        end
+        semilogx(freq, R_dB, 'c.-', 'linewidth', 2); legend_str{end+1} = 'R Custom';
+    end
+
+    grid on; axis tight;
+    xlabel('Frequency (Hz)', 'fontsize', options.fontsize);
+    ylabel('Magnitude (dB)', 'fontsize', options.fontsize);
+
+    h_lg = legend(legend_str, 'location', 'best', 'NumColumns', 1, 'Orientation', 'horizontal');
+    set(h_lg, 'fontsize', options.fontsize - 1);
+    set(gca, 'fontsize', options.fontsize - 1);
+    title('Spatial Windowed Power Response Averages', 'fontsize', options.fontsize + 1);
+
+    ylim([options.OP_dB_lim(1), options.OP_dB_lim(2)]);
+
+    % Directivity index
+    nexttile;
+    legend_str = {};
+    semilogx(freq, OA_dB - SP_dB, 'b-', 'linewidth', 3); legend_str{end+1} = 'DI: On-axis / Sound Pow.'; hold on;
+    semilogx(freq, lis_dB - SP_dB, 'r-', 'linewidth', 3); legend_str{end+1} = 'SPDI: Listen / Sound Pow.'; hold on;
+    semilogx(freq, lis_dB - ER_dB, 'm.-', 'linewidth', 3); legend_str{end+1} = 'ERDI: Listen / Early Refl.'; hold on;
+
+    if ~isempty(options.spin_C_A_pdf) && ~isempty(options.spin_C_R_pdf)
+        semilogx(freq, A_dB - R_dB, 'g.-', 'linewidth', 2); legend_str{end+1} = 'Custom: GRQ(A,R,W)';
+    end
+    
+    grid on; axis tight;
+    xlabel('Frequency (Hz)', 'fontsize', options.fontsize);
+    ylabel('Magnitude (dB)', 'fontsize', options.fontsize);
+
+    h_lg = legend(legend_str, 'location', 'best', 'NumColumns', 1, 'Orientation', 'horizontal');
+    set(h_lg, 'fontsize', options.fontsize - 1);
+    set(gca, 'fontsize', options.fontsize - 1);
+    title('Directivity Index', 'fontsize', options.fontsize + 1);
+
+
+    % Global title
+    title_str = 'Spinorama: ';
+    if ~isempty(options.title_name)
+        title_str = [title_str, ' ', options.title_name];
+    end
+    if isempty(options.title_name_override)
+        title(h_tile, split(title_str, '\newline'), 'fontsize', options.fontsize + 2);  
     else
         title(h_tile, split(options.title_name_override, '\newline'), 'fontsize', options.fontsize + 2);
     end
