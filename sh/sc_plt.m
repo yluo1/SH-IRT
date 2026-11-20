@@ -9,7 +9,12 @@ function h_fig = sc_plt(theta, phi, r, options)
 %phi:               [N x 1] Azimuth (radians), (0, 2 * pi)
 %r:                 [N x 1] Radius (meters)
 
-%options:           struct
+%options:               struct
+%options.markersize:    Size of marker
+%options.fontsize:      Font size
+%options.linewidth:     Linewidth
+%options.filled:        Logical, if true, fill markers
+%options.title_name:    String, title name
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
@@ -20,8 +25,11 @@ arguments
     phi   (:,1) double = [0];
     r (:,1) double = [1];
 
-    options.markersize = 36;
-    options.fontsize = 16;
+    options.markersize (1,1) double {mustBePositive} = 36;
+    options.fontsize (1,1) double {mustBePositive} = 16;
+    options.linewidth (1,1) double {mustBePositive} = 1.5;
+    options.filled (1,1) logical = false;
+    options.title_name (1,:) char = 'Points';
 end
 
 assert(numel(theta) == numel(phi) && numel(theta) == numel(r), 'theta, phi, r size mismatch')
@@ -30,9 +38,14 @@ assert(numel(theta) == numel(phi) && numel(theta) == numel(r), 'theta, phi, r si
 
 h_fig = figure; 
 
-scatter3(x, y, z, options.markersize, abs((bsxfun(@rdivide, [x, y, z], r) + 1)/2 ) );
+if options.filled
+    scatter3(x, y, z, options.markersize,  abs((bsxfun(@rdivide, [x, y, z], r) + 1)/2 ), "filled");
+else
+    scatter3(x, y, z, options.markersize, abs((bsxfun(@rdivide, [x, y, z], r) + 1)/2 ), 'linewidth', options.linewidth );
+end
 
 xlabel('X Axis', 'fontsize', options.fontsize);
 ylabel('Y Axis', 'fontsize', options.fontsize);
 zlabel('Z Axis', 'fontsize', options.fontsize);
 set(gca, 'fontsize', options.fontsize - 1);
+title(options.title_name, 'fontsize', options.fontsize + 1);

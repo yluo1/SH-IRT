@@ -129,6 +129,7 @@ and is vectorized in the same format as the complex case. In such instances, the
 |[sh_grd_plat.m](sh/sh_grd_plat.m)| Platonic solid vertex points |
 |[sh_grd_caps.m](sh/sh_grd_caps.m)| Uniform points along co-latitude and azimuth (polar concentrated)|
 |[sh_grd_rand.m](sh/sh_grd_rand.m) | Uniform random spherical coordinates |
+|[sh_grd_cea.m](sh/sh_grd_cea.m) | Loudspeaker measurement window coordinates for CEA-2034-A  standard |
 
 ## SH Miscellaneous
 | File | Description |
