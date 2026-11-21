@@ -58,9 +58,11 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 
 %options.A_pdf:      [(L_A + 1)^2 x 1]       Density SH coefficients for numerator (accept)
 %options.R_pdf:      [(L_R + 1)^2 x 1]       Density SH coefficients for denominator (reject)
+%options.E_pdf:      [(L_E + 1)^2 x 1]       Density SH coefficients (efficiency) for mode_sol = {'efficiency', 'efficiency-nowt'}
 
-%options.{A,R}_theta_phi:   [N_{A,R}_theta_phi x 2]  Steering directions (theta, phi) to compute {A,R} for mode_{A,R} = 'direction'
-%options.{A_R}_custom:      [N x N x M] Custom covariance matrix over frequency for mode_{A,R} = 'custom'
+%options.{A,R,E}_theta_phi:   [N_{A,R,E}_theta_phi x 2]  Steering directions (theta, phi) to compute {A,R,E} for mode_{A,R,E} = 'direction'
+%options.{A,R,E}_custom:      [N x N x M] Custom covariance matrix over frequency for mode_{A,R} = 'custom', options.mode_E = 'custom'
+%options.{A,R,E}_min_eig:     Minimum eigenvalue of covariance matrix
 
 %options.wt:            [] or [N x M]   Frequency weighting per channel / frequency. If empty, treat channels as equal-weighted
 
@@ -69,6 +71,8 @@ function [W, h_figs] = bf_grq_sh(C_arr, is_real, freq, tau_tgt, mode_sol, mode_A
 %options.tau_margin:    Scalar, margin size to shrink tau limits in bounded GRQ target tau 
 
 %options.mode_spec:     String, averaging method {'max', 'wabs', 'iwabs', 'sq', 'wsq', 'iwsq'} for mode_sol = {'spec', 'spec-nowt'}
+
+%options.mode_E:        String, spatial covariance compute method for covariance matrix E {'uniform', 'density', 'direction', 'custom'}
 
 %options.enable_disp:       Logical, if true, display beampattern and statistics
 %options.disp_hplane:       Logical, if true, display horizontal plane beam pattern
@@ -170,8 +174,14 @@ arguments
 
     options.mode_spec (1,:) char {mustBeMember(options.mode_spec, {'max', 'wabs', 'iwabs', 'sq', 'wsq', 'iwsq'} )} = 'max';
 
+    options.mode_E   (1,:) char {mustBeMember(options.mode_E, {'uniform', 'density', 'direction', 'custom'} )} = 'density';
+    options.E_pdf (:,1) double {coder.mustBeComplex} = sh_pdf_preset('FwdCenter', 'SqExp', 8, is_real, 'ell', 1.25);
+    options.E_theta_phi (:,2) double = [pi/2 0];
+    options.E_custom (:,:,:) double  {coder.mustBeComplex} = [];
+
     options.A_min_eig (1,1) double {mustBeNonnegative} = 1e-8;
     options.R_min_eig (1,1) double {mustBeNonnegative}= 1e-8;
+    options.E_min_eig (1,1) double {mustBeNonnegative}= 1e-8;
 
     options.enable_disp (1,1) logical = false;
     options.disp_hplane (1,1) logical = true;
@@ -425,29 +435,68 @@ elseif any(strcmp(mode_sol, {'proj-nowt', 'sensitivity-nowt'}))
         
     end
 
-elseif strcmp(mode_sol, 'efficiency')
+elseif any(strcmp(mode_sol, {'efficiency', 'efficiency-nowt'}))
 
-    % Compute beamformer target
-    [tau, h_fig_tau] = bf_grq_tau_tgt(A, R, freq, tau_tgt, varargin_tau_tgt{:});
-
-    % Compute beamformer weights
-    for m = 1:M
-        W(:, m) = bf_grq_mecd(A_nowt(:,:,m), A(:,:,m), R(:,:,m), tau(m));
+    % Compute covariance E
+    if strcmp(options.mode_E, 'uniform')
+    
+        E = sh_cov(C_arr, sh_pdf_preset('FwdCenter', 'Uniform', 0), is_real, 'SHT_center', options.center, 'SHT_wavnum', options.wavnum, ...
+            'SHT_oversample', 1, 'SHT_maxsample', 4096, 'min_eig', options.E_min_eig); % [N x N x M] Spatial covariance integrated over uniform density
+    
+    elseif strcmp(options.mode_E, 'density')
+    
+        assert(~isempty(options.E_pdf), 'options.E_pdf must be non-empty');
+    
+        E = sh_cov(C_arr, options.E_pdf, is_real, 'SHT_center', options.center, 'SHT_wavnum', options.wavnum, ...
+            'SHT_oversample', 1, 'SHT_maxsample', 4096, 'min_eig', options.E_min_eig); % [N x N x M] Spatial covariance integrated over density function E_pdf
+    
+    elseif strcmp(options.mode_E, 'direction')
+    
+        assert(~isempty(options.E_theta_phi), 'options.E_theta_phi must be non-empty');
+      
+        E = sh_cov(C_arr, [], is_real, 'mode', 'discrete', 'D_theta_phi', options.E_theta_phi, ...
+          'SHT_center', options.center, 'SHT_wavnum', options.wavnum, ...
+          'SHT_oversample', 1, 'SHT_maxsample', 4096, 'min_eig', options.E_min_eig); % [N x N x M] Spatial covariance integrated over discrete directions E_theta_phi
+    
+    elseif strcmp(options.mode_E, 'custom')
+    
+        assert(isequal(size(options.E_custom), [N, N, M]), 'options.E_custom size mismatch [N x N x M]');
+    
+        E = options.R_custom;
+    
+    else
+        error('Unknown options.mode_E');
     end
 
-elseif strcmp(mode_sol, 'efficiency-nowt')
+
+    if strcmp(mode_sol, 'efficiency')
+
+        % Compute beamformer target
+        [tau, h_fig_tau] = bf_grq_tau_tgt(A, R, freq, tau_tgt, varargin_tau_tgt{:});
     
-    assert(~isempty(wt), 'Requires non-empty options.wt');
+        % Compute beamformer weights
+        for m = 1:M
+            W(:, m) = bf_grq_mecd(E(:,:,m), A(:,:,m), R(:,:,m), tau(m));
+        end
 
-    % Compute beamformer weights for non-weighted GRQ constraints, and weighted efficiency covariance:
-    % Maximize frequency weighted W'*A*W s.t. W'*W = 1, GRQ(A_nowt, R_nowt, W) = tau constraints
+    elseif strcmp(mode_sol, 'efficiency-nowt')
+    
+        assert(~isempty(wt), 'Requires non-empty options.wt');
+    
+        % Compute beamformer weights for non-weighted GRQ constraints, and weighted efficiency covariance:
+        % Maximize frequency weighted W'*A*W s.t. W'*W = 1, GRQ(A_nowt, R_nowt, W) = tau constraints
+    
+        % Compute beamformer target
+        [tau, h_fig_tau] = bf_grq_tau_tgt(A_nowt, R_nowt, freq, tau_tgt, varargin_tau_tgt{:});
+    
+        % Compute beamformer weights
+        for m = 1:M
+            E_wt_m = E(:,:,m) .* (wt(:,m) * wt(:,m)'); % Weighted efficiency covariance
+            W(:, m) = bf_grq_mecd(E_wt_m, A_nowt(:,:,m), R_nowt(:,:,m), tau(m));
+        end
 
-    % Compute beamformer target
-    [tau, h_fig_tau] = bf_grq_tau_tgt(A_nowt, R_nowt, freq, tau_tgt, varargin_tau_tgt{:});
-
-    % Compute beamformer weights
-    for m = 1:M
-        W(:, m) = bf_grq_mecd(A_wt(:,:,m), A_nowt(:,:,m), R_nowt(:,:,m), tau(m));
+    else
+        error('Unsupported mode_sol');
     end
 
 else
