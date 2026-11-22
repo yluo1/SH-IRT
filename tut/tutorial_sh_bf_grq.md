@@ -210,7 +210,7 @@ where Hermitian matrix $`\bf{D} = \bf{A} - \tau \bf{R} \in \mathbb{C}^{N \times 
 
 In practice, the GDI targets $\tau(\omega)$ must fit between the generalized eigenvalue's extrema over frequency. A smooth $\tau(\omega)$ is a necessary but not sufficient condition for a smooth set of beamformer weights $\bf{w}(\omega)$. When $\tau$ is neither extrema, multiple $\bf{y}$ satisfy the GRQ constraints, which affords optionality in the choice of objective functions, and domain constraints in beamformer designs. Bounded and smoothed GDI targets can be fitted to a desired input GDI curve given the spatial covariance matrices $`\bf{A}(\omega)`$, $`\bf{R}(\omega)`$ over frequency in the function [bf_grq_tau_tgt](../bf/bf_grq_tau_tgt.m). Several sample GDI targets are shown for the loudspeaker piston array example:
 
-| $\tau=6$ dB |  $\tau=0$ dB |  $\tau=-12$ dB | 
+| $\tau=6$ (dB) |  $\tau=0$ (dB) |  $\tau=-12$ (dB) | 
 | :---: |  :---: |  :---: | 
 | <img src="../figs/figs_bf/grq_mixed/bf_sensitivity_tau_6_tau_tgt.png" width="400"/>   | <img src="../figs/figs_bf/grq_mixed/bf_sensitivity_tau_0_tau_tgt.png" width="400"/>   | <img src="../figs/figs_bf/grq_mixed/bf_sensitivity_tau_-12_tau_tgt.png" width="400"/>   |  
 
@@ -243,7 +243,7 @@ plot_bf_grq_sh_example('spec', 0, false);
 plot_bf_grq_sh_example('spec', 0, true); 	% Channel Weighted
 ```
 
-|   Beamformer Response $\tau = 6$ (dB) |  Beamformer Statistics $\tau = 6$ (dB) | Beamformer Response  $\tau = 0$ (dB)  |  Beamformer Statistics $\tau = 0$ (dB)| 
+|   Beamformer Response: $\tau = 6$ (dB) |  Beamformer Statistics: $\tau = 6$ (dB) | Beamformer Response:  $\tau = 0$ (dB)  |  Beamformer Statistics: $\tau = 0$ (dB)| 
 | :---: |  :---: | :---: |  :---: | 
 <img src="../figs/figs_bf/grq_mixed/bf_spec_tau_6_bp.png" width="600"/>   | <img src="../figs/figs_bf/grq_mixed/bf_spec_tau_6_bs.png" width="420"/>   |<img src="../figs/figs_bf/grq_mixed/bf_spec_tau_0_bp.png" width="600"/>   | <img src="../figs/figs_bf/grq_mixed/bf_spec_tau_0_bs.png" width="420"/>   |
 <img src="../figs/figs_bf/grq_mixed/bf_spec_tau_6_wt_bp.png" width="600"/>   | <img src="../figs/figs_bf/grq_mixed/bf_spec_tau_6_wt_bs.png" width="420"/>   |<img src="../figs/figs_bf/grq_mixed/bf_spec_tau_0_wt_bp.png" width="600"/>   | <img src="../figs/figs_bf/grq_mixed/bf_spec_tau_0_wt_bs.png" width="420"/>   |
@@ -269,7 +269,7 @@ plot_bf_grq_sh_example('proj', 0, false);
 plot_bf_grq_sh_example('proj', 0, true); 	% Channel Weighted
 ```
 
-|   Beamformer Response $\tau = 6$ (dB) |  Beamformer Statistics $\tau = 6$ (dB) | Beamformer Response  $\tau = 0$ (dB)  |  Beamformer Statistics $\tau = 0$ (dB)| 
+|   Beamformer Response: $\tau = 6$ (dB) |  Beamformer Statistics: $\tau = 6$ (dB) | Beamformer Response:  $\tau = 0$ (dB)  |  Beamformer Statistics: $\tau = 0$ (dB)| 
 | :---: |  :---: | :---: |  :---: | 
 <img src="../figs/figs_bf/grq_mixed/bf_proj_tau_6_bp.png" width="600"/>   | <img src="../figs/figs_bf/grq_mixed/bf_proj_tau_6_bs.png" width="420"/>   |<img src="../figs/figs_bf/grq_mixed/bf_proj_tau_0_bp.png" width="600"/>   | <img src="../figs/figs_bf/grq_mixed/bf_proj_tau_0_bs.png" width="420"/>   |
 <img src="../figs/figs_bf/grq_mixed/bf_proj_tau_6_wt_bp.png" width="600"/>   | <img src="../figs/figs_bf/grq_mixed/bf_proj_tau_6_wt_bs.png" width="420"/>   |<img src="../figs/figs_bf/grq_mixed/bf_proj_tau_0_wt_bp.png" width="600"/>   | <img src="../figs/figs_bf/grq_mixed/bf_proj_tau_0_wt_bs.png" width="420"/>   |
@@ -296,7 +296,7 @@ plot_bf_grq_sh_example('sensitivity', 0, false);
 plot_bf_grq_sh_example('sensitivity', 0, true); 	% Channel Weighted
 ```
 
-|   Beamformer Response $\tau = 6$ (dB) |  Beamformer Statistics $\tau = 6$ (dB) | Beamformer Response  $\tau = 0$ (dB)  |  Beamformer Statistics $\tau = 0$ (dB)| 
+|   Beamformer Response: $\tau = 6$ (dB) |  Beamformer Statistics: $\tau = 6$ (dB) | Beamformer Response:  $\tau = 0$ (dB)  |  Beamformer Statistics: $\tau = 0$ (dB)| 
 | :---: |  :---: | :---: |  :---: | 
 <img src="../figs/figs_bf/grq_mixed/bf_sensitivity_tau_6_bp.png" width="600"/>   | <img src="../figs/figs_bf/grq_mixed/bf_sensitivity_tau_6_bs.png" width="420"/>   |<img src="../figs/figs_bf/grq_mixed/bf_sensitivity_tau_0_bp.png" width="600"/>   | <img src="../figs/figs_bf/grq_mixed/bf_sensitivity_tau_0_bs.png" width="420"/>   |
 <img src="../figs/figs_bf/grq_mixed/bf_sensitivity_tau_6_wt_bp.png" width="600"/>   | <img src="../figs/figs_bf/grq_mixed/bf_sensitivity_tau_6_wt_bs.png" width="420"/>   |<img src="../figs/figs_bf/grq_mixed/bf_sensitivity_tau_0_wt_bp.png" width="600"/>   | <img src="../figs/figs_bf/grq_mixed/bf_sensitivity_tau_0_wt_bs.png" width="420"/>   |
@@ -322,7 +322,7 @@ plot_bf_grq_sh_example('efficiency', 0, false);
 plot_bf_grq_sh_example('efficiency', 0, true); 	% Channel Weighted
 ```
 
-|   Beamformer Response $\tau = 6$ (dB) |  Beamformer Statistics $\tau = 6$ (dB) | Beamformer Response  $\tau = 0$ (dB)  |  Beamformer Statistics $\tau = 0$ (dB)| 
+|   Beamformer Response: $\tau = 6$ (dB) |  Beamformer Statistics: $\tau = 6$ (dB) | Beamformer Response:  $\tau = 0$ (dB)  |  Beamformer Statistics: $\tau = 0$ (dB)| 
 | :---: |  :---: | :---: |  :---: | 
 <img src="../figs/figs_bf/grq_mixed/bf_efficiency_tau_6_bp.png" width="600"/>   | <img src="../figs/figs_bf/grq_mixed/bf_efficiency_tau_6_bs.png" width="420"/>   |<img src="../figs/figs_bf/grq_mixed/bf_efficiency_tau_0_bp.png" width="600"/>   | <img src="../figs/figs_bf/grq_mixed/bf_efficiency_tau_0_bs.png" width="420"/>   |
 <img src="../figs/figs_bf/grq_mixed/bf_efficiency_tau_6_wt_bp.png" width="600"/>   | <img src="../figs/figs_bf/grq_mixed/bf_efficiency_tau_6_wt_bs.png" width="420"/>   |<img src="../figs/figs_bf/grq_mixed/bf_efficiency_tau_0_wt_bp.png" width="600"/>   | <img src="../figs/figs_bf/grq_mixed/bf_efficiency_tau_0_wt_bs.png" width="420"/>   |
