@@ -61,6 +61,7 @@ startup
 
  Spherical Harmonic Arrays and Beamforming
   * [Part I: Setup, specifications, and Capon Beamformer Designs](tut/tutorial_sh_bf_arr.md)
+  * [Part II: Generalized Rayleigh Quotient Beamformer Designs for Heterogeneous Arrays](tut/tutorial_sh_bf_grq.md)
 
 ## References
 

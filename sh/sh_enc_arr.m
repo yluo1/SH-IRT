@@ -37,6 +37,7 @@ function [C, center, h_figs] = sh_enc_arr(max_odr, mode, N, radius, delay_dist, 
 %options.custom_cartesian:  [3 x N] custom cartesian coordinates for mode = 'uni_custom'
 %options.custom_theta_phi:  [2 x N] custom spherical coordinates (radians) for mode = 'spis_custom'
 %options.custom_rot_zyx:    [3 x N] custom zyx intrinsic Tait-Bryan rotation angles (radians) for mode = 'fit_rot_custom'
+%options.custom_C:          [(max_odr + 1)^2 x M]  SH expansion for mode = 'fit_rot_custom'
 
 %options.noncentered:   Logical, if true, use non-centered expansion center coordinates
 
