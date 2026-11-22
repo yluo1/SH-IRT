@@ -146,7 +146,7 @@ The beamformer's directivity index is smooth and near constant at low-frequency,
 
 * The sound power levels in the spinorama heavily attenuates in high-frequency, and quickly rolls-off off-axis due to the increased directivity. In the mid-frequencies, sound power and early reflections increases while listening window power decreases due to the boosts in the forward and rear pistons. This results in a temporary dip to the SPDI.
 
-In practice, this homogeneous piston array would be too directive in high-frequency for a center channel beamformer design. The transducer spacings are also too disparately angled to optimize for custom spatial windows used in specialized beamformer designs such as cross-talk cancellation, and ceiling/side wall surround beams. Many loudspeaker arrays also use heterogeneous pistons such as tweeters, midranges, and woofers that have varied directivity and disparate operating frequencies. Next, we consider the application of constrained GRQ beamformer designs.
+In practice, this homogeneous piston array would be too directive in high-frequency for a center channel beamformer design. The transducer spacings are also too disparately angled to optimize for custom spatial windows used in specialized beamformer designs such as cross-talk cancellation, and ceiling/side wall surround beams. Many loudspeaker arrays also use heterogeneous pistons such as tweeters, midranges, and woofers that have varied directivity and disparate operating frequencies. We can address the latter via the following channel-frequency regularized GRQ beamformer designs.
 
 
 ### Channel and Frequency Weighted Directivity
