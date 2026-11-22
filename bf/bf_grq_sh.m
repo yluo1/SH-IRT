@@ -299,6 +299,13 @@ end
 varargin_tau_tgt = {'lambda', options.tau_lambda, 'margin', options.tau_margin, 'mode', options.tau_mode, ...
     'enable_disp', options.enable_disp, 'disp_dB_lim', options.disp_tau_dB_lim};
 
+if ~isempty(options.wt)
+    varargin_tau_tgt{end+1} = 'A_nowt';
+    varargin_tau_tgt{end+1} = A_nowt;
+    varargin_tau_tgt{end+1} = 'R_nowt';
+    varargin_tau_tgt{end+1} = R_nowt;
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Compute beamformer weights
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

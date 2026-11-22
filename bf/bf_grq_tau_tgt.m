@@ -33,6 +33,10 @@ function [tau, h_fig] = bf_grq_tau_tgt(A, R, freq, tau_tgt, options)
 %options.enable_disp:       Logical, if true, display targets
 %options.disp_dB_lim:       [1 x 2] Display [min, max] dB
 
+%A_nowt:         [N x N x M]     Unweighted accept covariance matrix
+%R_nowt:         [N x N x M]     Unweighted reject covariance matrix
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Output
 %tau:       [1 x M] GRQ targets
@@ -103,6 +107,10 @@ arguments
 
     options.enable_disp (1,1) logical = false;
     options.disp_dB_lim (1,2) = [-inf inf];
+
+    options.A_nowt (:,:,:) double {coder.mustBeComplex} = [];
+    options.R_nowt (:,:,:) double {coder.mustBeComplex} = [];
+
 end
 
 [~, N, M] = size(A);
@@ -111,10 +119,14 @@ assert(isequal(size(A), size(R)), 'R size mismatch A');
 assert(numel(freq) == M, 'freq mismatch size M of A');
 
 % Compute GRQ limits over frequency
+W_min = zeros(N, M);
+W_max = zeros(N, M);
 tau_lim = zeros(2, M);
 for m = 1:M
-    [~, tau_m] = bf_grq_ex( A(:,:,m), R(:,:,m) );
+    [W_min_max_m, tau_m] = bf_grq_ex( A(:,:,m), R(:,:,m) );
     tau_lim(:, m) = max([tau_m(1); tau_m(2)], 0);  % Truncate
+    W_min(:,m) = W_min_max_m(:, 1);
+    W_max(:,m) = W_min_max_m(:, 2);
 end
 tau_lim_margin = [min(tau_lim(1,:) + options.margin, tau_lim(2,:)); ...
                   max(tau_lim(2,:) - options.margin, tau_lim(1,:)) ]; % Limits with margin
@@ -192,16 +204,51 @@ if options.enable_disp && coder.target("MATLAB")
     fontsize = 16;
     h_fig = figure; 
 
-    semilogx(freq, tau_lim_dB(1,:), 'g--', freq, tau_lim_dB(2,:), 'g-.', ...
-       freq, tau_tgt_dB, 'r-',  freq, tau_dB, 'b-.',  'linewidth', 2);
+    semilogx(freq, tau_lim_dB(2,:), 'g--', freq, tau_lim_dB(1,:), 'g-.', ...
+       freq, tau_tgt_dB, 'r-',  freq, tau_dB, 'b-.',  'linewidth', 2); hold on;
+    legend_str = {'Upper Bound', 'Lower Bound', 'Input Target', 'Output Target'};
+
+    % Compute unweighted GRQ at the GRPQ extrema
+    if ~isempty(options.A_nowt) && ~isempty(options.R_nowt)
+        assert(isequal(size(options.A_nowt), size(A) ), 'size options.A_nowt mismatch A');
+        assert(isequal(size(options.R_nowt), size(R) ), 'size options.R_nowt mismatch R');
+        tau_nowt_lim_dB = zeros(2,M);
+        tau_nowt_out_lim_dB = zeros(2,M);
+        
+        for m = 1:M
+            [~, tau_nowt_m] = bf_grq_ex( options.A_nowt(:,:,m), options.R_nowt(:,:,m) );
+            tau_nowt_lim_dB(:, m) = pow2db( max([tau_nowt_m(1); tau_nowt_m(2)], 0) );
+
+            tau_nowt_out_lim_dB(1,m) = pow2db( abs( (W_min(:,m)' * options.A_nowt(:,:,m) * W_min(:,m)) /  (W_min(:,m)' * options.R_nowt(:,:,m) * W_min(:,m)) ) );
+            tau_nowt_out_lim_dB(2,m) = pow2db( abs( (W_max(:,m)' * options.A_nowt(:,:,m) * W_max(:,m)) /  (W_max(:,m)' * options.R_nowt(:,:,m) * W_max(:,m)) ) );
+        end        
+
+        semilogx(freq, tau_nowt_lim_dB(2,:), 'm--', freq, tau_nowt_lim_dB(1,:), 'm-.', 'linewidth', 2.5);
+        legend_str{end+1} = 'Upper Bound GDI';
+        legend_str{end+1} = 'Lower Bound GDI';
+
+        semilogx(freq, tau_nowt_out_lim_dB(2,:), 'c--', freq, tau_nowt_out_lim_dB(1,:), 'c-.', 'linewidth', 2.5);
+        legend_str{end+1} = 'GDI at Upper Bound';
+        legend_str{end+1} = 'GDI at Lower Bound';
+
+        lg_num_cols = 2;
+        title_str = 'Generalized Rayleigh Penalized Quotient Targets';
+
+    else
+
+        lg_num_cols = 1;
+        title_str = 'Generalized Rayleigh Quotient Targets';
+
+    end
+    
     xlabel('Frequency (Hz)', 'fontsize', fontsize);
     ylabel('Generalized Rayleigh Quotient (dB)', 'fontsize', fontsize);
     grid on; axis tight;
     set(gca, 'fontsize', fontsize - 1);
-    h_lg = legend('Upper Bound', 'Lower Bound', 'Input Target', 'Output Target', 'location', 'best');
+    h_lg = legend(legend_str, 'location', 'best', 'NumColumns', lg_num_cols);
     set(h_lg, 'fontsize', fontsize - 1);
 
-    title('Generalized Rayleigh Quotient Targets', 'fontsize', fontsize + 1);
+    title(title_str, 'fontsize', fontsize + 1);
     ylim(options.disp_dB_lim);
 
 end
