@@ -200,9 +200,7 @@ The resulting electrical power of the beamformer weights trend towards that of t
 
 In broadband beamforming designs, it is often useful to enforce a target directivity (CD) $\tau(\omega)$ across frequency so that its beam pattern is regular. This can be specified via two quadratic equality constraints of the RQ's numerator and denominator respectively at each frequency in beamformer optimization:
 
-$$
-\tau = \textrm{RQ}(\bf{M}, \bf{x}) \quad \Rightarrow \quad \bf{y}^H \bf{\Lambda} \bf{y} = \tau, \quad \bf{y}^H \bf{y} = 1,
-$$
+$$\tau = \textrm{RQ}(\bf{M}, \bf{x}) \quad \Rightarrow \quad \bf{y}^H \bf{\Lambda} \bf{y} = \tau, \quad \bf{y}^H \bf{y} = 1,$$
 
 or alternatively as a single homogeneous quadratic constraint given by
 
