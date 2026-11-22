@@ -204,9 +204,8 @@ $$\tau = \textrm{RQ}(\bf{M}, \bf{x}) \quad \Rightarrow \quad \bf{y}^H \bf{\Lambd
 
 or alternatively as a single homogeneous quadratic constraint given by
 
-$$\tau = \textrm{GRQ}(\bf{A}, \bf{R}, \bf{w}) \quad \Rightarrow \quad 
-\bf{w}^H \bf{D} \bf{w} = 0,
-$$
+$$\tau = \textrm{GRQ}(\bf{A}, \bf{R}, \bf{w}) \quad \Rightarrow \quad \bf{w}^H \bf{D} \bf{w} = 0,$$
+
 where Hermitian matrix $`\bf{D} = \bf{A} - \tau \bf{R} \in \mathbb{C}^{N \times N}`$ is indefinite for $`\lambda_{min} < \tau < \lambda_{max}`$. 
 
 In practice, the GDI targets $\tau(\omega)$ must fit between the generalized eigenvalue's extrema over frequency. A smooth $\tau(\omega)$ is a necessary but not sufficient condition for a smooth set of beamformer weights $\bf{w}(\omega)$. When $\tau$ is neither extrema, multiple $\bf{y}$ satisfy the GRQ constraints, which affords optionality in the choice of objective functions, and domain constraints in beamformer designs. Bounded and smoothed GDI targets can be fitted to a desired input GDI curve given the spatial covariance matrices $`\bf{A}(\omega)`$, $`\bf{R}(\omega)`$ over frequency in the function [bf_grq_tau_tgt](../bf/bf_grq_tau_tgt.m). Several sample GDI targets are shown for the loudspeaker piston array example:
