@@ -194,11 +194,11 @@ where the frequency weighting introduces the gap between the maximum GDI and the
 | :---: |  :---: | 
 | <img src="../figs/figs_bf/grq_max_wt/bf_sensitivity_tau_Inf_wt_bs.png" width="400"/>   | <img src="../figs/figs_bf/grq_max_wt/bf_sensitivity_tau_Inf_wt_spin.png" width="400"/>   | 
 
-The resulting electrical power of the beamformer weights trend towards that of the input frequency weighting similar to a traditional crossover network. 
+The resulting electrical power of the beamformer weights trend towards that of the input frequency weighting similar to a traditional crossover network. Next we consider the non-extrema cases where GRPQ or GDI can be specified as constraints in the beamformer’s design.
 
 ## Constant Directivity Beamformer Designs
 
-In broadband beamforming designs, it is often useful to enforce a target directivity (CD) $\tau(\omega)$ across frequency so that its beam pattern is regular. This can be specified via two quadratic equality constraints of the RQ's numerator and denominator respectively at each frequency in beamformer optimization:
+In broadband beamforming designs, it is often useful to enforce a target directivity $\tau(\omega)$ across frequency so that its beam pattern is regular. This can be specified via two quadratic equality constraints of the RQ's numerator and denominator respectively at each frequency in beamformer optimization:
 
 $$\tau = \textrm{RQ}(\bf{M}, \bf{x}) \quad \Rightarrow \quad \bf{y}^H \bf{\Lambda} \bf{y} = \tau, \quad \bf{y}^H \bf{y} = 1,$$
 
@@ -214,7 +214,7 @@ In practice, the GDI targets $\tau(\omega)$ must fit between the generalized eig
 | :---: |  :---: |  :---: | 
 | <img src="../figs/figs_bf/grq_mixed/bf_sensitivity_tau_6_tau_tgt.png" width="400"/>   | <img src="../figs/figs_bf/grq_mixed/bf_sensitivity_tau_0_tau_tgt.png" width="400"/>   | <img src="../figs/figs_bf/grq_mixed/bf_sensitivity_tau_-12_tau_tgt.png" width="400"/>   |  
 
-whereby the fitted GDI target curve minimizes a least-squares fitting error penalized by the squared finite difference approximation of the curve’s second-derivative. The latter penalty term can be specified via the `tau_lambda` options in the spherical harmonic GRQ design function [bf_grq_sh.m](../bf/bf_grq_sh.m). Next, we consider several beamformer design objectives subject to the constant GDI constraint.
+whereby the fitted GDI target curve minimizes a least-squares fitting error penalized by the squared finite difference approximation of the curve’s second-derivative. The latter penalty term can be specified via the `tau_lambda` options in the spherical harmonic GRQ design function [bf_grq_sh.m](../bf/bf_grq_sh.m). Let us consider several beamformer design objectives subject to the equality GDI constraints.
 
 ### Minimum Spectral Norm
 
